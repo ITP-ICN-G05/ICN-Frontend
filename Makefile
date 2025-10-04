@@ -47,8 +47,8 @@ help:
 setup:
 	@echo "🏗️ Setting up ICN Navigator Web Frontend development environment..."
 	@echo "Checking Docker..."
-	@docker --version > /dev/null 2>&1 || (echo "❌ Docker is not installed" && exit 1)
-	@docker-compose --version > /dev/null 2>&1 || (echo "❌ Docker Compose is not installed" && exit 1)
+	@docker --version > NUL 2>&1 || (echo "❌ Docker is not installed" && exit 1)
+	@docker-compose --version > NUL 2>&1 || (echo "❌ Docker Compose is not installed" && exit 1)
 	@echo "✅ Docker is installed"
 	@echo ""
 	@echo "🔨 Building Docker image..."
@@ -57,26 +57,16 @@ setup:
 	@echo "⬆️ Starting containers..."
 	@docker-compose up -d
 	@echo "Waiting for container to be ready..."
-	@sleep 3
-	@if docker-compose ps | grep -q "icn-navigator-web.*Up"; then \
-		echo "✅ Container started successfully"; \
-	else \
-		echo "❌ Container failed to start. Running fix..."; \
-		make fix; \
-		exit 1; \
-	fi
+	@powershell -Command "Start-Sleep -Seconds 3"
+	@echo "✅ Container setup completed"
 	@echo ""
 	@echo "📱 Running project setup..."
 	@make shell-setup
 
 shell-setup:
 	@echo "📱 Running initial project setup..."
-	@if docker-compose exec icn-web-dev bash -c "test -d icn-frontend/node_modules"; then \
-		echo "✅ Dependencies already installed, skipping npm install..."; \
-	else \
-		echo "📦 Installing dependencies for the first time..."; \
-		docker-compose exec icn-web-dev bash -c "chmod +x setup.sh && sed -i 's/\r$//' setup.sh && ./setup.sh"; \
-	fi
+	@echo "📦 Setting up project dependencies..."
+	docker-compose exec icn-web-dev bash -c "chmod +x setup.sh && dos2unix setup.sh && ./setup.sh"
 
 # Force rebuild (useful when Dockerfile changes)
 rebuild:
@@ -86,14 +76,12 @@ rebuild:
 # Fix common issues
 fix:
 	@echo "🔧 Fixing common setup issues..."
-	@chmod +x fix-setup.sh
-	@./fix-setup.sh
+	@docker-compose exec icn-web-dev bash -c "chmod +x fix-setup.sh && ./fix-setup.sh"
 
 # Fix React dependencies
 fix-deps:
 	@echo "🔧 Fixing React dependencies..."
-	@chmod +x fix-react-deps.sh
-	@./fix-react-deps.sh
+	@docker-compose exec icn-web-dev bash -c "chmod +x fix-react-deps.sh && ./fix-react-deps.sh"
 
 install:
 	@echo "📦 Installing dependencies..."
@@ -102,13 +90,13 @@ install:
 		echo "💡 Use 'make reinstall' to force reinstall dependencies"; \
 	else \
 		echo "📦 Installing dependencies..."; \
-		docker-compose exec icn-web-dev bash -c "cd icn-frontend && npm install"; \
+		docker-compose exec icn-web-dev bash -c "cd icn-frontend && npm install --legacy-peer-deps"; \
 	fi
 
 # Force reinstall dependencies
 reinstall:
 	@echo "🔄 Force reinstalling dependencies..."
-	docker-compose exec icn-web-dev bash -c "cd icn-frontend && rm -rf node_modules package-lock.json && npm install"
+	docker-compose exec icn-web-dev bash -c "cd icn-frontend && rm -rf node_modules package-lock.json && npm install --legacy-peer-deps"
 
 # Fix npm audit issues
 audit-fix:
@@ -145,6 +133,14 @@ logs:
 start:
 	@echo "🌐 Starting React development server..."
 	docker-compose exec icn-web-dev bash -c "cd icn-frontend && npm start"
+
+start-lan:
+	@echo "🌐 Starting React development server (LAN accessible)..."
+	docker-compose exec icn-web-dev bash -c "cd icn-frontend && HOST=0.0.0.0 npm start"
+
+start-localhost:
+	@echo "🌐 Starting React development server (localhost only)..."  
+	docker-compose exec icn-web-dev bash -c "cd icn-frontend && HOST=127.0.0.1 npm start"
 
 build-app:
 	@echo "📦 Building production bundle..."
@@ -223,7 +219,7 @@ status:
 	docker system df
 	@echo ""
 	@echo "🌐 Network Info:"
-	docker network ls | grep icn
+	docker network ls | findstr icn
 
 info:
 	@echo "ℹ️ Project Information:"

@@ -29,6 +29,9 @@ print_header() {
     echo -e "${BLUE}[STEP]${NC} $1"
 }
 
+# Ensure npm installs use legacy peer dependency resolution to avoid peer conflicts
+export npm_config_legacy_peer_deps=true
+
 # Check if we're in the correct directory
 if [ ! -f "Dockerfile" ]; then
     print_error "Dockerfile not found. Please run this script from the project root directory."

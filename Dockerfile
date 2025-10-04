@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     curl \
+    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
