@@ -1,0 +1,29 @@
+services:
+  icn-web-dev:
+    build: .
+    container_name: icn-navigator-web
+    command: tail -f /dev/null
+    ports:
+      - "3000:3000"     # React dev server
+      - "3001:3001"     # React dev server websocket
+    volumes:
+      - .:/app
+      - /app/icn-frontend/node_modules
+      - npm_cache:/root/.npm
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=1
+      - WATCHPACK_POLLING=true
+      - WDS_SOCKET_PORT=3000
+      - REACT_APP_API_URL=http://localhost:8080
+    stdin_open: true
+    tty: true
+    networks:
+      - icn-network
+
+volumes:
+  npm_cache:
+
+networks:
+  icn-network:
+    driver: bridge

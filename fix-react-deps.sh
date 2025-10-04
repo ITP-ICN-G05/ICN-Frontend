@@ -1,3 +1,14 @@
+#!/bin/bash
+
+# Fix React Dependencies Script
+echo "🔧 Fixing React dependencies..."
+
+# Enter the container and fix dependencies
+docker-compose exec icn-web-dev bash -c '
+cd icn-frontend
+
+echo "📦 Creating proper package.json..."
+cat > package.json << '\''EOF'\''
 {
   "name": "icn-frontend",
   "version": "0.1.0",
@@ -81,3 +92,16 @@
     ]
   }
 }
+EOF
+
+echo "📦 Installing dependencies (this may take a moment)..."
+npm install
+
+echo "✅ Dependencies installed successfully!"
+echo ""
+echo "Testing if react-scripts is available..."
+npx react-scripts --version && echo "✅ react-scripts is working!" || echo "❌ react-scripts still not found"
+'
+
+echo ""
+echo "🎉 Fix completed! Now try: make start"
