@@ -1,18 +1,25 @@
 # ICN Navigator Web Frontend
 
-This is the **web frontend** for the ICN Navigator project, built with [React](https://react.dev/) and [TypeScript](https://www.typescriptlang.org/).  
+This is the **web frontend** for the ICN Navigator project, built with [React](https://react.dev/) using JavaScript, HTML, and CSS.  
 It connects to the Spring Boot backend via REST APIs.
 
-## ✨ Latest Improvements
+## ✨ Features
 
-**Smart Development Environment (v2.0)**
-- 🔧 **Idempotent Setup**: `make setup` can be run multiple times safely
+**Docker Development Environment**
+- 🔧 **Containerized Setup**: Consistent development environment across all machines
 - 📦 **Smart Dependency Management**: Automatic detection and skip-if-exists logic
-- 🌐 **Docker Containerization**: Consistent development environment across teams
-- 🔍 **Comprehensive Diagnostics**: New `make diagnose` command for troubleshooting
-- 💻 **Cross-Platform**: Windows line ending fixes and enhanced compatibility
-- ⚡ **Performance**: Hot reload, fast refresh, and optimized builds
-- 🎨 **Material-UI Integration**: Professional UI components out of the box
+- 🌐 **Docker Isolation**: No system pollution, everything runs in containers
+- 🔍 **Comprehensive Diagnostics**: Built-in troubleshooting commands
+- 💻 **Cross-Platform**: Works on Windows, Mac, and Linux
+- ⚡ **Hot Reload**: Instant feedback during development
+
+**Tech Stack**
+- **React 18** - Modern React with hooks and functional components
+- **JavaScript** - Plain JavaScript (no TypeScript complexity)
+- **HTML5 & CSS3** - Standard web technologies
+- **React Router** - Client-side routing
+- **Axios** - HTTP client for API calls
+- **Redux Toolkit** - State management (optional, can be removed if not needed)
 
 ---
 
@@ -21,7 +28,6 @@ It connects to the Spring Boot backend via REST APIs.
 ### Prerequisites
 - Docker and Docker Compose
 - Git
-- Google OAuth Client ID (for authentication)
 
 ### Installation
 ```bash
@@ -29,13 +35,11 @@ It connects to the Spring Boot backend via REST APIs.
 git clone git@github.com:ITP-ICN-G05/ICN-Frontend.git
 cd ICN-Frontend
 
-# Initial setup (smart setup - idempotent)
+# Initial setup (one-time only)
 make setup
 
-# Alternative setup commands
-make rebuild     # Force rebuild Docker images
-make reinstall   # Force reinstall dependencies
-make audit-fix   # Fix npm audit issues
+# If you encounter issues
+make fix-deps
 ```
 
 ### Running the Application
@@ -48,8 +52,8 @@ make up
 make start
 ```
 * The app runs at http://localhost:3000
-* Hot reload is enabled for instant feedback
-* Backend API is configured at http://localhost:8080
+* Hot reload is enabled for instant updates
+* Backend API is expected at http://localhost:8080
 
 ## 🔌 API Configuration
 
@@ -58,95 +62,73 @@ make start
 # Enter container shell
 make shell
 
-# Navigate to React project and set up environment
+# Navigate to React project
 cd icn-frontend
+
+# Create environment file
 cp .env.example .env.development.local
-# Edit .env.development.local with your actual configuration
+# Edit .env.development.local with your configuration
 ```
 
-### Required Environment Variables
+### Environment Variables
 ```bash
 # API Configuration
 REACT_APP_API_URL=http://localhost:8080
 
-# Google OAuth Configuration
-REACT_APP_GOOGLE_CLIENT_ID=your_google_client_id
-
-# LinkedIn OAuth Configuration  
-REACT_APP_LINKEDIN_CLIENT_ID=your_linkedin_client_id
-
-# Environment
+# Feature Flags (optional)
 REACT_APP_ENV=development
-
-# Feature Flags
-REACT_APP_ENABLE_ANALYTICS=false
-REACT_APP_ENABLE_MOCK_DATA=false
 ```
-
-### Backend Integration
-* API client is located in `src/services/api.ts`
-* Axios interceptors handle authentication automatically
-* Error responses are handled globally
-* Backend runs in Docker container, accessible from web development container
 
 ## 📁 Project Structure
 ```
 ICN-Frontend/
 ├── README.md                # Documentation
-├── LICENSE                  # MIT LICENSE
-├── DEV_GUIDELINES.md        # Developer guidelines
 ├── Dockerfile               # Docker container configuration
 ├── docker-compose.yml       # Container orchestration
 ├── Makefile                 # Development commands
 ├── setup.sh                 # Automated setup script
 └── icn-frontend/            # React project
     ├── src/                 # Source code
-    │   ├── components/      # Reusable UI components
-    │   │   ├── common/      # Generic components
-    │   │   ├── forms/       # Form components
-    │   │   ├── layout/      # Layout components
-    │   │   └── charts/      # Data visualization
+    │   ├── components/      # Reusable React components
     │   ├── pages/           # Page components
-    │   │   ├── auth/        # Authentication pages
-    │   │   ├── dashboard/   # Dashboard views
-    │   │   ├── companies/   # Company management
-    │   │   ├── search/      # Search functionality
-    │   │   └── profile/     # User profile
-    │   ├── services/        # API and external services
-    │   ├── store/           # Redux store configuration
-    │   │   ├── slices/      # Redux slices
-    │   │   └── middleware/  # Custom middleware
-    │   ├── hooks/           # Custom React hooks
+    │   ├── services/        # API services
+    │   ├── styles/          # CSS files
     │   ├── utils/           # Utility functions
-    │   ├── styles/          # Styles and themes
-    │   ├── types/           # TypeScript definitions
-    │   └── assets/          # Static assets
-    ├── public/              # Public assets
-    ├── docs/                # Documentation
-    ├── package.json         # Dependencies and scripts
-    ├── tsconfig.json        # TypeScript configuration
-    ├── .eslintrc.json       # ESLint configuration
-    ├── .prettierrc          # Prettier configuration
-    └── .env.example         # Environment template
+    │   ├── App.js           # Main app component
+    │   ├── App.css          # App styles
+    │   ├── index.js         # Entry point
+    │   └── index.css        # Global styles
+    ├── public/              # Static files
+    │   ├── index.html       # HTML template
+    │   └── favicon.ico      # Site icon
+    └── package.json         # Dependencies
+
 ```
 
 ## 🛠 Development Commands
 
-### Setup Commands
+### Most Used Commands
 ```bash
-make setup       # Smart initial setup (skips if already built)
-make rebuild     # Force rebuild Docker images
-make install     # Smart dependency install (skips if exists)
-make reinstall   # Force reinstall dependencies
-make audit-fix   # Fix npm audit issues
+make start       # Start React dev server
+make stop        # Stop all containers
+make shell       # Enter container shell
+make logs        # View container logs
 ```
 
-### Core Development
+### Setup & Installation
+```bash
+make setup       # Initial setup (run once)
+make rebuild     # Force rebuild Docker images
+make install     # Install dependencies
+make reinstall   # Force reinstall dependencies
+make fix-deps    # Fix dependency issues
+```
+
+### Development
 ```bash
 make dev         # Start development environment
 make start       # Start React dev server
 make build-app   # Build production bundle
-make serve-build # Serve production build
 make up          # Start containers in background
 make down        # Stop containers
 ```
@@ -156,228 +138,324 @@ make down        # Stop containers
 make lint        # Run ESLint
 make lint-fix    # Fix ESLint issues
 make format      # Format code with Prettier
-make format-check # Check code formatting
 make test        # Run tests
-make test-watch  # Run tests in watch mode
-make coverage    # Generate test coverage report
-make validate    # Run all checks (lint, format, test)
 ```
 
-### Analysis & Diagnostics
+### Troubleshooting
 ```bash
-make analyze     # Analyze bundle size
-make check-updates # Check for dependency updates
-make diagnose    # Run comprehensive diagnostics
-make status      # Check environment status
-make info        # Show project information
-```
-
-### Utility Commands
-```bash
-make shell       # Open container shell
-make logs        # View container logs
+make diagnose    # Run diagnostics
+make status      # Check container status
+make fix         # Fix common issues
 make clean       # Clean up Docker resources
-make clean-all   # Deep clean Docker resources
-make clean-cache # Clean npm cache
+make reset       # Complete environment reset
 ```
 
-### CI/CD Commands
-```bash
-make ci-test     # Run tests in CI mode
-make ci-build    # Run production build in CI mode
+## 🧪 Development Workflow
+
+### Daily Development
+1. **Start the environment**
+   ```bash
+   make start
+   ```
+
+2. **Make changes** to your code in `icn-frontend/src/`
+   - Components go in `src/components/`
+   - Pages go in `src/pages/`
+   - CSS files go in `src/styles/`
+
+3. **See changes instantly** with hot reload
+
+4. **Check code quality**
+   ```bash
+   make lint
+   make format
+   ```
+
+5. **Build for production**
+   ```bash
+   make build-app
+   ```
+
+### Creating Components
+
+Create simple React components with JavaScript:
+
+```javascript
+// src/components/CompanyCard.js
+import React from 'react';
+import './CompanyCard.css';
+
+function CompanyCard({ company }) {
+  return (
+    <div className="company-card">
+      <h3>{company.name}</h3>
+      <p>{company.description}</p>
+      <a href={company.website}>Visit Website</a>
+    </div>
+  );
+}
+
+export default CompanyCard;
 ```
 
-### Quick Actions
-```bash
-make quick-start # Build + install + start (one command)
-make reset       # Emergency reset of environment
+```css
+/* src/components/CompanyCard.css */
+.company-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 8px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.company-card h3 {
+  color: #333;
+  margin-top: 0;
+}
 ```
 
-## 🧪 Testing
-* **Unit Testing**: Jest + React Testing Library
-* **Component Testing**: UI components and interactions
-* **Integration Testing**: API connectivity and Redux flows
-* **E2E Testing**: User workflows (planned)
+### API Integration
 
-```bash
-make test        # Run all tests
-make test-watch  # Run tests in watch mode
-make coverage    # Generate coverage report
-make shell       # Enter container for advanced testing
+Simple API calls with Axios:
+
+```javascript
+// src/services/api.js
+import axios from 'axios';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
+const api = axios.create({
+  baseURL: `${API_URL}/api`,
+  timeout: 10000,
+});
+
+// Add auth token if available
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export default api;
 ```
 
-## 🎨 UI Framework
+```javascript
+// src/services/companyService.js
+import api from './api';
 
-### Technology Stack
-* **UI Library**: Material-UI (MUI) v5
-* **Theming**: Custom theme with light/dark mode support
-* **Icons**: MUI Icons + custom SVGs
-* **Forms**: React Hook Form for form management
-* **Charts**: Recharts for data visualization
-* **Date Handling**: date-fns for date operations
+export const companyService = {
+  getAll: () => api.get('/companies'),
+  getById: (id) => api.get(`/companies/${id}`),
+  create: (data) => api.post('/companies', data),
+  update: (id, data) => api.put(`/companies/${id}`, data),
+  delete: (id) => api.delete(`/companies/${id}`),
+};
+```
 
-### Design System
-* Consistent spacing and typography scales
-* Responsive design for desktop and tablet
-* Accessibility-first approach (WCAG 2.1 AA)
-* Professional color palette with theme variants
+## 🎨 Styling Approach
 
-## 🔄 State Management
+We use plain CSS for styling to keep things simple:
 
-### Redux Toolkit Architecture
-* **Auth Slice**: User authentication and session management
-* **Company Slice**: Company data and search functionality
-* **UI Slice**: Theme, sidebar, and notification management
-* Custom middleware for API integration
-* Redux DevTools enabled in development
+1. **Global styles** in `src/index.css`
+2. **Component styles** in individual CSS files next to components
+3. **Page styles** in the pages directory
+4. **Utility classes** in `src/styles/utilities.css`
 
-## 🤝 Contributing
-1. Create a feature branch: `git checkout -b feature/xyz`
-2. Start development environment: `make dev`
-3. Write tests for new functionality
-4. Ensure code passes all checks: `make validate`
-5. Test thoroughly: `make test`
-6. Commit changes: `git commit -m "feat: add xyz"`
-7. Push branch: `git push origin feature/xyz`
-8. Open a Pull Request with clear description
-
-### Code Standards
-* Use TypeScript for type safety
-* Follow ESLint and Prettier configurations
-* Write unit tests for components and utilities
-* Use functional components with React hooks
-* Implement responsive designs with MUI breakpoints
-* Follow atomic design principles for components
+Example structure:
+```
+src/
+├── components/
+│   ├── Header.js
+│   ├── Header.css
+│   ├── CompanyCard.js
+│   └── CompanyCard.css
+├── pages/
+│   ├── Dashboard.js
+│   └── Dashboard.css
+└── styles/
+    ├── variables.css    # CSS variables for colors, spacing
+    └── utilities.css    # Reusable utility classes
+```
 
 ## 🚀 Build & Deployment
 
-### Development Environment
+### Development Build
 ```bash
-make build       # Build Docker images
-make up          # Start containers in background
-make down        # Stop containers
-make build-app   # Build production bundle
+# Build for development
+make build-app
 ```
 
 ### Production Build
 ```bash
-# Build for production
-make build-app
+# Inside container
+make shell
+cd icn-frontend
+npm run build
 
-# Serve production build locally
-make serve-build
-
-# Build artifacts are in icn-frontend/build/
+# Build artifacts will be in icn-frontend/build/
 ```
 
-### Environment-Specific Builds
-* Development: `.env.development.local`
-* Staging: `.env.staging.local`
-* Production: `.env.production.local`
-
-## 🏗 Architecture
-
-### Technology Stack
-* **Framework**: React 18 with TypeScript
-* **Routing**: React Router v6
-* **State Management**: Redux Toolkit
-* **UI Components**: Material-UI (MUI) v5
-* **API Client**: Axios with interceptors
-* **Form Handling**: React Hook Form
-* **Data Visualization**: Recharts
-* **Testing**: Jest + React Testing Library
-* **Code Quality**: ESLint + Prettier + Husky
-
-### Key Features
-* Single Page Application (SPA) architecture
-* JWT-based authentication with refresh tokens
-* Real-time search with debouncing
-* Responsive design for multiple screen sizes
-* Progressive Web App capabilities (planned)
-* Docker containerized development environment
-* Comprehensive error handling and logging
+### Serve Production Build Locally
+```bash
+make serve-build
+# Visit http://localhost:3000
+```
 
 ## 🐛 Troubleshooting
 
-### Smart Setup Features
-The development environment includes intelligent setup detection:
-- **Idempotent setup**: `make setup` can be run multiple times safely
-- **Smart detection**: Skips Docker builds and dependency installs if already completed
-- **Configuration preservation**: Existing config files are not overwritten
-- **Cross-platform support**: Automatic line ending conversion for Windows
-
 ### Common Issues & Solutions
 
-#### Environment Setup Issues
+#### Port 3000 Already in Use
 ```bash
-make diagnose    # Run comprehensive diagnostics
-make status      # Check container and system status
-make reinstall   # Force reinstall dependencies
-make audit-fix   # Fix npm vulnerabilities
+# Stop any process using port 3000
+lsof -i :3000
+kill -9 <PID>
+
+# Restart containers
+make down
+make up
+make start
 ```
 
-#### Dependency Conflicts
+#### Dependencies Not Installing
 ```bash
-make reinstall   # Force clean reinstall
-make clean-cache # Clear npm cache
-make reset       # Complete environment reset
+# Fix dependencies
+make fix-deps
+
+# Or manually inside container
+make shell
+cd icn-frontend
+rm -rf node_modules package-lock.json
+npm install
 ```
 
-#### Development Server Issues
+#### Container Not Starting
 ```bash
-make logs        # View detailed container logs
-make shell       # Debug inside container
-make rebuild     # Force rebuild Docker images
+# Check Docker status
+docker ps
+
+# Reset everything
+make reset
 ```
 
-#### Build Issues
+#### Hot Reload Not Working
 ```bash
-make clean-all   # Deep clean everything
-make setup       # Fresh setup
-make ci-build    # Test production build
+# Restart the development server
+make down
+make start
 ```
 
-### Development Environment Diagnosis
+### Getting Help
 ```bash
-# Check overall system status
+# Check system status
 make status
 
-# Run comprehensive diagnostics
+# Run diagnostics
 make diagnose
 
-# View container logs
+# View logs
 make logs
 
-# Enter container for manual debugging
+# Enter container for debugging
 make shell
 ```
 
-### Performance Optimization
-- React.memo for expensive components
-- Code splitting with React.lazy
-- Bundle size analysis with source-map-explorer
-- Image optimization and lazy loading
-- Virtual scrolling for large lists
+## 🤝 Contributing
 
-## 📚 Documentation
-* **Architecture Guide**: System design and patterns
-* **API Integration**: Backend connectivity and data flow
-* **Component Library**: Reusable UI components
-* **Style Guide**: Design system and theming
-* **Testing Guide**: Unit and integration testing practices
-* **Deployment Guide**: Production deployment strategies
+### Development Process
+1. Create a feature branch: `git checkout -b feature/your-feature`
+2. Start development: `make dev`
+3. Make your changes
+4. Test your changes: `make test`
+5. Format code: `make format`
+6. Commit changes: `git commit -m "feat: add new feature"`
+7. Push to GitHub: `git push origin feature/your-feature`
+8. Create a Pull Request
 
-## 🛠 Tools
-* Docker containerized development environment
-* Material-UI component library
-* Redux DevTools for state debugging
-* React Developer Tools
-* Source Map Explorer for bundle analysis
-* Make commands for streamlined workflow
+### Code Style Guidelines
+- Use functional components with hooks
+- Keep components small and focused
+- Use meaningful variable and function names
+- Add comments for complex logic
+- Organize imports (React first, then external libs, then local files)
+- Keep CSS simple and maintainable
 
-## 📈 Performance Metrics
-* Initial load time: < 3 seconds
-* Time to interactive: < 5 seconds  
-* Lighthouse score: > 90
-* Bundle size: < 500KB gzipped
-* Test coverage: > 80%
+### Example Component Structure
+```javascript
+// Good component example
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import './MyComponent.css';
+
+function MyComponent({ prop1, prop2 }) {
+  // State
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  
+  // Effects
+  useEffect(() => {
+    fetchData();
+  }, []);
+  
+  // Methods
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get('/api/data');
+      setData(response.data);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Render
+  if (loading) return <div>Loading...</div>;
+  
+  return (
+    <div className="my-component">
+      <h2>{prop1}</h2>
+      <p>{prop2}</p>
+      {data && <div>{data.content}</div>}
+    </div>
+  );
+}
+
+export default MyComponent;
+```
+
+## 📚 Resources
+
+### Learning Resources
+- [React Documentation](https://react.dev/)
+- [React Router](https://reactrouter.com/)
+- [Axios Documentation](https://axios-http.com/)
+- [CSS Tricks](https://css-tricks.com/)
+- [MDN Web Docs](https://developer.mozilla.org/)
+
+### Project Links
+- Backend API: http://localhost:8080
+- Frontend App: http://localhost:3000
+- API Documentation: http://localhost:8080/swagger-ui.html
+
+## 📈 Performance Tips
+
+1. **Keep components simple** - Break down complex components
+2. **Use React.memo** for expensive components
+3. **Lazy load routes** with React.lazy()
+4. **Optimize images** - Use appropriate formats and sizes
+5. **Minimize CSS** - Remove unused styles
+6. **Use production build** for deployment
+
+## 🔒 Security Notes
+
+- Never commit `.env` files with real credentials
+- Store sensitive data in environment variables
+- Validate user input on both frontend and backend
+- Use HTTPS in production
+- Implement proper authentication and authorization
+

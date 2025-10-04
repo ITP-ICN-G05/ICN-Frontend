@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# ICN Navigator Web Frontend Setup Script
-# This script initializes the React web project according to Sprint 2 specifications
+# ICN Navigator Web Frontend Setup Script (JavaScript Version)
+# This script initializes the React web project with plain JavaScript
 
-echo "🚀 ICN Navigator Web Frontend Setup Starting..."
+echo "🚀 ICN Navigator Web Frontend Setup Starting (JavaScript)..."
 
 # Color codes for output
 RED='\033[0;31m'
@@ -36,13 +36,13 @@ if [ ! -f "Dockerfile" ]; then
 fi
 
 # Step 1: Create or navigate to React project
-print_header "Setting up React project..."
+print_header "Setting up React project with JavaScript..."
 if [ ! -d "icn-frontend" ]; then
     print_status "Creating project directory..."
     mkdir -p icn-frontend
     cd icn-frontend
     
-    # Initialize package.json
+    # Initialize package.json for JavaScript React
     print_status "Initializing package.json..."
     cat > package.json << 'PACKAGE_JSON'
 {
@@ -53,7 +53,6 @@ if [ ! -d "icn-frontend" ]; then
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-    "typescript": "^5.0.0",
     "web-vitals": "^3.0.0"
   },
   "scripts": {
@@ -95,49 +94,33 @@ npm install
 print_header "Installing additional dependencies..."
 npm install --save \
     react-router-dom \
-    @types/react \
-    @types/react-dom \
-    @types/react-router-dom \
     axios \
     @reduxjs/toolkit \
     react-redux \
-    @mui/material \
-    @emotion/react \
-    @emotion/styled \
-    @mui/icons-material \
-    react-hook-form \
-    recharts \
-    date-fns \
     lodash \
-    @types/lodash
+    date-fns
 
 # Step 3: Install development dependencies
 print_header "Installing development dependencies..."
 npm install --save-dev \
-    @typescript-eslint/eslint-plugin \
-    @typescript-eslint/parser \
+    eslint \
+    prettier \
     eslint-config-prettier \
     eslint-plugin-prettier \
-    prettier \
-    husky \
-    lint-staged \
+    eslint-plugin-react \
+    eslint-plugin-react-hooks \
     @testing-library/react \
     @testing-library/jest-dom \
-    @testing-library/user-event \
-    @types/jest \
-    source-map-explorer \
-    cross-env
+    @testing-library/user-event
 
 # Step 4: Create project structure
 print_header "Creating project directory structure..."
-mkdir -p src/{components,pages,services,hooks,store,utils,styles,assets,types}
-mkdir -p src/components/{common,forms,layout,charts}
-mkdir -p src/pages/{auth,dashboard,companies,search,profile,settings}
-mkdir -p src/store/{slices,middleware}
-mkdir -p src/assets/{images,icons,fonts}
-mkdir -p src/styles/{themes,components}
+mkdir -p src/{components,pages,services,utils,styles,assets}
+mkdir -p src/components/{common,layout,forms}
+mkdir -p src/pages/{auth,dashboard,companies,search,profile}
+mkdir -p src/assets/{images,icons}
 mkdir -p public/{images,icons}
-mkdir -p docs/{architecture,api,components}
+mkdir -p docs
 
 # Create public/index.html if it doesn't exist
 if [ ! -f "public/index.html" ]; then
@@ -166,18 +149,16 @@ if [ ! -f "public/index.html" ]; then
 HTML
 fi
 
-# Create src/index.tsx if it doesn't exist
-if [ ! -f "src/index.tsx" ]; then
-    print_status "Creating src/index.tsx..."
-    cat > src/index.tsx << 'INDEX'
+# Create src/index.js
+if [ ! -f "src/index.js" ]; then
+    print_status "Creating src/index.js..."
+    cat > src/index.js << 'INDEX'
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <App />
@@ -186,73 +167,45 @@ root.render(
 INDEX
 fi
 
-# Create src/index.css if it doesn't exist
+# Create src/index.css
 if [ ! -f "src/index.css" ]; then
     print_status "Creating src/index.css..."
     cat > src/index.css << 'CSS'
-body {
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f5f5;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+a {
+  color: #1976d2;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
 CSS
 fi
 
-# Step 5: Create configuration files
-print_header "Creating configuration files..."
-
-# Create TypeScript configuration (only if it doesn't exist or update it)
-print_status "Creating/Updating tsconfig.json..."
-cat > tsconfig.json << EOL
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "baseUrl": "src",
-    "paths": {
-      "@/*": ["*"],
-      "@/components/*": ["components/*"],
-      "@/pages/*": ["pages/*"],
-      "@/services/*": ["services/*"],
-      "@/store/*": ["store/*"],
-      "@/hooks/*": ["hooks/*"],
-      "@/utils/*": ["utils/*"],
-      "@/types/*": ["types/*"],
-      "@/styles/*": ["styles/*"],
-      "@/assets/*": ["assets/*"]
-    }
-  },
-  "include": [
-    "src"
-  ]
-}
-EOL
-
-# Create ESLint configuration
+# Create ESLint configuration for JavaScript
 if [ ! -f ".eslintrc.json" ]; then
     print_status "Creating .eslintrc.json..."
-    cat > .eslintrc.json << EOL
+    cat > .eslintrc.json << 'ESLINT'
 {
   "env": {
     "browser": true,
@@ -262,10 +215,10 @@ if [ ! -f ".eslintrc.json" ]; then
   "extends": [
     "react-app",
     "react-app/jest",
-    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
     "prettier"
   ],
-  "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaFeatures": {
       "jsx": true
@@ -275,16 +228,14 @@ if [ ! -f ".eslintrc.json" ]; then
   },
   "plugins": [
     "react",
-    "@typescript-eslint",
+    "react-hooks",
     "prettier"
   ],
   "rules": {
-    "prettier/prettier": "error",
-    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-    "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "prettier/prettier": "warn",
     "react/react-in-jsx-scope": "off",
-    "react/prop-types": "off"
+    "react/prop-types": "warn",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
   },
   "settings": {
     "react": {
@@ -292,7 +243,7 @@ if [ ! -f ".eslintrc.json" ]; then
     }
   }
 }
-EOL
+ESLINT
 else
     print_warning ".eslintrc.json already exists, skipping creation..."
 fi
@@ -300,12 +251,12 @@ fi
 # Create Prettier configuration
 if [ ! -f ".prettierrc" ]; then
     print_status "Creating .prettierrc..."
-    cat > .prettierrc << EOL
+    cat > .prettierrc << 'PRETTIER'
 {
   "semi": true,
   "trailingComma": "es5",
   "singleQuote": true,
-  "printWidth": 100,
+  "printWidth": 80,
   "tabWidth": 2,
   "useTabs": false,
   "bracketSpacing": true,
@@ -313,33 +264,15 @@ if [ ! -f ".prettierrc" ]; then
   "arrowParens": "always",
   "endOfLine": "lf"
 }
-EOL
+PRETTIER
 else
     print_warning ".prettierrc already exists, skipping creation..."
 fi
 
-# Create .prettierignore
-if [ ! -f ".prettierignore" ]; then
-    print_status "Creating .prettierignore..."
-    cat > .prettierignore << EOL
-node_modules
-build
-coverage
-public
-*.min.js
-*.min.css
-EOL
-else
-    print_warning ".prettierignore already exists, skipping creation..."
-fi
-
-# Step 6: Create initial source files
-print_header "Creating initial source files..."
-
-# Create API service configuration
-if [ ! -f "src/services/api.ts" ]; then
+# Create API service
+if [ ! -f "src/services/api.js" ]; then
     print_status "Creating API service..."
-    cat > src/services/api.ts << 'EOL'
+    cat > src/services/api.js << 'API'
 import axios from 'axios';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
@@ -380,585 +313,264 @@ api.interceptors.response.use(
 );
 
 export default api;
-EOL
+API
 else
     print_warning "API service already exists, skipping creation..."
 fi
 
-# Create types file
-if [ ! -f "src/types/index.ts" ]; then
-    print_status "Creating types file..."
-    cat > src/types/index.ts << 'EOL'
-export interface Company {
-  id: string;
-  name: string;
-  description?: string;
-  industry?: string;
-  size?: 'small' | 'medium' | 'large' | 'enterprise';
-  location: {
-    address?: string;
-    city?: string;
-    state?: string;
-    country?: string;
-    coordinates?: {
-      lat: number;
-      lng: number;
-    };
-  };
-  website?: string;
-  email?: string;
-  phone?: string;
-  employees?: number;
-  revenue?: number;
-  foundedYear?: number;
-  tags?: string[];
-  logo?: string;
-  socialMedia?: {
-    linkedin?: string;
-    twitter?: string;
-    facebook?: string;
-  };
-}
+# Create company service
+if [ ! -f "src/services/companyService.js" ]; then
+    print_status "Creating company service..."
+    cat > src/services/companyService.js << 'COMPANY_SERVICE'
+import api from './api';
 
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  fullName?: string;
-  avatar?: string;
-  role: 'admin' | 'user' | 'premium';
-  tier: 'basic' | 'premium' | 'enterprise';
-  company?: string;
-  position?: string;
-  createdAt: string;
-  updatedAt: string;
-  preferences?: UserPreferences;
-}
-
-export interface UserPreferences {
-  theme: 'light' | 'dark' | 'system';
-  notifications: {
-    email: boolean;
-    push: boolean;
-    updates: boolean;
-  };
-  language: string;
-  timezone: string;
-}
-
-export interface AuthState {
-  isAuthenticated: boolean;
-  user: User | null;
-  token: string | null;
-  refreshToken: string | null;
-  isLoading: boolean;
-  error: string | null;
-}
-
-export interface CompanyState {
-  companies: Company[];
-  selectedCompany: Company | null;
-  searchQuery: string;
-  filters: SearchFilters;
-  pagination: {
-    page: number;
-    pageSize: number;
-    total: number;
-  };
-  isLoading: boolean;
-  error: string | null;
-}
-
-export interface SearchFilters {
-  industry?: string[];
-  size?: string[];
-  location?: {
-    city?: string;
-    state?: string;
-    country?: string;
-    radius?: number;
-  };
-  employees?: {
-    min?: number;
-    max?: number;
-  };
-  revenue?: {
-    min?: number;
-    max?: number;
-  };
-  foundedYear?: {
-    min?: number;
-    max?: number;
-  };
-  tags?: string[];
-}
-
-export interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  message?: string;
-  error?: string;
-  pagination?: {
-    page: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-  };
-}
-EOL
-else
-    print_warning "Types file already exists, skipping creation..."
-fi
-
-# Create Redux store setup
-if [ ! -f "src/store/index.ts" ]; then
-    print_status "Creating Redux store..."
-    cat > src/store/index.ts << 'EOL'
-import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './slices/authSlice';
-import companyReducer from './slices/companySlice';
-import uiReducer from './slices/uiSlice';
-
-export const store = configureStore({
-  reducer: {
-    auth: authReducer,
-    companies: companyReducer,
-    ui: uiReducer,
-  },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        // Ignore these action types
-        ignoredActions: ['auth/login/fulfilled'],
-      },
-    }),
-});
-
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
-EOL
-else
-    print_warning "Redux store already exists, skipping creation..."
-fi
-
-# Create auth slice
-if [ ! -f "src/store/slices/authSlice.ts" ]; then
-    print_status "Creating auth slice..."
-    mkdir -p src/store/slices
-    cat > src/store/slices/authSlice.ts << 'EOL'
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import api from '../../services/api';
-import { User, AuthState } from '../../types';
-
-const initialState: AuthState = {
-  isAuthenticated: false,
-  user: null,
-  token: localStorage.getItem('token'),
-  refreshToken: localStorage.getItem('refreshToken'),
-  isLoading: false,
-  error: null,
+export const companyService = {
+  // Get all companies with optional filters
+  getAll: (params = {}) => api.get('/companies', { params }),
+  
+  // Get a single company by ID
+  getById: (id) => api.get(`/companies/${id}`),
+  
+  // Create a new company
+  create: (data) => api.post('/companies', data),
+  
+  // Update an existing company
+  update: (id, data) => api.put(`/companies/${id}`, data),
+  
+  // Delete a company
+  delete: (id) => api.delete(`/companies/${id}`),
+  
+  // Search companies
+  search: (query) => api.get(`/companies/search?q=${query}`),
 };
-
-export const login = createAsyncThunk(
-  'auth/login',
-  async (credentials: { email: string; password: string }) => {
-    const response = await api.post('/auth/login', credentials);
-    return response.data;
-  }
-);
-
-export const logout = createAsyncThunk('auth/logout', async () => {
-  await api.post('/auth/logout');
-  localStorage.removeItem('token');
-  localStorage.removeItem('refreshToken');
-});
-
-const authSlice = createSlice({
-  name: 'auth',
-  initialState,
-  reducers: {
-    setUser: (state, action: PayloadAction<User>) => {
-      state.user = action.payload;
-      state.isAuthenticated = true;
-    },
-    clearError: (state) => {
-      state.error = null;
-    },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(login.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(login.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.refreshToken = action.payload.refreshToken;
-        localStorage.setItem('token', action.payload.token);
-        localStorage.setItem('refreshToken', action.payload.refreshToken);
-      })
-      .addCase(login.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Login failed';
-      })
-      .addCase(logout.fulfilled, (state) => {
-        state.isAuthenticated = false;
-        state.user = null;
-        state.token = null;
-        state.refreshToken = null;
-      });
-  },
-});
-
-export const { setUser, clearError } = authSlice.actions;
-export default authSlice.reducer;
-EOL
+COMPANY_SERVICE
 else
-    print_warning "Auth slice already exists, skipping creation..."
+    print_warning "Company service already exists, skipping creation..."
 fi
 
-# Create company slice
-if [ ! -f "src/store/slices/companySlice.ts" ]; then
-    print_status "Creating company slice..."
-    cat > src/store/slices/companySlice.ts << 'EOL'
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import api from '../../services/api';
-import { Company, CompanyState, SearchFilters } from '../../types';
-
-const initialState: CompanyState = {
-  companies: [],
-  selectedCompany: null,
-  searchQuery: '',
-  filters: {},
-  pagination: {
-    page: 1,
-    pageSize: 20,
-    total: 0,
-  },
-  isLoading: false,
-  error: null,
-};
-
-export const fetchCompanies = createAsyncThunk(
-  'companies/fetchCompanies',
-  async (params: { page?: number; pageSize?: number; filters?: SearchFilters }) => {
-    const response = await api.get('/companies', { params });
-    return response.data;
-  }
-);
-
-export const fetchCompanyById = createAsyncThunk(
-  'companies/fetchCompanyById',
-  async (id: string) => {
-    const response = await api.get(`/companies/${id}`);
-    return response.data;
-  }
-);
-
-const companySlice = createSlice({
-  name: 'companies',
-  initialState,
-  reducers: {
-    setSearchQuery: (state, action: PayloadAction<string>) => {
-      state.searchQuery = action.payload;
-    },
-    setFilters: (state, action: PayloadAction<SearchFilters>) => {
-      state.filters = action.payload;
-    },
-    setSelectedCompany: (state, action: PayloadAction<Company | null>) => {
-      state.selectedCompany = action.payload;
-    },
-    clearError: (state) => {
-      state.error = null;
-    },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchCompanies.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchCompanies.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.companies = action.payload.data;
-        state.pagination = action.payload.pagination;
-      })
-      .addCase(fetchCompanies.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Failed to fetch companies';
-      })
-      .addCase(fetchCompanyById.fulfilled, (state, action) => {
-        state.selectedCompany = action.payload.data;
-      });
-  },
-});
-
-export const { setSearchQuery, setFilters, setSelectedCompany, clearError } = companySlice.actions;
-export default companySlice.reducer;
-EOL
-else
-    print_warning "Company slice already exists, skipping creation..."
-fi
-
-# Create UI slice
-if [ ! -f "src/store/slices/uiSlice.ts" ]; then
-    print_status "Creating UI slice..."
-    cat > src/store/slices/uiSlice.ts << 'EOL'
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-interface UIState {
-  theme: 'light' | 'dark' | 'system';
-  sidebarOpen: boolean;
-  snackbar: {
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error' | 'warning' | 'info';
-  };
-}
-
-const initialState: UIState = {
-  theme: (localStorage.getItem('theme') as UIState['theme']) || 'system',
-  sidebarOpen: true,
-  snackbar: {
-    open: false,
-    message: '',
-    severity: 'info',
-  },
-};
-
-const uiSlice = createSlice({
-  name: 'ui',
-  initialState,
-  reducers: {
-    setTheme: (state, action: PayloadAction<UIState['theme']>) => {
-      state.theme = action.payload;
-      localStorage.setItem('theme', action.payload);
-    },
-    toggleSidebar: (state) => {
-      state.sidebarOpen = !state.sidebarOpen;
-    },
-    showSnackbar: (
-      state,
-      action: PayloadAction<{ message: string; severity?: UIState['snackbar']['severity'] }>
-    ) => {
-      state.snackbar = {
-        open: true,
-        message: action.payload.message,
-        severity: action.payload.severity || 'info',
-      };
-    },
-    hideSnackbar: (state) => {
-      state.snackbar.open = false;
-    },
-  },
-});
-
-export const { setTheme, toggleSidebar, showSnackbar, hideSnackbar } = uiSlice.actions;
-export default uiSlice.reducer;
-EOL
-else
-    print_warning "UI slice already exists, skipping creation..."
-fi
-
-# Create App.tsx
-if [ ! -f "src/App.tsx" ]; then
-    print_status "Creating App.tsx..."
-    cat > src/App.tsx << 'EOL'
-import React from 'react';
+# Create main App.js
+if [ ! -f "src/App.js" ]; then
+    print_status "Creating App.js..."
+    cat > src/App.js << 'APP'
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import { ThemeProvider, CssBaseline } from '@mui/material';
-import { store } from './store';
-import { useAppSelector } from './hooks/redux';
-import { createAppTheme } from './styles/theme';
+import './App.css';
 
 // Import pages when created
 // import Login from './pages/auth/Login';
 // import Dashboard from './pages/dashboard/Dashboard';
 // import Companies from './pages/companies/Companies';
 
-function AppContent() {
-  const theme = useAppSelector((state) => state.ui.theme);
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
-  const appTheme = createAppTheme(theme);
-
-  return (
-    <ThemeProvider theme={appTheme}>
-      <CssBaseline />
-      <Routes>
-        <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <div>Login Page</div>} />
-        <Route path="/" element={isAuthenticated ? <div>Dashboard</div> : <Navigate to="/login" />} />
-        <Route path="/companies" element={isAuthenticated ? <div>Companies</div> : <Navigate to="/login" />} />
-        <Route path="/search" element={isAuthenticated ? <div>Search</div> : <Navigate to="/login" />} />
-        <Route path="/profile" element={isAuthenticated ? <div>Profile</div> : <Navigate to="/login" />} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </ThemeProvider>
-  );
-}
-
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
+  }, []);
+
   return (
-    <Provider store={store}>
-      <Router>
-        <AppContent />
-      </Router>
-    </Provider>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route 
+            path="/login" 
+            element={
+              isAuthenticated ? <Navigate to="/" /> : <div>Login Page</div>
+            } 
+          />
+          <Route 
+            path="/" 
+            element={
+              isAuthenticated ? <div>Dashboard</div> : <Navigate to="/login" />
+            } 
+          />
+          <Route 
+            path="/companies" 
+            element={
+              isAuthenticated ? <div>Companies</div> : <Navigate to="/login" />
+            } 
+          />
+          <Route 
+            path="/search" 
+            element={
+              isAuthenticated ? <div>Search</div> : <Navigate to="/login" />
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              isAuthenticated ? <div>Profile</div> : <Navigate to="/login" />
+            } 
+          />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
 export default App;
-EOL
+APP
 else
-    print_warning "App.tsx already exists, skipping creation..."
+    print_warning "App.js already exists, skipping creation..."
 fi
 
-# Create hooks for Redux
-if [ ! -f "src/hooks/redux.ts" ]; then
-    print_status "Creating Redux hooks..."
-    mkdir -p src/hooks
-    cat > src/hooks/redux.ts << 'EOL'
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import type { RootState, AppDispatch } from '../store';
+# Create App.css
+if [ ! -f "src/App.css" ]; then
+    print_status "Creating App.css..."
+    cat > src/App.css << 'APP_CSS'
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-export const useAppDispatch = () => useDispatch<AppDispatch>();
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
-EOL
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.page {
+  flex: 1;
+  padding: 20px 0;
+}
+
+/* Utility Classes */
+.text-center {
+  text-align: center;
+}
+
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mt-4 { margin-top: 32px; }
+
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+.mb-4 { margin-bottom: 32px; }
+
+.p-1 { padding: 8px; }
+.p-2 { padding: 16px; }
+.p-3 { padding: 24px; }
+.p-4 { padding: 32px; }
+APP_CSS
 else
-    print_warning "Redux hooks already exist, skipping creation..."
+    print_warning "App.css already exists, skipping creation..."
 fi
 
-# Create theme configuration
-if [ ! -f "src/styles/theme.ts" ]; then
-    print_status "Creating theme configuration..."
-    mkdir -p src/styles
-    cat > src/styles/theme.ts << 'EOL'
-import { createTheme } from '@mui/material/styles';
+# Create a sample component
+if [ ! -f "src/components/Header.js" ]; then
+    print_status "Creating sample Header component..."
+    mkdir -p src/components
+    cat > src/components/Header.js << 'HEADER'
+import React from 'react';
+import './Header.css';
 
-export const createAppTheme = (mode: 'light' | 'dark' | 'system') => {
-  const systemMode = mode === 'system' 
-    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-    : mode;
+function Header({ title, user }) {
+  return (
+    <header className="header">
+      <div className="header-container">
+        <h1 className="header-title">{title || 'ICN Navigator'}</h1>
+        <nav className="header-nav">
+          <a href="/">Dashboard</a>
+          <a href="/companies">Companies</a>
+          <a href="/search">Search</a>
+          <a href="/profile">Profile</a>
+        </nav>
+        {user && (
+          <div className="header-user">
+            Welcome, {user.name}
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
 
-  return createTheme({
-    palette: {
-      mode: systemMode,
-      primary: {
-        main: '#1976d2',
-        light: '#42a5f5',
-        dark: '#1565c0',
-      },
-      secondary: {
-        main: '#dc004e',
-        light: '#f50057',
-        dark: '#c51162',
-      },
-      background: {
-        default: systemMode === 'light' ? '#f5f5f5' : '#121212',
-        paper: systemMode === 'light' ? '#ffffff' : '#1e1e1e',
-      },
-    },
-    typography: {
-      fontFamily: [
-        '-apple-system',
-        'BlinkMacSystemFont',
-        '"Segoe UI"',
-        'Roboto',
-        '"Helvetica Neue"',
-        'Arial',
-        'sans-serif',
-      ].join(','),
-      h1: {
-        fontSize: '2.5rem',
-        fontWeight: 600,
-      },
-      h2: {
-        fontSize: '2rem',
-        fontWeight: 600,
-      },
-      h3: {
-        fontSize: '1.75rem',
-        fontWeight: 600,
-      },
-      h4: {
-        fontSize: '1.5rem',
-        fontWeight: 600,
-      },
-      h5: {
-        fontSize: '1.25rem',
-        fontWeight: 600,
-      },
-      h6: {
-        fontSize: '1rem',
-        fontWeight: 600,
-      },
-    },
-    components: {
-      MuiButton: {
-        styleOverrides: {
-          root: {
-            textTransform: 'none',
-          },
-        },
-      },
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            borderRadius: 8,
-          },
-        },
-      },
-    },
-  });
-};
-EOL
-else
-    print_warning "Theme configuration already exists, skipping creation..."
+export default Header;
+HEADER
+fi
+
+if [ ! -f "src/components/Header.css" ]; then
+    cat > src/components/Header.css << 'HEADER_CSS'
+.header {
+  background-color: #1976d2;
+  color: white;
+  padding: 16px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-title {
+  font-size: 24px;
+  margin: 0;
+}
+
+.header-nav {
+  display: flex;
+  gap: 20px;
+}
+
+.header-nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.header-nav a:hover {
+  text-decoration: underline;
+}
+
+.header-user {
+  font-size: 14px;
+}
+HEADER_CSS
 fi
 
 # Create environment template
 print_header "Creating environment template..."
 if [ ! -f ".env.example" ]; then
     print_status "Creating .env.example template..."
-    cat > .env.example << EOL
+    cat > .env.example << 'ENV'
 # API Configuration
 REACT_APP_API_URL=http://localhost:8080
-
-# Google OAuth Configuration
-REACT_APP_GOOGLE_CLIENT_ID=your_google_client_id
-
-# LinkedIn OAuth Configuration
-REACT_APP_LINKEDIN_CLIENT_ID=your_linkedin_client_id
 
 # Environment
 REACT_APP_ENV=development
 
-# Feature Flags
+# Feature Flags (optional)
 REACT_APP_ENABLE_ANALYTICS=false
 REACT_APP_ENABLE_MOCK_DATA=false
-EOL
+ENV
 else
     print_warning ".env.example already exists, skipping creation..."
 fi
 
 # Copy .env.example to .env if .env doesn't exist
-if [ ! -f ".env" ]; then
-    print_status "Creating .env from template..."
+if [ ! -f ".env.development.local" ]; then
+    print_status "Creating .env.development.local from template..."
     cp .env.example .env.development.local
     print_warning "⚠️  Please edit .env.development.local and add your actual API configuration!"
 else
-    print_warning ".env already exists, skipping creation..."
+    print_warning ".env.development.local already exists, skipping creation..."
 fi
 
 # Update package.json scripts
 print_header "Updating package.json scripts..."
 print_status "Adding npm scripts to package.json..."
 
-# Create a temporary file with the updated scripts
 node -e "
 const fs = require('fs');
 const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
@@ -969,42 +581,19 @@ packageJson.scripts = {
   'build': 'react-scripts build',
   'test': 'react-scripts test',
   'eject': 'react-scripts eject',
-  'lint': 'eslint src/**/*.{js,jsx,ts,tsx}',
-  'lint:fix': 'eslint src/**/*.{js,jsx,ts,tsx} --fix',
-  'format': 'prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"',
-  'format:check': 'prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"',
-  'validate': 'npm run lint && npm run format:check && npm test -- --watchAll=false',
-  'analyze': 'source-map-explorer \"build/static/js/*.js\"',
-  'pre-commit': 'lint-staged',
-  'prepare': 'husky install'
-};
-
-packageJson['lint-staged'] = {
-  '*.{js,jsx,ts,tsx}': [
-    'eslint --fix',
-    'prettier --write'
-  ],
-  '*.{json,css,md}': [
-    'prettier --write'
-  ]
+  'lint': 'eslint src/**/*.{js,jsx}',
+  'lint:fix': 'eslint src/**/*.{js,jsx} --fix',
+  'format': 'prettier --write \"src/**/*.{js,jsx,json,css,md}\"',
+  'format:check': 'prettier --check \"src/**/*.{js,jsx,json,css,md}\"'
 };
 
 fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2));
 "
 
-# Initialize git hooks with husky
-print_header "Setting up Git hooks..."
-if [ ! -d ".husky" ]; then
-    npx husky install
-    npx husky add .husky/pre-commit "npm run pre-commit"
-else
-    print_warning "Husky already configured, skipping..."
-fi
-
 # Create .gitignore if it doesn't exist
 if [ ! -f ".gitignore" ]; then
     print_status "Creating .gitignore..."
-    cat > .gitignore << EOL
+    cat > .gitignore << 'GITIGNORE'
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -1020,6 +609,7 @@ if [ ! -f ".gitignore" ]; then
 
 # misc
 .DS_Store
+.env
 .env.local
 .env.development.local
 .env.test.local
@@ -1034,10 +624,7 @@ yarn-error.log*
 .vscode
 *.swp
 *.swo
-
-# Environment
-.env
-EOL
+GITIGNORE
 else
     print_warning ".gitignore already exists, skipping creation..."
 fi
@@ -1055,11 +642,9 @@ print_status "  npm run build      - Build production bundle"
 print_status "  npm test           - Run tests"
 print_status "  npm run lint       - Run ESLint"
 print_status "  npm run format     - Format code with Prettier"
-print_status "  npm run validate   - Run all checks"
-print_status "  npm run analyze    - Analyze bundle size"
 print_status ""
-print_status "🌐 Project structure created according to Sprint 2 specifications"
-print_status "🎯 Ready for Week 1 development tasks!"
+print_status "🌐 Project structure created with plain JavaScript"
+print_status "🎯 Ready for development!"
 
 cd ..
 print_status "Setup completed! Navigate to icn-frontend directory to start development."
