@@ -1,0 +1,217 @@
+.navigation-bar {
+    background-color: var(--white, #FFFFFF);
+    border-bottom: 1px solid var(--black-20, #CCCCCC);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  /* Logo */
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 12px;
+    transition: transform 0.3s;
+  }
+  
+  .nav-logo:hover {
+    transform: scale(1.05);
+  }
+  
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    position: relative;
+  }
+  
+  .logo-shape {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    transform: rotate(45deg);
+  }
+  
+  .logo-shape-1 {
+    background-color: var(--primary-orange, #F99F1C);
+    top: 0;
+    left: 0;
+    border-radius: 2px;
+  }
+  
+  .logo-shape-2 {
+    background-color: var(--navy, #003366);
+    bottom: 0;
+    right: 0;
+    border-radius: 2px;
+  }
+  
+  .logo-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--navy, #003366);
+  }
+  
+  .logo-subtitle {
+    font-size: 0.75rem;
+    font-weight: normal;
+    display: block;
+    color: var(--black-50, #808080);
+  }
+  
+  /* Navigation Links */
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+  }
+  
+  .nav-link {
+    text-decoration: none;
+    color: var(--black-80, #333333);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    padding: 8px 0;
+    position: relative;
+    transition: color 0.3s;
+  }
+  
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--primary-orange, #F99F1C);
+    transition: width 0.3s;
+  }
+  
+  .nav-link:hover {
+    color: var(--primary-orange, #F99F1C);
+  }
+  
+  .nav-link:hover::after {
+    width: 100%;
+  }
+  
+  /* Search Bar */
+  .nav-search {
+    flex: 0 1 300px;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+  
+  .nav-search-input {
+    width: 100%;
+    padding: 8px 40px 8px 16px;
+    border: 1px solid var(--black-20, #CCCCCC);
+    border-radius: 20px;
+    font-size: 0.875rem;
+    outline: none;
+    transition: all 0.3s;
+  }
+  
+  .nav-search-input:focus {
+    border-color: var(--primary-orange, #F99F1C);
+    box-shadow: 0 0 0 3px rgba(249, 159, 28, 0.1);
+  }
+  
+  .nav-search-btn {
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    color: var(--black-50, #808080);
+    transition: color 0.3s;
+  }
+  
+  .nav-search-btn:hover {
+    color: var(--primary-orange, #F99F1C);
+  }
+  
+  /* User Actions */
+  .nav-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  
+  .nav-btn {
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+  }
+  
+  .nav-btn-login {
+    background-color: transparent;
+    color: var(--navy, #003366);
+    border: 2px solid var(--navy, #003366);
+  }
+  
+  .nav-btn-login:hover {
+    background-color: var(--navy, #003366);
+    color: var(--white, #FFFFFF);
+  }
+  
+  .nav-btn-signup {
+    background-color: var(--primary-orange, #F99F1C);
+    color: var(--white, #FFFFFF);
+  }
+  
+  .nav-btn-signup:hover {
+    background-color: var(--orange-hover, #FAB249);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(249, 159, 28, 0.3);
+  }
+  
+  /* User Menu */
+  .user-menu {
+    position: relative;
+  }
+  
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary-orange, #F99F1C);
+    color: var(--white, #FFFFFF);
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .user-avatar:hover {
+    background-color: var(--orange-hover, #FAB249);
+    transform: scale(1.05);
+  }
+  
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .nav-links {
+      display: none;
+    }
+    
+    .nav-search {
+      display: none;
+    }
+  }
