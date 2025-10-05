@@ -1,15 +1,15 @@
-import './App.css';
-import { useEffect, useState } from 'react';
-import api from './api';
+import React from "react";
+import "./App.css";
 
 function App() {
-  const [msg, setMsg] = useState('');
-
-  useEffect(() => {
-    api.get('/api/hello').then(res => setMsg(res.data)).catch(console.error);
-  }, []);
-
-  return <div style={{padding:16}}>Backend says: {msg || 'loading...'}</div>;
+  return (
+    <div className="App">
+      <header className="App-header">
+        <h1>Welcome to ICN Navigator</h1>
+        <p>Your React app is running!</p>
+      </header>
+    </div>
+  );
 }
 
 export default App;
