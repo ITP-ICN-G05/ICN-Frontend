@@ -1,14 +1,24 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './NavigationBar.css';
 
-function NavigationBar({ user }) {
+function NavigationBar({ user, onLogout }) {  
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      console.log('Searching for:', searchQuery);
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
+  };
+
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
+  const handleSignUp = () => {
+    navigate('/signup');
   };
 
   return (
@@ -47,16 +57,24 @@ function NavigationBar({ user }) {
         <div className="nav-actions">
           {user ? (
             <div className="user-menu">
-              <button className="user-avatar">
+              <button 
+                className="user-avatar" 
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to log out?')) {
+                    onLogout();  
+                  }
+                }}
+                title={`Logged in as ${user.name}`}
+              >
                 {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </button>
             </div>
           ) : (
             <>
-              <button className="nav-btn nav-btn-login">
+              <button className="nav-btn nav-btn-login" onClick={handleLogin}>
                 Log in
               </button>
-              <button className="nav-btn nav-btn-signup">
+              <button className="nav-btn nav-btn-signup" onClick={handleSignUp}>
                 Sign up
               </button>
             </>
