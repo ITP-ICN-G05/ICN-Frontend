@@ -5,6 +5,7 @@ import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import SignUpPage from './pages/auth/SignUpPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import SearchPage from './pages/search/SearchPage';
 import './App.css';
 
 // Protected Route Component
@@ -87,6 +88,11 @@ function App() {
             <Route 
               path="/forgot-password" 
                 element={<ForgotPasswordPage />
+              } 
+            />
+            <Route 
+              path="/search" 
+                element={<SearchPage />
               } 
             />
             

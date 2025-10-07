@@ -1,0 +1,125 @@
+.filter-panel {
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid var(--black-20);
+    padding: 24px;
+  }
+  
+  .filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--black-20);
+  }
+  
+  .filter-header h3 {
+    font-size: 1.25rem;
+    color: var(--navy);
+    margin: 0;
+  }
+  
+  .clear-filters-btn {
+    background: none;
+    border: none;
+    color: var(--primary-orange);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .clear-filters-btn:hover {
+    text-decoration: underline;
+  }
+  
+  .filter-group {
+    margin-bottom: 24px;
+  }
+  
+  .filter-group h4 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--black-80);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .premium-badge {
+    background: var(--primary-orange);
+    color: var(--white);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.625rem;
+    font-weight: 600;
+  }
+  
+  .distance-slider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .distance-slider input[type="range"] {
+    flex: 1;
+    height: 4px;
+    background: var(--black-20);
+    border-radius: 2px;
+    outline: none;
+  }
+  
+  .distance-slider input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--primary-orange);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  
+  .distance-value {
+    font-size: 0.875rem;
+    color: var(--black-80);
+    font-weight: 600;
+  }
+  
+  .checkbox-list,
+  .radio-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .checkbox-item,
+  .radio-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--black-80);
+  }
+  
+  .checkbox-item:hover,
+  .radio-item:hover {
+    color: var(--primary-orange);
+  }
+  
+  .checkbox-item input[type="checkbox"],
+  .radio-item input[type="radio"] {
+    cursor: pointer;
+  }
+  
+  .premium-filter {
+    opacity: 0.7;
+  }
+  
+  .premium-filter .checkbox-item {
+    cursor: not-allowed;
+  }
+  
+  .premium-filter input {
+    cursor: not-allowed;
+  }
