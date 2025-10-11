@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import logoImage from '../../assets/logo/ICN-logo-little.png';
 import './NavigationBar.css';
 
 function NavigationBar({ user, onLogout }) {  
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -46,39 +48,52 @@ function NavigationBar({ user, onLogout }) {
     }
   };
 
+  // Check if current path matches nav link
+  const isActiveLink = (path) => {
+    return location.pathname === path;
+  };
+
   return (
     <nav className="navigation-bar">
       <div className="nav-container">
+        {/* Logo Section */}
         <a href="/" className="nav-logo">
-          <div className="logo-icon">
-            <div className="logo-shape logo-shape-1"></div>
-            <div className="logo-shape logo-shape-2"></div>
-          </div>
-          <span className="logo-text">
-            ICN <span className="logo-subtitle">Victoria</span>
-          </span>
+          <img src={logoImage} alt="ICN Logo" className="logo-image" />
         </a>
 
+        {/* Navigation Links */}
         <div className="nav-links">
-          <a href="/" className="nav-link">Home</a>
-          <a href="/navigation" className="nav-link">Navigation</a>
-          <a href="/mobile-designs" className="nav-link">Mobile designs</a>
-          <a href="/illustrations" className="nav-link">Illustrations</a>
+          <a href="/" className={`nav-link ${isActiveLink('/') ? 'active' : ''}`}>
+            Home
+          </a>
+          <a href="/navigation" className={`nav-link ${isActiveLink('/navigation') ? 'active' : ''}`}>
+            Navigation
+          </a>
+          <a href="/mobile-designs" className={`nav-link ${isActiveLink('/mobile-designs') ? 'active' : ''}`}>
+            Mobile designs
+          </a>
+          <a href="/illustrations" className={`nav-link ${isActiveLink('/illustrations') ? 'active' : ''}`}>
+            Illustrations
+          </a>
         </div>
 
+        {/* Search Section */}
         <form className="nav-search" onSubmit={handleSearch}>
+          <div className="search-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
           <input
             type="text"
             className="nav-search-input"
-            placeholder="Search..."
+            placeholder="Search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <button type="submit" className="nav-search-btn">
-            🔍
-          </button>
         </form>
 
+        {/* User Actions */}
         <div className="nav-actions">
           {user ? (
             <div className="user-menu">
