@@ -8,6 +8,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import SearchPage from './pages/search/SearchPage';
 import CompanyDetailPage from './pages/company/CompanyDetailPage';
 import ProfilePage from './pages/profile/ProfilePage';
+import PricingPage from './pages/pricing/PricingPage';
 import './App.css';
 
 // Protected Route Component
@@ -95,6 +96,12 @@ function App() {
               path="/company/:id" 
               element={
                 <CompanyDetailPage />
+              } 
+            />
+            <Route 
+              path="/pricing" 
+              element={
+                <PricingPage />
               } 
             />
             
