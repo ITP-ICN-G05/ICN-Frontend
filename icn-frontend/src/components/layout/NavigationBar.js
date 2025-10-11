@@ -1,10 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './NavigationBar.css';
 
 function NavigationBar({ user, onLogout }) {  
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showUserMenu && !event.target.closest('.user-menu')) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showUserMenu]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -19,6 +32,18 @@ function NavigationBar({ user, onLogout }) {
 
   const handleSignUp = () => {
     navigate('/signup');
+  };
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+    setShowUserMenu(false);
+  };
+
+  const handleLogoutClick = () => {
+    if (window.confirm('Are you sure you want to log out?')) {
+      onLogout();
+      setShowUserMenu(false);
+    }
   };
 
   return (
@@ -59,15 +84,34 @@ function NavigationBar({ user, onLogout }) {
             <div className="user-menu">
               <button 
                 className="user-avatar" 
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to log out?')) {
-                    onLogout();  
-                  }
-                }}
+                onClick={() => setShowUserMenu(!showUserMenu)}
                 title={`Logged in as ${user.name}`}
               >
                 {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </button>
+              
+              {showUserMenu && (
+                <div className="user-dropdown">
+                  <div className="dropdown-header">
+                    <div className="dropdown-user-name">{user.name}</div>
+                    <div className="dropdown-user-email">{user.email}</div>
+                  </div>
+                  <div className="dropdown-divider"></div>
+                  <button className="dropdown-item" onClick={handleProfileClick}>
+                    👤 My Profile
+                  </button>
+                  <button className="dropdown-item" onClick={() => {navigate('/companies'); setShowUserMenu(false);}}>
+                    🏢 Companies
+                  </button>
+                  <button className="dropdown-item" onClick={() => {navigate('/search'); setShowUserMenu(false);}}>
+                    🔍 Search
+                  </button>
+                  <div className="dropdown-divider"></div>
+                  <button className="dropdown-item logout" onClick={handleLogoutClick}>
+                    🚪 Log out
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <>

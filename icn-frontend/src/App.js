@@ -7,6 +7,7 @@ import SignUpPage from './pages/auth/SignUpPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import SearchPage from './pages/search/SearchPage';
 import CompanyDetailPage from './pages/company/CompanyDetailPage';
+import ProfilePage from './pages/profile/ProfilePage';
 import './App.css';
 
 // Protected Route Component
@@ -19,12 +20,6 @@ function ProtectedRoute({ children, user }) {
 
 // Placeholder pages
 const CompaniesPage = () => <div className="page-placeholder">Companies Page</div>;
-const ProfilePage = ({ user }) => (
-  <div className="page-placeholder">
-    <h2>Profile Page</h2>
-    <p>Welcome, {user?.name}</p>
-  </div>
-);
 
 function App() {
   const [user, setUser] = useState(null);
@@ -96,6 +91,12 @@ function App() {
                 element={<SearchPage />
               } 
             />
+            <Route 
+              path="/company/:id" 
+              element={
+                <CompanyDetailPage />
+              } 
+            />
             
             {/* Protected Routes */}
             <Route 
@@ -114,12 +115,7 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-            <Route 
-              path="/company/:id" 
-              element={
-                <CompanyDetailPage />
-              } 
-            />
+            
             
             {/* Catch all */}
             <Route path="*" element={<Navigate to="/" replace />} />
