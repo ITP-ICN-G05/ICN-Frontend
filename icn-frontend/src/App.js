@@ -6,6 +6,7 @@ import LoginPage from './pages/auth/LoginPage';
 import SignUpPage from './pages/auth/SignUpPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import SearchPage from './pages/search/SearchPage';
+import CompanyDetailPage from './pages/company/CompanyDetailPage';
 import './App.css';
 
 // Protected Route Component
@@ -111,6 +112,12 @@ function App() {
                 <ProtectedRoute user={user}>
                   <ProfilePage user={user} />
                 </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/company/:id" 
+              element={
+                <CompanyDetailPage />
               } 
             />
             
