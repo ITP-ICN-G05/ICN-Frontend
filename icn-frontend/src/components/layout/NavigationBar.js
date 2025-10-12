@@ -130,10 +130,16 @@ function NavigationBar({ user, onLogout }) {
             </div>
           ) : (
             <>
-              <button className="nav-btn nav-btn-login" onClick={handleLogin}>
+              <button 
+                className={`nav-btn nav-btn-login ${location.pathname === '/login' ? 'active' : ''}`} 
+                onClick={handleLogin}
+              >
                 Log in
               </button>
-              <button className="nav-btn nav-btn-signup" onClick={handleSignUp}>
+              <button 
+                className={`nav-btn nav-btn-signup ${location.pathname === '/signup' ? 'active' : ''}`} 
+                onClick={handleSignUp}
+              >
                 Sign up
               </button>
             </>

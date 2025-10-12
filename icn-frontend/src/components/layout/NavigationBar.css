@@ -141,6 +141,12 @@
     color: #F6CA8B;
   }
   
+  .nav-btn-login.active {
+    background-color: #1B3E6F;
+    color: #FFFFFF;
+    border: 1px solid #1B3E6F;
+  }
+  
   .nav-btn-signup {
     background-color: #F6CA8B;
     color: #333333;
@@ -150,6 +156,12 @@
   .nav-btn-signup:hover {
     background-color: #333333;
     color: #F6CA8B;
+  }
+  
+  .nav-btn-signup.active {
+    background-color: #1B3E6F;
+    color: #FFFFFF;
+    border: 1px solid #1B3E6F;
   }
   
   /* User Menu */
