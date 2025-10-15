@@ -1,0 +1,242 @@
+.companies-page {
+    min-height: calc(100vh - 70px);
+    background: #FAFAFA;
+  }
+  
+  .page-header {
+    background: var(--white);
+    border-bottom: 1px solid var(--black-20);
+    padding: 32px 0;
+  }
+  
+  .page-header h1 {
+    font-size: 2rem;
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+  
+  .page-header p {
+    color: var(--black-50);
+  }
+  
+  .controls-section {
+    background: var(--white);
+    border-bottom: 1px solid var(--black-20);
+    padding: 24px 0;
+  }
+  
+  .search-bar {
+    margin-bottom: 16px;
+  }
+  
+  .search-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px 16px;
+    border: 1px solid var(--black-20);
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+  
+  .filter-controls {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .filter-select {
+    padding: 8px 16px;
+    border: 1px solid var(--black-20);
+    border-radius: 8px;
+    background: var(--white);
+  }
+  
+  .view-controls {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .view-btn {
+    padding: 8px 16px;
+    background: var(--white);
+    border: 1px solid var(--black-20);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .view-btn.active {
+    background: var(--primary-orange);
+    color: var(--white);
+    border-color: var(--primary-orange);
+  }
+  
+  .export-controls {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+  
+  .export-btn {
+    padding: 8px 16px;
+    background: var(--orange-bg);
+    border: 1px solid var(--primary-orange);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--primary-orange);
+  }
+  
+  .companies-content {
+    padding: 32px 0;
+  }
+  
+  .results-info {
+    margin-bottom: 24px;
+  }
+  
+  .tier-notice {
+    color: var(--primary-orange);
+    font-size: 0.875rem;
+    margin-top: 4px;
+  }
+  
+  .companies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+  }
+  
+  .companies-grid.list {
+    grid-template-columns: 1fr;
+  }
+  
+  .company-card {
+    background: var(--white);
+    border: 1px solid var(--black-20);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s;
+  }
+  
+  .company-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .company-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  
+  .company-card-header h3 {
+    color: var(--navy);
+    font-size: 1.25rem;
+    margin: 0;
+  }
+  
+  .verified-badge {
+    background: var(--success);
+    color: var(--white);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .company-type {
+    color: var(--primary-orange);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .company-address {
+    color: var(--black-50);
+    font-size: 0.875rem;
+    margin-bottom: 16px;
+  }
+  
+  .company-sectors,
+  .capability-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  
+  .sector-tag,
+  .capability-tag {
+    background: var(--orange-bg);
+    color: var(--black-80);
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.813rem;
+  }
+  
+  .ownership-badges {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  
+  .ownership-badge {
+    background: var(--navy);
+    color: var(--white);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .premium-info {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--black-20);
+  }
+  
+  .local-content,
+  .employees {
+    color: var(--black-80);
+    font-size: 0.875rem;
+    margin: 4px 0;
+  }
+  
+  .card-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  
+  .btn-view,
+  .btn-website {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    border: 1px solid;
+    transition: all 0.3s;
+  }
+  
+  .btn-view {
+    background: var(--primary-orange);
+    color: var(--white);
+    border-color: var(--primary-orange);
+  }
+  
+  .btn-website {
+    background: transparent;
+    color: var(--primary-orange);
+    border-color: var(--primary-orange);
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  

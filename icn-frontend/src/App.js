@@ -9,6 +9,7 @@ import SearchPage from './pages/search/SearchPage';
 import CompanyDetailPage from './pages/company/CompanyDetailPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import PricingPage from './pages/pricing/PricingPage';
+import CompaniesPage from './pages/companies/CompaniesPage';
 import './App.css';
 
 // Protected Route Component
@@ -18,9 +19,6 @@ function ProtectedRoute({ children, user }) {
   }
   return children;
 }
-
-// Placeholder pages
-const CompaniesPage = () => <div className="page-placeholder">Companies Page</div>;
 
 function App() {
   const [user, setUser] = useState(null);
@@ -102,6 +100,12 @@ function App() {
               path="/pricing" 
               element={
                 <PricingPage />
+              } 
+            />
+            <Route 
+              path="/companies" 
+              element={
+                <CompaniesPage />
               } 
             />
             
