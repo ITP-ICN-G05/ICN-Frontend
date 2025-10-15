@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import FilterPanel from '../../components/search/FilterPanel';
 import CompanyCard from '../../components/company/CompanyCard';
+import SearchMap from '../../components/map/SearchMap';
 import './SearchPage.css';
 
 function SearchPage() {
@@ -306,10 +307,13 @@ function SearchPage() {
                 </div>
               ) : (
                 <div className="results-map">
-                  <div className="map-placeholder">
-                    <p>Map View Coming Soon</p>
-                    <p>Companies will be displayed on an interactive map</p>
-                  </div>
+                  <SearchMap 
+                    companies={filteredCompanies}
+                    selectedCompany={null}
+                    onCompanySelect={(company) => {
+                      console.log('Selected company:', company);
+                    }}
+                  />
                 </div>
               )}
             </>
