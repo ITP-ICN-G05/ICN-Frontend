@@ -1,0 +1,136 @@
+.map-info-window {
+    min-width: 250px;
+    padding: 8px;
+  }
+  
+  .map-info-window h3 {
+    margin: 0 0 8px 0;
+    color: var(--navy);
+    font-size: 1.125rem;
+  }
+  
+  .map-info-window .verified-badge {
+    display: inline-block;
+    background: var(--success);
+    color: var(--white);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .map-info-window .company-type {
+    color: var(--black-80);
+    font-size: 0.875rem;
+    margin: 4px 0;
+  }
+  
+  .map-info-window .company-distance {
+    color: var(--black-50);
+    font-size: 0.875rem;
+    margin: 4px 0 12px;
+  }
+  
+  .map-info-window .info-sectors {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .map-info-window .sector-tag {
+    background: var(--orange-bg);
+    color: var(--black-80);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+  }
+  
+  .map-info-window .btn-view-details {
+    width: 100%;
+    padding: 8px;
+    background: var(--primary-orange);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .map-info-window .btn-view-details:hover {
+    background: var(--orange-hover);
+  }
+  
+  /* Map Controls Overlay */
+  .map-controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .map-search-in-area {
+    padding: 10px 16px;
+    background: var(--white);
+    border: 1px solid var(--black-20);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+  }
+  
+  .map-search-in-area:hover {
+    background: var(--orange-bg);
+    border-color: var(--primary-orange);
+  }
+  
+  .map-legend {
+    background: var(--white);
+    border: 1px solid var(--black-20);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  
+  .map-legend h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.875rem;
+    color: var(--navy);
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+    font-size: 0.813rem;
+    color: var(--black-80);
+  }
+  
+  .legend-marker {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--white);
+    box-shadow: 0 0 2px rgba(0,0,0,0.3);
+  }
+  
+  .legend-marker.verified {
+    background: #B6D289;
+  }
+  
+  .legend-marker.standard {
+    background: #F99F1C;
+  }
+  
+  .legend-marker.user {
+    background: #4285F4;
+  }
