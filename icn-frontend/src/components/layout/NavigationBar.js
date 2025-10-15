@@ -110,29 +110,39 @@ function NavigationBar({ user, onLogout }) {
               >
                 {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </button>
-              
-              {showUserMenu && (
-                <div className="user-dropdown">
-                  <div className="dropdown-header">
-                    <div className="dropdown-user-name">{user.name}</div>
-                    <div className="dropdown-user-email">{user.email}</div>
+                {showUserMenu && (
+                  <div className="user-dropdown">
+                    <div className="dropdown-header">
+                      <div className="dropdown-user-name">{user.name}</div>
+                      <div className="dropdown-user-email">{user.email}</div>
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    
+                    {/* Add Admin Dashboard link for admin users */}
+                    {user.role === 'admin' && (
+                      <>
+                        <button className="dropdown-item" onClick={() => {navigate('/admin'); setShowUserMenu(false);}}>
+                          🔧 Admin Dashboard
+                        </button>
+                        <div className="dropdown-divider"></div>
+                      </>
+                    )}
+                    
+                    <button className="dropdown-item" onClick={handleProfileClick}>
+                      👤 My Profile
+                    </button>
+                    <button className="dropdown-item" onClick={() => {navigate('/companies'); setShowUserMenu(false);}}>
+                      🏢 Companies
+                    </button>
+                    <button className="dropdown-item" onClick={() => {navigate('/search'); setShowUserMenu(false);}}>
+                      🔍 Search
+                    </button>
+                    <div className="dropdown-divider"></div>
+                    <button className="dropdown-item logout" onClick={handleLogoutClick}>
+                      🚪 Log out
+                    </button>
                   </div>
-                  <div className="dropdown-divider"></div>
-                  <button className="dropdown-item" onClick={handleProfileClick}>
-                    👤 My Profile
-                  </button>
-                  <button className="dropdown-item" onClick={() => {navigate('/companies'); setShowUserMenu(false);}}>
-                    🏢 Companies
-                  </button>
-                  <button className="dropdown-item" onClick={() => {navigate('/search'); setShowUserMenu(false);}}>
-                    🔍 Search
-                  </button>
-                  <div className="dropdown-divider"></div>
-                  <button className="dropdown-item logout" onClick={handleLogoutClick}>
-                    🚪 Log out
-                  </button>
-                </div>
-              )}
+                )}
             </div>
           ) : (
             <>

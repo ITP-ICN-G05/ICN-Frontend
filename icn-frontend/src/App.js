@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { BookmarkProvider } from './contexts/BookmarkContext';
 import NavigationBar from './components/layout/NavigationBar';
+import AdminRoute from './components/admin/AdminRoute';
+
+// Public Pages
 import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import SignUpPage from './pages/auth/SignUpPage';
@@ -11,6 +14,12 @@ import CompanyDetailPage from './pages/company/CompanyDetailPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import PricingPage from './pages/pricing/PricingPage';
 import CompaniesPage from './pages/companies/CompaniesPage';
+
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import CompanyManagement from './pages/admin/CompanyManagement';
+import UserManagement from './pages/admin/UserManagement';
+
 import './App.css';
 
 // Protected Route Component
@@ -84,26 +93,11 @@ function App() {
               />
               <Route 
                 path="/forgot-password" 
-                  element={<ForgotPasswordPage />
-                } 
+                element={<ForgotPasswordPage />} 
               />
-              <Route 
-                path="/search" 
-                  element={<SearchPage />
-                } 
-              />
-              <Route 
-                path="/company/:id" 
-                element={
-                  <CompanyDetailPage />
-                } 
-              />
-              <Route 
-                path="/pricing" 
-                element={
-                  <PricingPage />
-                } 
-              />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/company/:id" element={<CompanyDetailPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
               
               {/* Protected Routes */}
               <Route 
@@ -120,6 +114,32 @@ function App() {
                   <ProtectedRoute user={user}>
                     <ProfilePage user={user} />
                   </ProtectedRoute>
+                } 
+              />
+              
+              {/* Admin Routes */}
+              <Route 
+                path="/admin" 
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                } 
+              />
+              <Route 
+                path="/admin/companies" 
+                element={
+                  <AdminRoute>
+                    <CompanyManagement />
+                  </AdminRoute>
+                } 
+              />
+              <Route 
+                path="/admin/users" 
+                element={
+                  <AdminRoute>
+                    <UserManagement />
+                  </AdminRoute>
                 } 
               />
               

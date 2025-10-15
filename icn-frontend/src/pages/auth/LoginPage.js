@@ -58,12 +58,17 @@ function LoginPage({ onLogin }) {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Check for admin credentials (for demo purposes)
+      const isAdmin = formData.email === 'admin@icn.vic.gov.au' && 
+                      formData.password === 'admin123';
+      
       // Mock successful login
       const userData = {
         id: 1,
-        name: 'John Smith',
+        name: isAdmin ? 'ICN Admin' : 'John Smith',
         email: formData.email,
-        tier: 'free'
+        tier: isAdmin ? 'premium' : 'free',
+        role: isAdmin ? 'admin' : 'user' // Add role field
       };
       
       localStorage.setItem('token', 'mock-jwt-token');
@@ -73,7 +78,12 @@ function LoginPage({ onLogin }) {
         onLogin(userData);
       }
       
-      navigate('/');
+      // Redirect admin users to admin dashboard
+      if (isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       setErrors({ submit: 'Login failed. Please try again.' });
     } finally {
