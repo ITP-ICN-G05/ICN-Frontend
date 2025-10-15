@@ -1,0 +1,23 @@
+.save-search-btn {
+    padding: 8px 20px;
+    background: var(--white);
+    border: 1px solid var(--black-20);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .save-search-btn:hover:not(:disabled) {
+    background: var(--orange-bg);
+    border-color: var(--primary-orange);
+  }
+  
+  .save-search-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
