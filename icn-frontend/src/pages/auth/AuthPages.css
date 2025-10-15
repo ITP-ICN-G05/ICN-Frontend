@@ -8,6 +8,7 @@
     position: relative;
     overflow: hidden;
     padding-top: 5vh;
+    animation: fadeIn 0.5s ease-out;
   }
   
   .auth-page::before {
@@ -23,52 +24,63 @@
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    opacity: 0.25;
+    opacity: 0.1;
     z-index: 0;
     pointer-events: none;
   }
   
   .auth-container {
     width: 100%;
-    height: 90vh;
+    height: 100%;
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    gap: 8px;
+    gap: 2%;
     position: relative;
     z-index: 1;
     padding: 0 2%;
-    padding-top: 5vh;
+    padding-top: 3vh;
+    animation: fadeIn 0.6s ease-out 0.1s both;
   }
   
   /* Mobile Preview Container */
   .mobile-preview-container {
     flex: 0 0 auto;
-    width: 35%;
+    width: 48%;
     height: 80vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    padding-top: 7vh;
+    justify-content: center;
+    padding-top: 0;
+    animation: fadeIn 0.6s ease-out 0.2s both;
   }
   
   /* Mobile Preview Styles */
   .mobile-preview {
     display: flex;
-    gap: -10px;
+    gap: -15px;
     justify-content: center;
     align-items: center;
-    margin-bottom: 50px;
+    margin-bottom: 40px;
+    position: relative;
+    animation: fadeIn 0.8s ease-out 0.5s both;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transition: transform 0.3s ease;
+  }
+  
+  .mobile-preview:hover {
+    transform: translateY(-3px);
   }
   
   .phone-mockup {
-    width: 22vw;
-    height: 45vh;
-    min-width: 200px;
-    min-height: 380px;
-    max-width: 280px;
-    max-height: 550px;
+    width: 28vw;
+    height: 55vh;
+    min-width: 250px;
+    min-height: 450px;
+    max-width: 350px;
+    max-height: 650px;
     background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
     border-radius: 30px;
     padding: 0;
@@ -84,29 +96,27 @@
   }
   
   .phone-left {
-    transform: rotate(-6deg);
+    transform: rotateY(-5deg) rotateZ(-2deg);
     z-index: 2;
-    margin-right: -10px;
+    margin-right: -15px;
   }
   
   .phone-right {
-    transform: rotate(6deg);
+    transform: rotateY(5deg) rotateZ(2deg);
     z-index: 1;
-    margin-left: -10px;
-  }
-  
-  .phone-mockup:hover {
-    transform: translateY(-5px) scale(1.02);
-    transition: all 0.3s ease;
+    margin-left: -15px;
   }
   
   .phone-left:hover {
-    transform: rotate(-6deg) translateY(-5px) scale(1.02);
+    transform: rotateY(-5deg) rotateZ(-2deg) translateY(-5px) scale(1.02);
+    transition: all 0.3s ease;
   }
   
   .phone-right:hover {
-    transform: rotate(6deg) translateY(-5px) scale(1.02);
+    transform: rotateY(5deg) rotateZ(2deg) translateY(-5px) scale(1.02);
+    transition: all 0.3s ease;
   }
+  
   
   .phone-screen {
     width: 100%;
@@ -279,6 +289,7 @@
     gap: 12px;
     align-items: center;
     justify-content: center;
+    animation: fadeIn 0.8s ease-out 0.7s both;
   }
   
   .download-btn {
@@ -345,12 +356,13 @@
   /* Login Form Container */
   .login-form-container {
     flex: 0 0 auto;
-    width: 65%;
+    width: 50%;
     height: 80vh;
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding-top: 7vh;
+    padding-top: 5vh;
+    animation: fadeIn 0.6s ease-out 0.3s both;
   }
   
   .auth-card {
@@ -358,14 +370,15 @@
     border-radius: 0;
     box-shadow: none;
     padding: 0;
-    width: calc(35vw + 300px);
+    width: 100%;
     height: auto;
-    min-width: 700px;
-    max-width: calc(60vw + 300px);
+    min-width: 500px;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     gap: 30px;
+    animation: fadeIn 0.8s ease-out 0.4s both;
   }
   
   .auth-header {
@@ -385,16 +398,19 @@
     margin-bottom: 0;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 6px;
   }
   
   .form-group {
     margin-bottom: 0;
+    min-height: 40px;
+    display: flex;
+    flex-direction: column;
   }
   
   .form-group label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     font-size: 1rem;
     font-weight: 500;
     color: #000000;
@@ -418,8 +434,15 @@
   .form-group input:focus {
     outline: none;
     border-color: #3B82F6;
-    box-shadow: none;
-    transform: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+    transition: all 0.3s ease;
+  }
+
+  .form-group input:hover {
+    border-color: #3B82F6;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
   }
   
   .form-group input.error {
@@ -436,7 +459,7 @@
   .checkbox-label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     cursor: pointer;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     color: #000000;
@@ -450,9 +473,16 @@
   
   .error-text {
     display: block;
-    margin-top: 4px;
+    margin-top: 1px;
     font-size: 0.75rem;
     color: var(--error);
+    height: 12px;
+    line-height: 1.2;
+    visibility: hidden;
+  }
+  
+  .error-text:not(:empty) {
+    visibility: visible;
   }
   
   .form-options {
@@ -494,17 +524,26 @@
     background-color: rgba(220, 38, 38, 0.1);
     border: 1px solid var(--error);
     color: var(--error);
-    padding: 12px;
+    padding: 6px 12px;
     border-radius: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
     font-size: 0.875rem;
+    height: 36px;
+    line-height: 1.4;
+    visibility: hidden;
+    display: flex;
+    align-items: center;
   }
   
-  .btn-submit {
+  .error-message:not(:empty) {
+    visibility: visible;
+  }
+  
+  .auth-form .btn-submit {
     width: 100%;
-    padding: 24px 32px;
-    background: linear-gradient(135deg, #1B3E6F 0%, #2A4F8F 100%);
-    color: #FFFFFF;
+    padding: 18px 32px;
+    background: #1B3E6F !important;
+    color: #FFFFFF !important;
     border: none;
     border-radius: 12px;
     font-size: 1.4rem;
@@ -518,15 +557,18 @@
     overflow: hidden;
   }
   
-  .btn-submit:hover:not(:disabled) {
-    background: linear-gradient(135deg, #1A3A6B 0%, #2A4F8F 100%);
+  .auth-form .btn-submit:hover:not(:disabled) {
+    background: #15325A !important;
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(27, 62, 111, 0.4);
+    transition: all 0.3s ease;
   }
   
-  .btn-submit:active {
+  .auth-form .btn-submit:active {
+    background: #0F2547 !important;
     transform: translateY(0);
     box-shadow: 0 2px 10px rgba(27, 62, 111, 0.3);
+    transition: all 0.1s ease;
   }
   
   .btn-submit:disabled {
@@ -536,7 +578,7 @@
   
   .auth-divider {
     text-align: center;
-    margin: 0;
+    margin: 8px 0;
     position: relative;
     display: flex;
     align-items: center;
@@ -608,7 +650,7 @@
   
   .social-buttons {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     margin-bottom: 0;
     justify-content: center;
   }
@@ -709,11 +751,198 @@
     text-decoration: underline;
   }
   
+  /* Login and Sign Up Page Specific Styles */
+  .auth-page {
+    background: #FFFFFF;
+    position: fixed !important;
+    top: 60px !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    overflow: hidden;
+    z-index: 1;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    height: calc(100vh - 60px) !important;
+  }
+
+  /* Sign Up Page Specific Styles */
+  .signup-page {
+    background: #FFFFFF;
+    position: fixed !important;
+    top: 60px !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    overflow: hidden;
+    z-index: 1;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    height: calc(100vh - 60px) !important;
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .signup-page::before {
+    content: '';
+    position: absolute;
+    top: -10%;
+    left: -5%;
+    width: 60vw;
+    height: 60vw;
+    max-width: 800px;
+    max-height: 800px;
+    background-image: url('../../assets/logo/ICN-logo-little.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.1;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .signup-page .auth-container {
+    display: flex !important;
+    height: 100% !important;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    padding: 0 !important;
+    margin: 0 !important;
+    position: relative;
+    z-index: 1;
+    width: 100% !important;
+  }
+
+  .signup-form-container {
+    width: 55%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5%;
+    position: relative;
+    animation: fadeIn 0.6s ease-out 0.2s both;
+  }
+
+
+
+  .signup-page .auth-card {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+    width: 100%;
+    max-width: 500px;
+    gap: 30px;
+  }
+
+  .signup-page .auth-header h1 {
+    font-size: 3.5rem;
+    color: #000000;
+    font-weight: 700;
+    margin-bottom: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+
+  .signup-image-container {
+    width: 45%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.6s ease-out 0.3s both;
+  }
+
+  .signup-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .signup-promo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 20% center;
+    /* 可选：使用clip-path进行更精确的裁剪 */
+    /* clip-path: inset(0 0 0 0); */
+  }
+
+  .signup-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%);
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 15% 5% 5% 8%;
+  }
+
+  .signup-overlay-content {
+    text-align: left;
+    color: #FFFFFF;
+    width: 100%;
+    animation: fadeIn 0.8s ease-out 0.4s both;
+  }
+
+  .signup-overlay-circle {
+    width: 45px;
+    height: 45px;
+    background: #FFFFFF;
+    border-radius: 50%;
+    margin-bottom: 20px;
+    margin-left: 20px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .signup-overlay-content h2 {
+    font-size: 3.8rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1.1;
+    white-space: nowrap;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    text-align: left;
+    padding: 0 20px;
+    margin: 0 0 20px 0;
+  }
+
+  .signup-overlay-content p {
+    font-size: 1.6rem;
+    font-weight: 400;
+    line-height: 1.4;
+    opacity: 0.9;
+    margin-bottom: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    padding: 0 20px;
+    margin: 0 0 8px 0;
+  }
+
+  .signup-overlay-content p:last-child {
+    margin-bottom: 0;
+  }
+
+  .password-hint {
+    margin-top: -8px;
+    margin-bottom: 12px;
+  }
+
+  .password-hint p {
+    font-size: 0.875rem;
+    color: #666666;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+
   /* Responsive Design */
   @media (max-width: 1024px) {
     .auth-container {
       flex-direction: column;
-      height: 90vh;
+      height: 100%;
       padding: 0 3%;
       padding-top: 2vh;
     }
@@ -772,17 +1001,477 @@
     }
   }
   
+  @media (max-width: 1024px) {
+    .signup-page .auth-container {
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .signup-form-container {
+      width: 100%;
+      height: 60vh;
+      padding: 0 5%;
+    }
+
+    .signup-image-container {
+      width: 100%;
+      height: 40vh;
+    }
+
+    .signup-overlay-content h2 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .signup-overlay-content p {
+      font-size: 1.4rem;
+    }
+  }
+
   @media (max-width: 768px) {
     .auth-page {
       padding: 0;
       padding-top: 3vh;
     }
-    
+
+    .signup-page .auth-container {
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .signup-form-container {
+      width: 100%;
+      height: 70vh;
+      padding: 0 3%;
+    }
+
+    .signup-image-container {
+      width: 100%;
+      height: 30vh;
+    }
+
+    .signup-page .auth-header h1 {
+      font-size: 2.5rem;
+    }
+
+    .signup-overlay-content h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .signup-overlay-content p {
+      font-size: 1.2rem;
+    }
+
+}
+
+/* Forgot Password Page Styles */
+.forgot-password-page {
+  position: fixed !important;
+  top: 60px !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  overflow: hidden;
+  z-index: 1;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100vw !important;
+  height: calc(100vh - 60px) !important;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.forgot-password-page::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: -5%;
+  width: 60vw;
+  height: 60vw;
+  max-width: 800px;
+  max-height: 800px;
+  background-image: url('../../assets/logo/ICN-logo-little.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.1;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.forgot-password-page .auth-container {
+  display: flex !important;
+  height: 100% !important;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+  position: relative;
+  z-index: 1;
+  width: 100% !important;
+}
+
+.forgot-password-form-container {
+  width: 55%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5%;
+  position: relative;
+  animation: fadeIn 0.6s ease-out 0.2s both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+
+@keyframes float {
+  0%, 100% {
+    transform: rotate(45deg) translateY(0px);
+  }
+  50% {
+    transform: rotate(45deg) translateY(-10px);
+  }
+}
+
+
+.forgot-password-page .auth-card {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 500px;
+  gap: 30px;
+}
+
+.forgot-password-page .auth-header h1 {
+  font-size: 3.5rem;
+  color: #000000;
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+.forgot-password-image-container {
+  width: 45%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.6s ease-out 0.3s both;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.forgot-password-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.forgot-password-promo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 20% center;
+}
+
+.forgot-password-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 15% 5% 5% 8%;
+}
+
+.forgot-password-overlay-content {
+  text-align: left;
+  color: #FFFFFF;
+  width: 100%;
+  animation: fadeIn 0.8s ease-out 0.4s both;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.forgot-password-overlay-circle {
+  width: 45px;
+  height: 45px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  margin-bottom: 20px;
+  margin-left: 20px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.forgot-password-overlay-content h2 {
+  font-size: 3.8rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-align: left;
+  padding: 0 20px;
+  margin: 0 0 20px 0;
+}
+
+.forgot-password-overlay-content p {
+  font-size: 1.6rem;
+  font-weight: 400;
+  line-height: 1.4;
+  opacity: 0.9;
+  margin-bottom: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  padding: 0 20px;
+  margin: 0 0 8px 0;
+}
+
+.forgot-password-overlay-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* Verification Input Wrapper */
+.verification-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.verification-input-wrapper input {
+  flex: 1;
+  padding-right: 80px;
+}
+
+.verification-input-wrapper .password-toggle {
+  position: absolute;
+  right: 50px;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  color: #666666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  outline: none;
+  box-shadow: none;
+}
+
+.verification-input-wrapper .send-btn {
+  position: absolute;
+  right: 8px;
+  background: #1B3E6F;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.verification-input-wrapper .send-btn:hover {
+  background: #15325A;
+  transform: translateY(-1px);
+}
+
+.verification-input-wrapper .send-btn:active {
+  transform: translateY(0);
+  background: #0F2547;
+}
+
+.verification-input-wrapper .send-btn:focus {
+  outline: none;
+}
+
+.verification-input-wrapper .send-btn:disabled {
+  background: #9CA3AF;
+  color: #FFFFFF;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Password Hint */
+.password-hint {
+  margin: 8px 0 16px 0;
+}
+
+.password-hint p {
+  font-size: 0.9rem;
+  color: #666666;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Form Options */
+.form-options {
+  margin: 16px 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #333333;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #1B3E6F;
+  cursor: pointer;
+}
+
+.checkbox-label span {
+  user-select: none;
+}
+
+/* Responsive Design for Forgot Password Page */
+@media (max-width: 1024px) {
+  .forgot-password-page .auth-container {
+    flex-direction: column;
+    height: 100vh;
+  }
+  
+  .forgot-password-form-container {
+    width: 100%;
+    height: 60vh;
+  }
+  
+  .forgot-password-image-container {
+    width: 100%;
+    height: 40vh;
+  }
+  
+  .forgot-password-overlay-content h2 {
+    font-size: 3rem;
+    margin-bottom: 30px;
+  }
+  
+  .forgot-password-overlay-content p {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .forgot-password-form-container {
+    height: 70vh;
+  }
+  
+  .forgot-password-image-container {
+    height: 30vh;
+  }
+  
+  .forgot-password-overlay-content h2 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+  }
+  
+  .forgot-password-overlay-content p {
+    font-size: 1.2rem;
+  }
+  
+}
+
+@media (max-width: 480px) {
+  .forgot-password-page {
+    top: 50px !important;
+    height: calc(100vh - 50px) !important;
+  }
+  
+  .forgot-password-page .auth-container {
+    margin-top: 0 !important;
+    height: 100% !important;
+  }
+}
+
+  @media (max-width: 480px) {
+    .auth-page {
+      top: 50px !important;
+      height: calc(100vh - 50px) !important;
+    }
+
+    .signup-page {
+      top: 50px !important;
+      height: calc(100vh - 50px) !important;
+    }
+
     .auth-container {
       gap: 5px;
       padding: 0 2%;
       padding-top: 1vh;
-      height: 90vh;
+      height: 100%;
     }
     
     .mobile-preview-container {
