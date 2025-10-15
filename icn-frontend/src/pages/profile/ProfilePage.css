@@ -523,3 +523,19 @@
       grid-template-columns: repeat(2, 1fr);
     }
   }
+
+  .btn-manage {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    color: var(--primary-orange);
+    border: 2px solid var(--primary-orange);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .btn-manage:hover {
+    background: var(--orange-bg);
+  }
