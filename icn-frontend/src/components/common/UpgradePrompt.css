@@ -1,0 +1,64 @@
+.upgrade-prompt {
+    background: linear-gradient(135deg, var(--orange-bg) 0%, var(--white) 100%);
+    border: 2px solid var(--primary-orange);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+  }
+  
+  .upgrade-prompt-content {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .upgrade-icon {
+    font-size: 2rem;
+  }
+  
+  .upgrade-text h3 {
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+  
+  .upgrade-text p {
+    color: var(--black-80);
+    margin-bottom: 4px;
+  }
+  
+  .current-tier {
+    color: var(--black-50);
+    font-size: 0.875rem;
+  }
+  
+  .upgrade-btn {
+    padding: 10px 24px;
+    background: var(--primary-orange);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .upgrade-btn:hover {
+    background: var(--orange-hover);
+    transform: translateY(-2px);
+  }
+  
+  .upgrade-prompt-compact {
+    padding: 6px 12px;
+    background: var(--orange-bg);
+    border: 1px solid var(--primary-orange);
+    border-radius: 6px;
+    font-size: 0.813rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .upgrade-prompt-compact:hover {
+    background: var(--primary-orange);
+    color: var(--white);
+  }

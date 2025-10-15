@@ -1,0 +1,56 @@
+.tier-masked-content {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .masked-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    z-index: 1;
+  }
+  
+  .upgrade-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--orange-bg);
+    border: 1px solid var(--primary-orange);
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--black-80);
+  }
+  
+  .lock-icon {
+    font-size: 1.125rem;
+  }
+  
+  .masked-text {
+    filter: blur(5px);
+    user-select: none;
+    color: var(--black-20);
+  }
+  
+  .tier-restricted {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    background: var(--orange-bg);
+    border-radius: 4px;
+    font-size: 0.813rem;
+  }
+  
+  .restriction-message {
+    color: var(--black-50);
+    font-style: italic;
+  }

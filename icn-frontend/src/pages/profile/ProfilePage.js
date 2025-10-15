@@ -374,7 +374,14 @@ function ProfilePage() {
                         </>
                       )}
                     </div>
-                    {user.tier !== 'premium' && (
+                    {user.tier === 'premium' ? (
+                      <button 
+                        className="btn-manage"
+                        onClick={() => navigate('/pricing')}
+                      >
+                        Manage Subscription
+                      </button>
+                    ) : (
                       <button 
                         className="btn-upgrade"
                         onClick={() => navigate('/pricing')}
