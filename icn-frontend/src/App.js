@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BookmarkProvider } from './contexts/BookmarkContext';
 import NavigationBar from './components/layout/NavigationBar';
 import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/auth/LoginPage';
@@ -60,80 +61,75 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="App">
-        <NavigationBar user={user} onLogout={handleLogout} />
-        
-        <main className="app-main">
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route 
-              path="/login" 
-              element={
-                user ? <Navigate to="/" replace /> : <LoginPage onLogin={handleLogin} />
-              } 
-            />
-            <Route 
-              path="/signup" 
-              element={
-                user ? <Navigate to="/" replace /> : <SignUpPage onSignUp={handleSignUp} />
-              } 
-            />
-            <Route 
-              path="/forgot-password" 
-                element={<ForgotPasswordPage />
-              } 
-            />
-            <Route 
-              path="/search" 
-                element={<SearchPage />
-              } 
-            />
-            <Route 
-              path="/company/:id" 
-              element={
-                <CompanyDetailPage />
-              } 
-            />
-            <Route 
-              path="/pricing" 
-              element={
-                <PricingPage />
-              } 
-            />
-            <Route 
-              path="/companies" 
-              element={
-                <CompaniesPage />
-              } 
-            />
-            
-            {/* Protected Routes */}
-            <Route 
-              path="/companies" 
-              element={
-                <ProtectedRoute user={user}>
-                  <CompaniesPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute user={user}>
-                  <ProfilePage user={user} />
-                </ProtectedRoute>
-              } 
-            />
-            
-            
-            {/* Catch all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <BookmarkProvider>
+      <Router>
+        <div className="App">
+          <NavigationBar user={user} onLogout={handleLogout} />
+          
+          <main className="app-main">
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<HomePage />} />
+              <Route 
+                path="/login" 
+                element={
+                  user ? <Navigate to="/" replace /> : <LoginPage onLogin={handleLogin} />
+                } 
+              />
+              <Route 
+                path="/signup" 
+                element={
+                  user ? <Navigate to="/" replace /> : <SignUpPage onSignUp={handleSignUp} />
+                } 
+              />
+              <Route 
+                path="/forgot-password" 
+                  element={<ForgotPasswordPage />
+                } 
+              />
+              <Route 
+                path="/search" 
+                  element={<SearchPage />
+                } 
+              />
+              <Route 
+                path="/company/:id" 
+                element={
+                  <CompanyDetailPage />
+                } 
+              />
+              <Route 
+                path="/pricing" 
+                element={
+                  <PricingPage />
+                } 
+              />
+              
+              {/* Protected Routes */}
+              <Route 
+                path="/companies" 
+                element={
+                  <ProtectedRoute user={user}>
+                    <CompaniesPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute user={user}>
+                    <ProfilePage user={user} />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Catch all */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+        </div>
+      </Router>
+    </BookmarkProvider>
   );
 }
 
