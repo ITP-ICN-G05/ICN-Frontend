@@ -57,9 +57,15 @@ function NavigationBar({ user, onLogout }) {
     <nav className="navigation-bar">
       <div className="nav-container">
         {/* Logo Section */}
-        <a href="/" className="nav-logo">
-          <img src={logoImage} alt="ICN Logo" className="logo-image" />
-        </a>
+        <div className="nav-brand">
+          <a href="/" className="nav-logo">
+            <img src={logoImage} alt="ICN Victoria Logo" className="logo-image" />
+            <div className="logo-text">
+              <span className="logo-main">Navigator</span>
+              <span className="logo-sub">by ICN Victoria</span>
+            </div>
+          </a>
+        </div>
 
         {/* Navigation Links */}
         <div className="nav-links">

@@ -308,3 +308,42 @@
   .dropdown-item.logout:hover {
     background: rgba(220, 38, 38, 0.1);
   }
+
+  .nav-brand {
+    flex-shrink: 0;
+  }
+  
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    transition: transform 0.2s ease;
+  }
+  
+  .nav-logo:hover {
+    transform: scale(1.02);
+  }
+  
+  .logo-image {
+    height: 44px;
+    width: auto;
+  }
+  
+  .logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  
+  .logo-main {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  
+  .logo-sub {
+    font-size: 0.75rem;
+    color: var(--black-50);
+    font-weight: 500;
+  }
