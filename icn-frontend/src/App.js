@@ -11,6 +11,9 @@ import CompanyDetailPage from './pages/company/CompanyDetailPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import PricingPage from './pages/pricing/PricingPage';
 import CompaniesPage from './pages/companies/CompaniesPage';
+import NavigationPage from './pages/navigation/NavigationPage';
+import MobileDesignsPage from './pages/mobile/MobileDesignsPage';
+import IllustrationsPage from './pages/illustrations/IllustrationsPage';
 import './App.css';
 
 // Protected Route Component
@@ -102,6 +105,24 @@ function App() {
                 path="/pricing" 
                 element={
                   <PricingPage />
+                } 
+              />
+              <Route 
+                path="/navigation" 
+                element={
+                  <NavigationPage />
+                } 
+              />
+              <Route 
+                path="/mobile-designs" 
+                element={
+                  <MobileDesignsPage />
+                } 
+              />
+              <Route 
+                path="/illustrations" 
+                element={
+                  <IllustrationsPage />
                 } 
               />
               

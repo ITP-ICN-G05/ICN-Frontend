@@ -124,9 +124,6 @@ function NavigationBar({ user, onLogout }) {
                   <button className="dropdown-item" onClick={() => {navigate('/companies'); setShowUserMenu(false);}}>
                     🏢 Companies
                   </button>
-                  <button className="dropdown-item" onClick={() => {navigate('/search'); setShowUserMenu(false);}}>
-                    🔍 Search
-                  </button>
                   <div className="dropdown-divider"></div>
                   <button className="dropdown-item logout" onClick={handleLogoutClick}>
                     🚪 Log out
