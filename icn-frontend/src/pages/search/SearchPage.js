@@ -113,17 +113,19 @@ function SearchPage() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Filter mock data based on search query
-      const results = query 
-        ? mockCompanies.filter(company => 
-            company.name.toLowerCase().includes(query.toLowerCase()) ||
-            company.description.toLowerCase().includes(query.toLowerCase()) ||
-            company.sectors.some(s => s.toLowerCase().includes(query.toLowerCase())) ||
-            company.capabilities.some(c => c.toLowerCase().includes(query.toLowerCase()))
-          )
-        : mockCompanies;
-      
-      setCompanies(results);
+      // If no query, return ALL companies instead of empty array
+      if (!query || query.trim() === '') {
+        setCompanies(mockCompanies);
+      } else {
+        // Filter mock data based on search query
+        const results = mockCompanies.filter(company => 
+          company.name.toLowerCase().includes(query.toLowerCase()) ||
+          company.description.toLowerCase().includes(query.toLowerCase()) ||
+          company.sectors.some(s => s.toLowerCase().includes(query.toLowerCase())) ||
+          company.capabilities.some(c => c.toLowerCase().includes(query.toLowerCase()))
+        );
+        setCompanies(results);
+      }
     } catch (error) {
       console.error('Search error:', error);
     } finally {
