@@ -1,0 +1,116 @@
+.user-management {
+    min-height: calc(100vh - 70px);
+    background: #F5F6FA;
+    padding: 32px;
+  }
+  
+  .user-management h1 {
+    color: var(--navy);
+    margin-bottom: 32px;
+  }
+  
+  .user-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  
+  .stat-card {
+    background: var(--white);
+    padding: 24px;
+    border-radius: 12px;
+    text-align: center;
+  }
+  
+  .stat-card h3 {
+    font-size: 2rem;
+    color: var(--navy);
+    margin: 0 0 8px 0;
+  }
+  
+  .stat-card p {
+    color: var(--black-50);
+    margin: 0;
+  }
+  
+  .user-filters {
+    margin-bottom: 24px;
+  }
+  
+  .tier-filter {
+    padding: 12px;
+    border: 1px solid var(--black-20);
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+  
+  .users-table {
+    background: var(--white);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  
+  .users-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .users-table th {
+    background: var(--navy);
+    color: var(--white);
+    padding: 16px;
+    text-align: left;
+  }
+  
+  .users-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--black-20);
+  }
+  
+  .tier-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.813rem;
+    font-weight: 600;
+  }
+  
+  .tier-free {
+    background: var(--black-20);
+    color: var(--black-80);
+  }
+  
+  .tier-plus {
+    background: var(--orange-bg);
+    color: var(--black-80);
+  }
+  
+  .tier-premium {
+    background: var(--primary-orange);
+    color: var(--white);
+  }
+  
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.813rem;
+    font-weight: 600;
+  }
+  
+  .status-active {
+    background: var(--success);
+    color: var(--white);
+  }
+  
+  .status-inactive {
+    background: var(--black-20);
+    color: var(--black-80);
+  }
+  
+  .btn-toggle {
+    padding: 6px 12px;
+    border: 1px solid var(--black-20);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+  }
