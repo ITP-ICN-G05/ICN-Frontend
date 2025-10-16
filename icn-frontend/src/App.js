@@ -20,6 +20,9 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import CompanyManagement from './pages/admin/CompanyManagement';
 import UserManagement from './pages/admin/UserManagement';
 
+import NavigationPage from './pages/navigation/NavigationPage';
+import MobileDesignsPage from './pages/mobile/MobileDesignsPage';
+import IllustrationsPage from './pages/illustrations/IllustrationsPage';
 import './App.css';
 
 // Protected Route Component
@@ -126,6 +129,26 @@ function App() {
                   </AdminRoute>
                 } 
               />
+              <Route 
+                path="/navigation" 
+                element={
+                  <NavigationPage />
+                } 
+              />
+              <Route 
+                path="/mobile-designs" 
+                element={
+                  <MobileDesignsPage />
+                } 
+              />
+              <Route 
+                path="/illustrations" 
+                element={
+                  <IllustrationsPage />
+                } 
+              />
+              
+              {/* Protected Routes */}
               <Route 
                 path="/admin/companies" 
                 element={

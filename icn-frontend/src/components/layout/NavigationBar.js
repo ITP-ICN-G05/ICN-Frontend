@@ -134,9 +134,6 @@ function NavigationBar({ user, onLogout }) {
                     <button className="dropdown-item" onClick={() => {navigate('/companies'); setShowUserMenu(false);}}>
                       🏢 Companies
                     </button>
-                    <button className="dropdown-item" onClick={() => {navigate('/search'); setShowUserMenu(false);}}>
-                      🔍 Search
-                    </button>
                     <div className="dropdown-divider"></div>
                     <button className="dropdown-item logout" onClick={handleLogoutClick}>
                       🚪 Log out
@@ -147,13 +144,13 @@ function NavigationBar({ user, onLogout }) {
           ) : (
             <>
               <button 
-                className={`nav-btn nav-btn-login ${location.pathname === '/login' ? 'active' : ''}`} 
+                className={`nav-btn nav-btn-login ${isActiveLink('/login') || isActiveLink('/forgot-password') ? 'active' : ''}`} 
                 onClick={handleLogin}
               >
                 Log in
               </button>
               <button 
-                className={`nav-btn nav-btn-signup ${location.pathname === '/signup' ? 'active' : ''}`} 
+                className={`nav-btn nav-btn-signup ${isActiveLink('/signup') ? 'active' : ''}`} 
                 onClick={handleSignUp}
               >
                 Sign up
