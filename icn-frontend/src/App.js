@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { BookmarkProvider } from './contexts/BookmarkContext';
 import NavigationBar from './components/layout/NavigationBar';
 import AdminRoute from './components/admin/AdminRoute';
+import OnboardingModal from './components/onboarding/OnboardingModal';
 
 // Public Pages
 import HomePage from './pages/home/HomePage';
@@ -36,6 +37,7 @@ function ProtectedRoute({ children, user }) {
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     // Check if user is authenticated on mount
@@ -44,7 +46,13 @@ function App() {
     
     if (token && userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        
+        // Check if onboarding is needed (only for logged-in users who haven't completed it)
+        if (parsedUser && !parsedUser.onboardingComplete && !parsedUser.preferences && !parsedUser.onboardingSkipped) {
+          setShowOnboarding(true);
+        }
       } catch (error) {
         console.error('Error parsing user data:', error);
         localStorage.removeItem('token');
@@ -56,16 +64,52 @@ function App() {
 
   const handleLogin = (userData) => {
     setUser(userData);
+    
+    // Check if new user needs onboarding after login
+    if (userData && !userData.onboardingComplete && !userData.preferences && !userData.onboardingSkipped) {
+      setShowOnboarding(true);
+    }
   };
 
   const handleSignUp = (userData) => {
     setUser(userData);
+    // Note: Onboarding is handled within SignUpPage component
   };
 
   const handleLogout = () => {
     setUser(null);
+    setShowOnboarding(false);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+  };
+
+  const handleOnboardingComplete = (preferences) => {
+    // Update user with preferences
+    const updatedUser = {
+      ...user,
+      preferences,
+      onboardingComplete: true
+    };
+    
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+    setShowOnboarding(false);
+    
+    // Optional: Reload to apply preferences
+    window.location.reload();
+  };
+
+  const handleOnboardingSkip = () => {
+    // Mark onboarding as skipped
+    const updatedUser = {
+      ...user,
+      onboardingComplete: true,
+      onboardingSkipped: true
+    };
+    
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+    setShowOnboarding(false);
   };
 
   if (loading) {
@@ -148,7 +192,7 @@ function App() {
                 } 
               />
               
-              {/* Protected Routes */}
+              {/* Protected Admin Routes */}
               <Route 
                 path="/admin/companies" 
                 element={
@@ -170,6 +214,15 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
+
+          {/* Global Onboarding Modal */}
+          {showOnboarding && (
+            <OnboardingModal
+              user={user}
+              onComplete={handleOnboardingComplete}
+              onSkip={handleOnboardingSkip}
+            />
+          )}
         </div>
       </Router>
     </BookmarkProvider>
