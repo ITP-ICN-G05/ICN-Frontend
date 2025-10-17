@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import signUpImage from '../../assets/use_image/sign-up.png';
+import OnboardingModal from '../../components/onboarding/OnboardingModal'; // ADD THIS IMPORT
 import './AuthPages.css';
 
 function SignUpPage({ onSignUp }) {
   const navigate = useNavigate();
+  const [showOnboarding, setShowOnboarding] = useState(false); // ADD THIS
+  const [currentUser, setCurrentUser] = useState(null); // ADD THIS
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -81,25 +84,57 @@ function SignUpPage({ onSignUp }) {
       
       // Mock successful signup
       const userData = {
-        id: 1,
+        id: Date.now(), // CHANGE: Use Date.now() instead of 1
         name: formData.name,
         email: formData.email,
-        tier: 'free'
+        tier: 'free',
+        onboardingComplete: false // ADD THIS
       };
       
       localStorage.setItem('token', 'mock-jwt-token');
       localStorage.setItem('user', JSON.stringify(userData));
       
-      if (onSignUp) {
-        onSignUp(userData);
-      }
+      // CHANGE: Don't call onSignUp here, save it for after onboarding
+      // if (onSignUp) {
+      //   onSignUp(userData);
+      // }
       
-      navigate('/');
+      setCurrentUser(userData); // ADD THIS
+      setShowOnboarding(true); // ADD THIS
+      
+      // REMOVE: navigate('/');
     } catch (error) {
       setErrors({ submit: 'Signup failed. Please try again.' });
     } finally {
       setLoading(false);
     }
+  };
+
+  // ADD THESE TWO HANDLERS
+  const handleOnboardingComplete = (preferences) => {
+    const updatedUser = {
+      ...currentUser,
+      preferences,
+      onboardingComplete: true
+    };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    if (onSignUp) {
+      onSignUp(updatedUser);
+    }
+    navigate('/');
+  };
+
+  const handleOnboardingSkip = () => {
+    const updatedUser = {
+      ...currentUser,
+      onboardingComplete: true,
+      onboardingSkipped: true
+    };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    if (onSignUp) {
+      onSignUp(updatedUser);
+    }
+    navigate('/');
   };
 
   const handleSocialLogin = (provider) => {
@@ -108,6 +143,7 @@ function SignUpPage({ onSignUp }) {
   };
 
   return (
+    <>  {/* ADD THIS WRAPPER */}
     <div className="auth-page signup-page">
       <div className="auth-container">
         {/* Left Side - Sign Up Form */}
@@ -224,7 +260,8 @@ function SignUpPage({ onSignUp }) {
                 <p>Use 8 or more characters with a mix of letters, numbers & symbols</p>
               </div>
 
-              <div className="form-options">
+              {/* REMOVE THIS DUPLICATE SHOW PASSWORD CHECKBOX */}
+              {/* <div className="form-options">
               <label className="checkbox-label">
                 <input
                   type="checkbox"
@@ -234,6 +271,27 @@ function SignUpPage({ onSignUp }) {
                   />
                   <span>Show password</span>
               </label>
+              </div> */}
+
+              {/* ADD TERMS & CONDITIONS CHECKBOX */}
+              <div className="form-group">
+                <label className="checkbox-label terms-checkbox">
+                  <input
+                    type="checkbox"
+                    name="agreeTerms"
+                    checked={formData.agreeTerms}
+                    onChange={handleChange}
+                    disabled={loading}
+                  />
+                  <span>
+                    I agree to the <Link to="/terms" className="link-primary">Terms and Conditions</Link> and <Link to="/privacy" className="link-primary">Privacy Policy</Link>
+                  </span>
+                </label>
+                {errors.agreeTerms && (
+                  <span className="error-text" style={{ display: 'block', marginTop: '4px' }}>
+                    {errors.agreeTerms}
+                  </span>
+                )}
               </div>
 
               <div className="auth-footer">
@@ -322,6 +380,16 @@ function SignUpPage({ onSignUp }) {
         </div>
       </div>
     </div>
+
+    {/* ADD ONBOARDING MODAL */}
+    {showOnboarding && currentUser && (
+      <OnboardingModal
+        user={currentUser}
+        onComplete={handleOnboardingComplete}
+        onSkip={handleOnboardingSkip}
+      />
+    )}
+    </>
   );
 }
 
