@@ -6,10 +6,11 @@ function SavedSearchModal({
   onClose, 
   defaultQuery, 
   filters, 
-  resultCount 
+  resultCount,
+  saving = false 
 }) {
   const [formData, setFormData] = useState({
-    name: defaultQuery || 'My Search',
+    name: defaultQuery ? `Search: ${defaultQuery}` : 'My Search',
     description: '',
     enableAlerts: false,
     alertFrequency: 'daily'
@@ -33,25 +34,27 @@ function SavedSearchModal({
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={saving ? null : onClose}>
       <div className="saved-search-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Save Search</h2>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className="close-btn" onClick={onClose} disabled={saving}>×</button>
         </div>
         
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
             <div className="search-summary">
               <p className="result-count">{resultCount} results found</p>
-              {Object.entries(filters).length > 0 && (
+              {Object.entries(filters || {}).length > 0 && (
                 <div className="active-filters">
                   <strong>Active filters:</strong>
                   <div className="filter-tags">
                     {Object.entries(filters).map(([key, value]) => (
-                      <span key={key} className="filter-tag">
-                        {key}: {Array.isArray(value) ? value.join(', ') : value}
-                      </span>
+                      value && value.length > 0 && (
+                        <span key={key} className="filter-tag">
+                          {key}: {Array.isArray(value) ? value.join(', ') : value}
+                        </span>
+                      )
                     ))}
                   </div>
                 </div>
@@ -68,6 +71,7 @@ function SavedSearchModal({
                 onChange={handleChange}
                 placeholder="Enter a name for this search"
                 required
+                disabled={saving}
               />
             </div>
             
@@ -80,6 +84,7 @@ function SavedSearchModal({
                 onChange={handleChange}
                 placeholder="Add notes about this search (optional)"
                 rows="3"
+                disabled={saving}
               />
             </div>
             
@@ -90,6 +95,7 @@ function SavedSearchModal({
                   name="enableAlerts"
                   checked={formData.enableAlerts}
                   onChange={handleChange}
+                  disabled={saving}
                 />
                 <span>Enable email alerts for new matches</span>
               </label>
@@ -103,6 +109,7 @@ function SavedSearchModal({
                   name="alertFrequency"
                   value={formData.alertFrequency}
                   onChange={handleChange}
+                  disabled={saving}
                 >
                   <option value="instant">Instant</option>
                   <option value="daily">Daily</option>
@@ -113,11 +120,20 @@ function SavedSearchModal({
           </div>
           
           <div className="modal-footer">
-            <button type="button" className="btn-cancel" onClick={onClose}>
+            <button 
+              type="button" 
+              className="btn-cancel" 
+              onClick={onClose}
+              disabled={saving}
+            >
               Cancel
             </button>
-            <button type="submit" className="btn-save">
-              Save Search
+            <button 
+              type="submit" 
+              className="btn-save"
+              disabled={saving}
+            >
+              {saving ? 'Saving...' : 'Save Search'}
             </button>
           </div>
         </form>

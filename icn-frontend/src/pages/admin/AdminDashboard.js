@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adminService } from '../../services/adminService';
+import { getAdminService } from '../../services/serviceFactory';
 import './AdminDashboard.css';
 
 function AdminDashboard() {
   const navigate = useNavigate();
+  const adminService = getAdminService();
   const [activeSection, setActiveSection] = useState('overview');
   const [metrics, setMetrics] = useState({
     totalCompanies: 2716,
@@ -33,20 +34,26 @@ function AdminDashboard() {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      // Load all dashboard data
-      const [metricsRes, companiesRes, usersRes, logsRes, moderationRes] = await Promise.all([
-        adminService.getDashboardMetrics(),
-        adminService.getAllCompanies({ limit: 10 }),
-        adminService.getAllUsers({ limit: 10 }),
-        adminService.getActivityLogs({ limit: 20 }),
-        adminService.getFlaggedContent()
-      ]);
+      // Use service factory admin service
+      const response = await adminService.getDashboardMetrics();
+      const data = response.data || response;
       
-      // Use mock data if API fails
+      if (data) {
+        setMetrics(prev => ({ ...prev, ...data }));
+      }
+      
+      // Load other data
+      const companiesRes = await adminService.getAllCompanies({ limit: 10 });
+      const usersRes = await adminService.getUsers({ limit: 10 });
+      const logsRes = await adminService.getActivityLogs?.({ limit: 20 });
+      
+      setCompanies((companiesRes.data || companiesRes || []).slice(0, 10));
+      setUsers((usersRes.data || usersRes || []).slice(0, 10));
+      setActivityLogs(logsRes?.data || logsRes || []);
+      
     } catch (error) {
       console.error('Loading dashboard data:', error);
-    } finally {
-      // Set mock data for demo
+      // Keep existing mock data as fallback
       setCompanies([
         { id: 1, name: 'TechCorp Industries', type: 'Manufacturer', verified: true, status: 'active' },
         { id: 2, name: 'Global Supply Co', type: 'Supplier', verified: true, status: 'active' },
@@ -69,10 +76,11 @@ function AdminDashboard() {
         { id: 1, type: 'company_update', company: 'TechCorp', changes: 'Updated description', status: 'pending' },
         { id: 2, type: 'verification_request', company: 'ServiceMax Pro', documents: 'ABN docs', status: 'pending' }
       ]);
-      
+    } finally {
       setLoading(false);
     }
   };
+  
 
   const handleFileImport = async () => {
     if (!importFile) {

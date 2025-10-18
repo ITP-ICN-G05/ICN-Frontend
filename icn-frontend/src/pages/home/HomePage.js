@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getCompanyService } from '../../services/serviceFactory';
 import './HomePage.css';
 
 function HomePage() {
   const navigate = useNavigate();
+  const companyService = getCompanyService();
   const [searchQuery, setSearchQuery] = useState('');
   const [nearbyCompanies, setNearbyCompanies] = useState([]);
   const [sectors, setSectors] = useState([
@@ -16,31 +18,79 @@ function HomePage() {
   ]);
 
   useEffect(() => {
-    // Simulate loading nearby companies
-    setNearbyCompanies([
-      {
-        id: 1,
-        name: 'TechCorp Industries',
-        type: 'Manufacturer',
-        distance: '2.3km',
-        verified: true
-      },
-      {
-        id: 2,
-        name: 'Global Supply Co',
-        type: 'Item Supplier',
-        distance: '4.1km',
-        verified: true
-      },
-      {
-        id: 3,
-        name: 'ServiceMax Pro',
-        type: 'Service Provider',
-        distance: '5.7km',
-        verified: false
-      }
-    ]);
+    loadNearbyCompanies();
   }, []);
+
+  const loadNearbyCompanies = async () => {
+    try {
+      // Try to get companies from service
+      const response = await companyService.getAll({ limit: 3, nearby: true });
+      const data = response.data || response;
+      
+      if (Array.isArray(data) && data.length > 0) {
+        // Transform API data to match expected format
+        const transformedData = data.slice(0, 3).map(company => ({
+          id: company.id,
+          name: company.name,
+          type: company.type || company.companyType,
+          distance: company.distance || '2.5km',
+          verified: company.verificationStatus === 'verified' || company.verified
+        }));
+        setNearbyCompanies(transformedData);
+      } else {
+        // Use mock data as fallback
+        setNearbyCompanies([
+          {
+            id: 1,
+            name: 'TechCorp Industries',
+            type: 'Manufacturer',
+            distance: '2.3km',
+            verified: true
+          },
+          {
+            id: 2,
+            name: 'Global Supply Co',
+            type: 'Item Supplier',
+            distance: '4.1km',
+            verified: true
+          },
+          {
+            id: 3,
+            name: 'ServiceMax Pro',
+            type: 'Service Provider',
+            distance: '5.7km',
+            verified: false
+          }
+        ]);
+      }
+    } catch (error) {
+      console.error('Error loading nearby companies:', error);
+      // Use mock data as fallback
+      setNearbyCompanies([
+        {
+          id: 1,
+          name: 'TechCorp Industries',
+          type: 'Manufacturer',
+          distance: '2.3km',
+          verified: true
+        },
+        {
+          id: 2,
+          name: 'Global Supply Co',
+          type: 'Item Supplier',
+          distance: '4.1km',
+          verified: true
+        },
+        {
+          id: 3,
+          name: 'ServiceMax Pro',
+          type: 'Service Provider',
+          distance: '5.7km',
+          verified: false
+        }
+      ]);
+    }
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();

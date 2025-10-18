@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTierAccess } from '../../hooks/useTierAccess';
+import { useNavigate } from 'react-router-dom';
 import './TierAccessControl.css';
 
 function TierAccessControl({ 
@@ -7,9 +8,11 @@ function TierAccessControl({
   children, 
   fallback = null,
   showUpgradePrompt = true,
-  maskContent = false 
+  maskContent = false,
+  upgradeMessage = null
 }) {
   const { hasAccess, userTier } = useTierAccess();
+  const navigate = useNavigate();
   
   if (hasAccess(feature)) {
     return children;
@@ -23,6 +26,12 @@ function TierAccessControl({
             <div className="upgrade-hint">
               <span className="lock-icon">🔒</span>
               <span>Upgrade to view</span>
+              <button 
+                className="upgrade-btn-small"
+                onClick={() => navigate('/pricing')}
+              >
+                Upgrade
+              </button>
             </div>
           )}
         </div>
@@ -38,26 +47,23 @@ function TierAccessControl({
   if (showUpgradePrompt) {
     return (
       <div className="tier-restricted">
-        <span className="restriction-message">
-          Available in {getRequiredTier(feature)} tier
-        </span>
+        <div className="restriction-content">
+          <span className="lock-icon">🔒</span>
+          <p className="restriction-message">
+            {upgradeMessage || `This feature requires ${userTier === 'free' ? 'Plus or Premium' : 'Premium'} tier`}
+          </p>
+          <button 
+            className="upgrade-btn"
+            onClick={() => navigate('/pricing')}
+          >
+            Upgrade Now
+          </button>
+        </div>
       </div>
     );
   }
 
   return null;
 }
-
-const getRequiredTier = (feature) => {
-  const tierFeatures = {
-    COMPANY_ABN: 'Plus',
-    COMPANY_REVENUE: 'Premium',
-    COMPANY_EMPLOYEES: 'Premium',
-    COMPANY_OWNERSHIP: 'Premium',
-    ADVANCED_SEARCH: 'Plus',
-    API_ACCESS: 'Premium',
-  };
-  return tierFeatures[feature] || 'Premium';
-};
 
 export default TierAccessControl;

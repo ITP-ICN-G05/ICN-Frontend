@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { getAuthService } from '../../services/serviceFactory';
 import logoImage from '../../assets/logo/ICN-logo-little.png';
 import cmpInfImage from '../../assets/use_image/cmp_inf.jpg';
 import mapPageImage from '../../assets/use_image/map_page.jpg';
@@ -7,6 +8,7 @@ import './AuthPages.css';
 
 function LoginPage({ onLogin }) {
   const navigate = useNavigate();
+  const authService = getAuthService();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -56,6 +58,7 @@ function LoginPage({ onLogin }) {
     }
     
     setLoading(true);
+    setErrors({});
     
     try {
       // Simulate API call

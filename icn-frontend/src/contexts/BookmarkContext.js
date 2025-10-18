@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { bookmarkService } from '../services/bookmarkService';
+import { getBookmarkService } from '../services/serviceFactory';
 
 const BookmarkContext = createContext();
 
@@ -15,6 +15,7 @@ export const BookmarkProvider = ({ children }) => {
   const [bookmarks, setBookmarks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const bookmarkService = getBookmarkService();
 
   useEffect(() => {
     loadBookmarks();
@@ -22,15 +23,22 @@ export const BookmarkProvider = ({ children }) => {
 
   const loadBookmarks = async () => {
     const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) return;
+    if (!user) {
+      setBookmarks([]);
+      return;
+    }
     
     setLoading(true);
+    setError(null);
     try {
       const response = await bookmarkService.getUserBookmarks();
-      setBookmarks(response.data);
+      // Handle both mock and real service response shapes
+      const bookmarkData = response.data || response;
+      setBookmarks(Array.isArray(bookmarkData) ? bookmarkData : []);
     } catch (err) {
       console.error('Error loading bookmarks:', err);
       setError(err.message);
+      setBookmarks([]);
     } finally {
       setLoading(false);
     }
@@ -44,7 +52,7 @@ export const BookmarkProvider = ({ children }) => {
     } catch (err) {
       console.error('Error adding bookmark:', err);
       setError(err.message);
-      return false;
+      throw err; // Re-throw for component handling
     }
   };
 
@@ -56,12 +64,16 @@ export const BookmarkProvider = ({ children }) => {
     } catch (err) {
       console.error('Error removing bookmark:', err);
       setError(err.message);
-      return false;
+      throw err; // Re-throw for component handling
     }
   };
 
   const isBookmarked = (companyId) => {
     return bookmarks.some(b => b.id === companyId);
+  };
+
+  const getBookmarkCount = () => {
+    return bookmarks.length;
   };
 
   const value = {
@@ -71,6 +83,7 @@ export const BookmarkProvider = ({ children }) => {
     addBookmark,
     removeBookmark,
     isBookmarked,
+    getBookmarkCount,
     reloadBookmarks: loadBookmarks,
   };
 

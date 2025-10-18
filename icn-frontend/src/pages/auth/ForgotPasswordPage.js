@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { getAuthService } from '../../services/serviceFactory';
 import forgetPassImage from '../../assets/use_image/forget-pass.jpg';
 import './AuthPages.css';
 
 function ForgotPasswordPage() {
   const navigate = useNavigate();
+  const authService = getAuthService();
   const [formData, setFormData] = useState({
     email: '',
     verificationCode: '',

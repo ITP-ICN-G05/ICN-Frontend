@@ -1,13 +1,21 @@
 import React from 'react';
+import { useTierAccess } from '../../hooks/useTierAccess';
 import './FilterPanel.css';
 
 function FilterPanel({ filters, onFilterChange, onClearFilters }) {
+  const { hasAccess } = useTierAccess();
   const sectors = ['Technology', 'Manufacturing', 'Services', 'Logistics', 'Environment', 'Automotive'];
   const capabilities = ['Manufacturing', 'Supply Chain', 'Design', 'Assembly', 'Distribution', 'Maintenance'];
   const companySizes = ['Small', 'Medium', 'Large'];
   const ownershipTypes = ['Female-owned', 'First Nations-owned', 'Social Enterprise', 'Australian Disability Enterprise'];
 
   const handleCheckboxChange = (category, value) => {
+    // Check access for premium features
+    if (category === 'ownership' && !hasAccess('DEMOGRAPHIC_FILTERS')) {
+      alert('Demographic filters require Premium tier. Upgrade to access this feature.');
+      return;
+    }
+
     const currentValues = filters[category];
     const newValues = currentValues.includes(value)
       ? currentValues.filter(v => v !== value)
@@ -96,20 +104,29 @@ function FilterPanel({ filters, onFilterChange, onClearFilters }) {
       </div>
 
       {/* Ownership Filter (Premium) */}
-      <div className="filter-group premium-filter">
-        <h4>Ownership <span className="premium-badge">Premium</span></h4>
+      <div className="filter-group">
+        <h4>
+          Ownership 
+          {!hasAccess('DEMOGRAPHIC_FILTERS') && (
+            <span className="premium-badge">Premium</span>
+          )}
+        </h4>
         <div className="checkbox-list">
           {ownershipTypes.map(type => (
-            <label key={type} className="checkbox-item">
+            <label key={type} className={`checkbox-item ${!hasAccess('DEMOGRAPHIC_FILTERS') ? 'disabled' : ''}`}>
               <input
                 type="checkbox"
                 checked={filters.ownership.includes(type)}
                 onChange={() => handleCheckboxChange('ownership', type)}
+                disabled={!hasAccess('DEMOGRAPHIC_FILTERS')}
               />
               <span>{type}</span>
             </label>
           ))}
         </div>
+        {!hasAccess('DEMOGRAPHIC_FILTERS') && (
+          <p className="upgrade-hint">Upgrade to Premium to filter by ownership type</p>
+        )}
       </div>
 
       {/* Verified Filter */}

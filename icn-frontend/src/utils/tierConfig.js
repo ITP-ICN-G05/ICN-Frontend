@@ -1,62 +1,139 @@
-export const TIER_LEVELS = {
-    FREE: 'free',
-    PLUS: 'plus',
-    PREMIUM: 'premium'
-  };
+// Tier feature constants
+export const TIER_FEATURES = {
+  // Free tier features
+  BASIC_SEARCH: 'BASIC_SEARCH',
+  COMPANY_BASIC_INFO: 'COMPANY_BASIC_INFO',
+  COMPANY_CONTACT: 'COMPANY_CONTACT',
   
-  export const TIER_FEATURES = {
-    // Company data fields
-    COMPANY_NAME: ['free', 'plus', 'premium'],
-    COMPANY_ADDRESS: ['free', 'plus', 'premium'],
-    COMPANY_WEBSITE: ['free', 'plus', 'premium'],
-    COMPANY_SECTORS: ['free', 'plus', 'premium'],
-    COMPANY_TYPE: ['free', 'plus', 'premium'],
-    
-    COMPANY_ABN: ['plus', 'premium'],
-    COMPANY_SUMMARY: ['plus', 'premium'],
-    COMPANY_CAPABILITIES: ['plus', 'premium'],
-    COMPANY_SIZE: ['plus', 'premium'],
-    COMPANY_CERTIFICATIONS: ['plus', 'premium'],
-    
-    COMPANY_REVENUE: ['premium'],
-    COMPANY_EMPLOYEES: ['premium'],
-    COMPANY_OWNERSHIP: ['premium'],
-    COMPANY_LOCAL_CONTENT: ['premium'],
-    
-    // Features
-    ADVANCED_SEARCH: ['plus', 'premium'],
-    SAVED_SEARCHES: ['plus', 'premium'],
-    UNLIMITED_VIEWS: ['plus', 'premium'],
-    EXPORT_CSV: ['plus', 'premium'],
-    EXPORT_PDF: ['premium'],
-    API_ACCESS: ['premium'],
-    
-    // Limits
-    MAX_MONTHLY_VIEWS: {
-      free: 5,
-      plus: -1, // unlimited
-      premium: -1
+  // Plus tier features
+  SAVED_SEARCHES: 'SAVED_SEARCHES',
+  ADVANCED_FILTERS: 'ADVANCED_FILTERS',
+  UNLIMITED_SEARCHES: 'UNLIMITED_SEARCHES',
+  COMPANY_ABN: 'COMPANY_ABN',
+  EXPORT_BASIC: 'EXPORT_BASIC',
+  UNLIMITED_BOOKMARKS: 'UNLIMITED_BOOKMARKS',
+  
+  // Premium tier features
+  COMPANY_REVENUE: 'COMPANY_REVENUE',
+  COMPANY_EMPLOYEES: 'COMPANY_EMPLOYEES',
+  COMPANY_OWNERSHIP: 'COMPANY_OWNERSHIP',
+  DEMOGRAPHIC_FILTERS: 'DEMOGRAPHIC_FILTERS',
+  EXPORT_FULL: 'EXPORT_FULL',
+  API_ACCESS: 'API_ACCESS',
+  PRIORITY_SUPPORT: 'PRIORITY_SUPPORT',
+};
+
+// Tier limit types
+export const TIER_LIMITS = {
+  BOOKMARK_LIMIT: 'BOOKMARK_LIMIT',
+  SEARCH_LIMIT: 'SEARCH_LIMIT',
+  EXPORT_LIMIT: 'EXPORT_LIMIT',
+  SAVED_SEARCH_LIMIT: 'SAVED_SEARCH_LIMIT',
+  COMPANY_VIEW_LIMIT: 'COMPANY_VIEW_LIMIT',
+};
+
+// Define feature arrays separately to avoid circular references
+const FREE_FEATURES = [
+  TIER_FEATURES.BASIC_SEARCH,
+  TIER_FEATURES.COMPANY_BASIC_INFO,
+  TIER_FEATURES.COMPANY_CONTACT,
+];
+
+const PLUS_FEATURES = [
+  ...FREE_FEATURES,
+  TIER_FEATURES.SAVED_SEARCHES,
+  TIER_FEATURES.ADVANCED_FILTERS,
+  TIER_FEATURES.UNLIMITED_SEARCHES,
+  TIER_FEATURES.COMPANY_ABN,
+  TIER_FEATURES.EXPORT_BASIC,
+  TIER_FEATURES.UNLIMITED_BOOKMARKS,
+];
+
+const PREMIUM_FEATURES = [
+  ...PLUS_FEATURES,
+  TIER_FEATURES.COMPANY_REVENUE,
+  TIER_FEATURES.COMPANY_EMPLOYEES,
+  TIER_FEATURES.COMPANY_OWNERSHIP,
+  TIER_FEATURES.DEMOGRAPHIC_FILTERS,
+  TIER_FEATURES.EXPORT_FULL,
+  TIER_FEATURES.API_ACCESS,
+  TIER_FEATURES.PRIORITY_SUPPORT,
+];
+
+// Tier configurations
+const TIER_CONFIG = {
+  free: {
+    features: FREE_FEATURES,
+    limits: {
+      [TIER_LIMITS.BOOKMARK_LIMIT]: 5,
+      [TIER_LIMITS.SEARCH_LIMIT]: 50,
+      [TIER_LIMITS.EXPORT_LIMIT]: 0,
+      [TIER_LIMITS.SAVED_SEARCH_LIMIT]: 0,
+      [TIER_LIMITS.COMPANY_VIEW_LIMIT]: 5,
     },
-    MAX_SAVED_SEARCHES: {
-      free: 0,
-      plus: 10,
-      premium: -1
+  },
+  plus: {
+    features: PLUS_FEATURES,
+    limits: {
+      [TIER_LIMITS.BOOKMARK_LIMIT]: -1, // unlimited
+      [TIER_LIMITS.SEARCH_LIMIT]: -1,
+      [TIER_LIMITS.EXPORT_LIMIT]: 100,
+      [TIER_LIMITS.SAVED_SEARCH_LIMIT]: 10,
+      [TIER_LIMITS.COMPANY_VIEW_LIMIT]: -1,
     },
-    MAX_BOOKMARKS: {
-      free: 5,
-      plus: 50,
-      premium: -1
-    }
-  };
-  
-  export const checkTierAccess = (userTier, feature) => {
-    const allowedTiers = TIER_FEATURES[feature];
-    if (!allowedTiers) return false;
-    return allowedTiers.includes(userTier);
-  };
-  
-  export const getTierLimit = (userTier, limitType) => {
-    const limits = TIER_FEATURES[limitType];
-    if (!limits) return 0;
-    return limits[userTier] || 0;
-  };
+  },
+  premium: {
+    features: PREMIUM_FEATURES,
+    limits: {
+      [TIER_LIMITS.BOOKMARK_LIMIT]: -1,
+      [TIER_LIMITS.SEARCH_LIMIT]: -1,
+      [TIER_LIMITS.EXPORT_LIMIT]: -1,
+      [TIER_LIMITS.SAVED_SEARCH_LIMIT]: -1,
+      [TIER_LIMITS.COMPANY_VIEW_LIMIT]: -1,
+    },
+  },
+};
+
+/**
+ * Check if a tier has access to a specific feature
+ */
+export const checkTierAccess = (tier, feature) => {
+  const tierConfig = TIER_CONFIG[tier] || TIER_CONFIG.free;
+  return tierConfig.features.includes(feature);
+};
+
+/**
+ * Get the limit for a specific tier and limit type
+ */
+export const getTierLimit = (tier, limitType) => {
+  const tierConfig = TIER_CONFIG[tier] || TIER_CONFIG.free;
+  return tierConfig.limits[limitType] || 0;
+};
+
+/**
+ * Get all features for a tier
+ */
+export const getTierFeatures = (tier) => {
+  const tierConfig = TIER_CONFIG[tier] || TIER_CONFIG.free;
+  return tierConfig.features;
+};
+
+/**
+ * Get all limits for a tier
+ */
+export const getTierLimits = (tier) => {
+  const tierConfig = TIER_CONFIG[tier] || TIER_CONFIG.free;
+  return tierConfig.limits;
+};
+
+/**
+ * Check if a feature requires a higher tier
+ */
+export const getRequiredTier = (feature) => {
+  if (FREE_FEATURES.includes(feature)) return 'free';
+  if (PLUS_FEATURES.includes(feature)) return 'plus';
+  if (PREMIUM_FEATURES.includes(feature)) return 'premium';
+  return 'premium'; // Default to premium for unknown features
+};
+
+export default TIER_CONFIG;

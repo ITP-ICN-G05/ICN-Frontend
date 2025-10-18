@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getCompanyService, getBookmarkService } from '../../services/serviceFactory';
 import './CompanyDetailPage.css';
 
 function CompanyDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const companyService = getCompanyService(); 
+  const bookmarkService = getBookmarkService();
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -95,33 +98,82 @@ function CompanyDetailPage() {
   const fetchCompanyDetails = async () => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setCompany(mockCompany);
+      const response = await companyService.getById(id);
+      const data = response.data || response;
       
-      // Check if bookmarked
-      const bookmarks = JSON.parse(localStorage.getItem('bookmarkedCompanies') || '[]');
-      setBookmarked(bookmarks.includes(parseInt(id)));
+      if (data) {
+        setCompany(data);
+      } else {
+        // Fallback to mock data if ID matches
+        if (parseInt(id) === 1) {
+          setCompany(mockCompany);
+        } else {
+          setCompany(null);
+        }
+      }
+      
+      // Check if bookmarked using bookmark service
+      if (data || (parseInt(id) === 1)) {
+        try {
+          const bookmarkResponse = await bookmarkService.isBookmarked(id);
+          const isBookmarked = bookmarkResponse.data || bookmarkResponse;
+          setBookmarked(isBookmarked);
+        } catch (err) {
+          // Fallback to localStorage check
+          const bookmarks = JSON.parse(localStorage.getItem('bookmarkedCompanies') || '[]');
+          setBookmarked(bookmarks.includes(parseInt(id)));
+        }
+      }
     } catch (error) {
       console.error('Error fetching company details:', error);
+      // Fallback to mock data for demo
+      if (parseInt(id) === 1) {
+        setCompany(mockCompany);
+        const bookmarks = JSON.parse(localStorage.getItem('bookmarkedCompanies') || '[]');
+        setBookmarked(bookmarks.includes(parseInt(id)));
+      }
     } finally {
       setLoading(false);
     }
   };
+  
 
-  const handleBookmark = () => {
-    const bookmarks = JSON.parse(localStorage.getItem('bookmarkedCompanies') || '[]');
-    let newBookmarks;
-    
-    if (bookmarked) {
-      newBookmarks = bookmarks.filter(b => b !== company.id);
-    } else {
-      newBookmarks = [...bookmarks, company.id];
+  const handleBookmark = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      navigate('/login');
+      return;
     }
-    
-    localStorage.setItem('bookmarkedCompanies', JSON.stringify(newBookmarks));
-    setBookmarked(!bookmarked);
+  
+    try {
+      if (bookmarked) {
+        await bookmarkService.removeBookmark(company.id);
+        setBookmarked(false);
+      } else {
+        await bookmarkService.addBookmark(company.id);
+        setBookmarked(true);
+      }
+    } catch (error) {
+      // Fallback to localStorage method
+      console.log('Using localStorage fallback for bookmarks');
+      const bookmarks = JSON.parse(localStorage.getItem('bookmarkedCompanies') || '[]');
+      let newBookmarks;
+      
+      if (bookmarked) {
+        newBookmarks = bookmarks.filter(b => b !== company.id);
+      } else {
+        newBookmarks = [...bookmarks, company.id];
+      }
+      
+      localStorage.setItem('bookmarkedCompanies', JSON.stringify(newBookmarks));
+      setBookmarked(!bookmarked);
+      
+      if (error.message) {
+        alert(error.message);
+      }
+    }
   };
+  
 
   const handleContactClick = () => {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -203,7 +255,7 @@ function CompanyDetailPage() {
               <p className="company-description">{company.description}</p>
 
               <div className="company-tags-row">
-                {company.ownership.map(own => (
+                {(company.ownership || []).map(own => (
                   <span key={own} className="ownership-tag">{own}</span>
                 ))}
                 {company.exportCapability && (
@@ -272,8 +324,8 @@ function CompanyDetailPage() {
                       <div className="overview-item">
                         <label>Industry Sectors</label>
                         <div className="tag-list">
-                          {company.sectors.map(sector => (
-                            <span key={sector} className="tag">{sector}</span>
+                          {(company.sectors || []).map(sector => (
+                            <span key={sector} className="sector-tag">{sector}</span>
                           ))}
                         </div>
                       </div>
@@ -307,7 +359,7 @@ function CompanyDetailPage() {
                   <div className="content-card">
                     <h2>Capabilities</h2>
                     <div className="capabilities-grid">
-                      {company.capabilities.map(capability => (
+                      {(company.capabilities || []).map(capability => (
                         <div key={capability} className="capability-item">
                           <span className="capability-icon">✓</span>
                           <span>{capability}</span>
@@ -323,7 +375,7 @@ function CompanyDetailPage() {
                   <div className="content-card">
                     <h2>Products</h2>
                     <div className="products-list">
-                      {company.products.map((product, index) => (
+                      {(company.products || []).map((product, index) => (
                         <div key={index} className="product-item">
                           <h3>{product.name}</h3>
                           <p>{product.description}</p>
@@ -334,7 +386,7 @@ function CompanyDetailPage() {
                   <div className="content-card">
                     <h2>Services</h2>
                     <div className="services-list">
-                      {company.services.map((service, index) => (
+                      {(company.services || []).map((service, index) => (
                         <div key={index} className="service-item">
                           <h3>{service.name}</h3>
                           <p>{service.description}</p>
@@ -350,7 +402,7 @@ function CompanyDetailPage() {
                   <div className="content-card">
                     <h2>Certifications & Compliance</h2>
                     <div className="certifications-list">
-                      {company.certifications.map(cert => (
+                      {(company.certifications || []).map(cert => (
                         <div key={cert} className="certification-item">
                           <span className="cert-icon">🏆</span>
                           <div>
@@ -416,7 +468,7 @@ function CompanyDetailPage() {
               <div className="sidebar-card">
                 <h3>Documents</h3>
                 <div className="documents-list">
-                  {company.documents.map((doc, index) => (
+                  {(company.documents || []).map((doc, index) => (
                     <div key={index} className="document-item">
                       <span className="doc-icon">📄</span>
                       <div className="doc-info">
