@@ -1,0 +1,94 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - link "ICN Victoria Logo Navigator by ICN Victoria" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "ICN Victoria Logo" [ref=e8]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Navigator
+          - generic [ref=e11]: by ICN Victoria
+      - generic [ref=e12]:
+        - link "Home" [ref=e13] [cursor=pointer]:
+          - /url: /
+        - link "Navigation" [ref=e14] [cursor=pointer]:
+          - /url: /navigation
+        - link "Mobile designs" [ref=e15] [cursor=pointer]:
+          - /url: /mobile-designs
+        - link "Illustrations" [ref=e16] [cursor=pointer]:
+          - /url: /illustrations
+      - generic [ref=e17]:
+        - img [ref=e19]
+        - textbox "Search" [ref=e21]
+      - generic [ref=e22]:
+        - button "Log in" [ref=e23] [cursor=pointer]
+        - button "Sign up" [active] [ref=e24] [cursor=pointer]
+  - main [ref=e25]:
+    - generic [ref=e27]:
+      - generic [ref=e29]:
+        - heading "Create an account" [level=1] [ref=e31]
+        - generic [ref=e32]:
+          - generic [ref=e33]:
+            - generic [ref=e34]: User name
+            - textbox "User name" [ref=e35]:
+              - /placeholder: Enter your user name
+          - generic [ref=e36]:
+            - generic [ref=e37]: Email address
+            - textbox "Email address" [ref=e38]:
+              - /placeholder: Enter your email address
+          - generic [ref=e39]:
+            - generic [ref=e40]: Password
+            - generic [ref=e41]:
+              - textbox "Password" [ref=e42]:
+                - /placeholder: Enter your password
+              - button "Show password" [ref=e43] [cursor=pointer]:
+                - img [ref=e44]
+          - generic [ref=e47]:
+            - generic [ref=e48]: Confirm your password
+            - generic [ref=e49]:
+              - textbox "Confirm your password" [ref=e50]:
+                - /placeholder: Enter your password again
+              - button "Show password" [ref=e51] [cursor=pointer]:
+                - img [ref=e52]
+          - paragraph [ref=e56]: Use 8 or more characters with a mix of letters, numbers & symbols
+          - generic [ref=e58] [cursor=pointer]:
+            - checkbox "I agree to the Terms and Conditions and Privacy Policy" [ref=e59]
+            - generic [ref=e60]:
+              - text: I agree to the
+              - link "Terms and Conditions" [ref=e61]:
+                - /url: /terms
+              - text: and
+              - link "Privacy Policy" [ref=e62]:
+                - /url: /privacy
+          - paragraph [ref=e64]:
+            - text: Already have an account?
+            - link "log in instead" [ref=e65] [cursor=pointer]:
+              - /url: /login
+          - button "Create an account" [ref=e66] [cursor=pointer]
+        - generic [ref=e68]: Or continue with
+        - generic [ref=e69]:
+          - button [ref=e70] [cursor=pointer]:
+            - img [ref=e71]
+          - button [ref=e73] [cursor=pointer]:
+            - img [ref=e74]
+          - button [ref=e76] [cursor=pointer]:
+            - img [ref=e77]
+          - button [ref=e82] [cursor=pointer]:
+            - img [ref=e83]
+      - generic [ref=e86]:
+        - img "Find capable local suppliers" [ref=e87]
+        - generic [ref=e89]:
+          - heading "Find capable local suppliers" [level=2] [ref=e91]
+          - paragraph [ref=e92]: Search 2,700+ ICN-verified companies
+          - paragraph [ref=e93]: by sector, capability and distance.
+  - generic [ref=e94]:
+    - generic [ref=e95]: DEV MODE
+    - generic [ref=e96]: "Mock Data: ON"
+    - generic [ref=e97]: "• Companies: 2669"
+    - generic [ref=e98]: "• Verified: 2669"
+    - generic [ref=e99]: "• Sectors: 15"
+    - generic [ref=e100]: "• Source: ICN JSON"
+    - button "_" [ref=e101] [cursor=pointer]
+```

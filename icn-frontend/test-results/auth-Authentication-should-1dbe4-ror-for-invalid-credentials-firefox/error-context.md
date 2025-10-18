@@ -1,0 +1,138 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - link "ICN Victoria Logo Navigator by ICN Victoria" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "ICN Victoria Logo" [ref=e8]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Navigator
+          - generic [ref=e11]: by ICN Victoria
+      - generic [ref=e12]:
+        - link "Home" [ref=e13] [cursor=pointer]:
+          - /url: /
+        - link "Navigation" [ref=e14] [cursor=pointer]:
+          - /url: /navigation
+        - link "Mobile designs" [ref=e15] [cursor=pointer]:
+          - /url: /mobile-designs
+        - link "Illustrations" [ref=e16] [cursor=pointer]:
+          - /url: /illustrations
+      - generic [ref=e17]:
+        - img [ref=e19]
+        - textbox "Search" [ref=e21]
+      - button "J" [ref=e24] [cursor=pointer]
+  - main [ref=e25]:
+    - generic [ref=e26]:
+      - generic [ref=e28]:
+        - heading "Find capable local suppliers in minutes." [level=1] [ref=e29]
+        - paragraph [ref=e30]:
+          - text: Search 2,716+ companies across Victoria through
+          - text: your ICN – in lists and maps.
+        - generic [ref=e31]:
+          - textbox "Search companies, capabilities, or locations..." [ref=e32]
+          - button "Search" [ref=e33] [cursor=pointer]
+        - generic [ref=e34]:
+          - button "🔧 Service Provider 245" [ref=e35] [cursor=pointer]:
+            - generic [ref=e36]: 🔧
+            - generic [ref=e37]: Service Provider
+            - generic [ref=e38]: "245"
+          - button "📦 Item Supplier 189" [ref=e39] [cursor=pointer]:
+            - generic [ref=e40]: 📦
+            - generic [ref=e41]: Item Supplier
+            - generic [ref=e42]: "189"
+          - button "🏭 Manufacturer 156" [ref=e43] [cursor=pointer]:
+            - generic [ref=e44]: 🏭
+            - generic [ref=e45]: Manufacturer
+            - generic [ref=e46]: "156"
+          - button "🛍️ Retailer 112" [ref=e47] [cursor=pointer]:
+            - generic [ref=e48]: 🛍️
+            - generic [ref=e49]: Retailer
+            - generic [ref=e50]: "112"
+          - button "⚙️ Component 98" [ref=e51] [cursor=pointer]:
+            - generic [ref=e52]: ⚙️
+            - generic [ref=e53]: Component
+            - generic [ref=e54]: "98"
+          - button "🔄 Both 67" [ref=e55] [cursor=pointer]:
+            - generic [ref=e56]: 🔄
+            - generic [ref=e57]: Both
+            - generic [ref=e58]: "67"
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - heading "Buyer-focused" [level=3] [ref=e70]
+          - paragraph [ref=e71]: Pinpoint suppliers by precise capability, ownership, and distance
+        - generic [ref=e72]:
+          - heading "Trust & speed" [level=3] [ref=e73]
+          - paragraph [ref=e74]: ICN-verified capability data you can rely on
+        - generic [ref=e75]:
+          - heading "Supplier-friendly" [level=3] [ref=e76]
+          - paragraph [ref=e77]: Showcase products and earn a verified badge
+      - generic [ref=e79]:
+        - heading "Companies Near You" [level=2] [ref=e80]
+        - generic [ref=e81]:
+          - generic [ref=e82] [cursor=pointer]:
+            - generic [ref=e83]:
+              - heading "Organisation Name" [level=3] [ref=e84]
+              - generic [ref=e85]: ✓ Verified
+            - paragraph [ref=e86]: supplier
+            - paragraph [ref=e87]: 📍 14.220485357877624
+            - button "View Details" [ref=e88]
+          - generic [ref=e89] [cursor=pointer]:
+            - generic [ref=e90]:
+              - heading "Organisation Name" [level=3] [ref=e91]
+              - generic [ref=e92]: ✓ Verified
+            - paragraph [ref=e93]: supplier
+            - paragraph [ref=e94]: 📍 7.697342493746722
+            - button "View Details" [ref=e95]
+          - generic [ref=e96] [cursor=pointer]:
+            - generic [ref=e97]:
+              - heading "Organisation Name" [level=3] [ref=e98]
+              - generic [ref=e99]: ✓ Verified
+            - paragraph [ref=e100]: both
+            - paragraph [ref=e101]: 📍 0.9919666044176312
+            - button "View Details" [ref=e102]
+      - generic [ref=e104]:
+        - heading "How It Works" [level=2] [ref=e105]
+        - generic [ref=e106]:
+          - generic [ref=e107]:
+            - generic [ref=e108]: "1"
+            - heading "Search or Browse" [level=3] [ref=e109]
+            - paragraph [ref=e110]: Find companies by capability, location, or industry sector
+          - generic [ref=e111]:
+            - generic [ref=e112]: "2"
+            - heading "Filter & Compare" [level=3] [ref=e113]
+            - paragraph [ref=e114]: Narrow results by distance, size, and verified capabilities
+          - generic [ref=e115]:
+            - generic [ref=e116]: "3"
+            - heading "Connect" [level=3] [ref=e117]
+            - paragraph [ref=e118]: View detailed profiles and connect with verified suppliers
+      - generic [ref=e121]:
+        - heading "Ready to find your next supplier?" [level=2] [ref=e122]
+        - paragraph [ref=e123]: Join thousands of businesses already using ICN Navigator
+        - button "Get Started Free" [ref=e124] [cursor=pointer]
+        - paragraph [ref=e125]: Free tier available • No credit card required
+  - generic [ref=e127]:
+    - button "Skip for now" [ref=e131] [cursor=pointer]
+    - generic [ref=e132]:
+      - heading "Welcome! How will you use ICN Navigator?" [level=2] [ref=e133]
+      - generic [ref=e134]:
+        - button "🛒 🛒 Finding suppliers" [ref=e135] [cursor=pointer]:
+          - generic [ref=e136]: 🛒
+          - generic [ref=e137]: 🛒 Finding suppliers
+        - button "📦 📦 Listing my company" [ref=e138] [cursor=pointer]:
+          - generic [ref=e139]: 📦
+          - generic [ref=e140]: 📦 Listing my company
+        - button "🔄 🔄 Both" [ref=e141] [cursor=pointer]:
+          - generic [ref=e142]: 🔄
+          - generic [ref=e143]: 🔄 Both
+    - button "Next" [disabled] [ref=e145]
+  - generic [ref=e151]:
+    - generic [ref=e152]: DEV MODE
+    - generic [ref=e153]: "Mock Data: ON"
+    - generic [ref=e154]: "• Companies: 2669"
+    - generic [ref=e155]: "• Verified: 2669"
+    - generic [ref=e156]: "• Sectors: 15"
+    - generic [ref=e157]: "• Source: ICN JSON"
+    - button "_" [ref=e158] [cursor=pointer]
+```

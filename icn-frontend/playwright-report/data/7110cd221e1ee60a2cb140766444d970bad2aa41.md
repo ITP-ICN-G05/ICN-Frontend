@@ -1,0 +1,83 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - link "ICN Victoria Logo Navigator by ICN Victoria" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "ICN Victoria Logo" [ref=e8]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Navigator
+          - generic [ref=e11]: by ICN Victoria
+      - generic [ref=e12]:
+        - button "Log in" [ref=e13] [cursor=pointer]
+        - button "Sign up" [ref=e14] [cursor=pointer]
+  - main [ref=e15]:
+    - generic [ref=e17]:
+      - generic [ref=e19]:
+        - heading "Create an account" [level=1] [ref=e21]
+        - generic [ref=e22]:
+          - generic [ref=e23]:
+            - generic [ref=e24]: User name
+            - textbox "User name" [ref=e25]:
+              - /placeholder: Enter your user name
+              - text: New User
+          - generic [ref=e26]:
+            - generic [ref=e27]: Email address
+            - textbox "Email address" [ref=e28]:
+              - /placeholder: Enter your email address
+              - text: newuser@example.com
+          - generic [ref=e29]:
+            - generic [ref=e30]: Password
+            - generic [ref=e31]:
+              - textbox "Password" [ref=e32]:
+                - /placeholder: Enter your password
+                - text: password123
+              - button "Show password" [ref=e33] [cursor=pointer]:
+                - img [ref=e34]
+          - generic [ref=e37]:
+            - generic [ref=e38]: Confirm your password
+            - generic [ref=e39]:
+              - textbox "Confirm your password" [ref=e40]:
+                - /placeholder: Enter your password again
+                - text: password123
+              - button "Show password" [ref=e41] [cursor=pointer]:
+                - img [ref=e42]
+          - paragraph [ref=e46]: Use 8 or more characters with a mix of letters, numbers & symbols
+          - generic [ref=e47]:
+            - generic [ref=e48] [cursor=pointer]:
+              - checkbox "I agree to the Terms and Conditions and Privacy Policy" [ref=e49]
+              - generic [ref=e50]:
+                - text: I agree to the
+                - link "Terms and Conditions" [ref=e51]:
+                  - /url: /terms
+                - text: and
+                - link "Privacy Policy" [ref=e52]:
+                  - /url: /privacy
+            - generic [ref=e53]: You must agree to the terms and conditions
+          - paragraph [ref=e55]:
+            - text: Already have an account?
+            - link "log in instead" [ref=e56] [cursor=pointer]:
+              - /url: /login
+          - button "Create an account" [active] [ref=e57] [cursor=pointer]
+        - generic [ref=e59]: Or continue with
+        - generic [ref=e60]:
+          - button [ref=e61] [cursor=pointer]:
+            - img [ref=e62]
+          - button [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+          - button [ref=e67] [cursor=pointer]:
+            - img [ref=e68]
+          - button [ref=e73] [cursor=pointer]:
+            - img [ref=e74]
+      - generic [ref=e77]:
+        - img "Find capable local suppliers" [ref=e78]
+        - generic [ref=e80]:
+          - heading "Find capable local suppliers" [level=2] [ref=e82]
+          - paragraph [ref=e83]: Search 2,700+ ICN-verified companies
+          - paragraph [ref=e84]: by sector, capability and distance.
+  - generic [ref=e85]:
+    - generic [ref=e86]: DEV MODE
+    - button "_" [ref=e87] [cursor=pointer]
+```

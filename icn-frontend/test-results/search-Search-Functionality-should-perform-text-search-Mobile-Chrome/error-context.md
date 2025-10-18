@@ -1,0 +1,189 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - link "ICN Victoria Logo Navigator by ICN Victoria" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "ICN Victoria Logo" [ref=e8]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Navigator
+          - generic [ref=e11]: by ICN Victoria
+      - generic [ref=e12]:
+        - button "Log in" [ref=e13] [cursor=pointer]
+        - button "Sign up" [ref=e14] [cursor=pointer]
+  - main [ref=e15]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - heading "Search Results" [level=1] [ref=e19]
+          - paragraph [ref=e20]: 7 companies found
+        - generic [ref=e21]:
+          - generic [ref=e22]:
+            - button "📋 List" [ref=e23] [cursor=pointer]
+            - button "🗺️ Map" [ref=e24] [cursor=pointer]
+          - combobox [ref=e25] [cursor=pointer]:
+            - option "Relevance" [selected]
+            - option "Distance"
+            - option "Name"
+            - option "Company Size"
+          - button "🔧 Filters" [ref=e26] [cursor=pointer]
+      - main [ref=e28]:
+        - generic [ref=e29]:
+          - generic [ref=e30] [cursor=pointer]:
+            - generic [ref=e32]:
+              - heading "TechCorp Industries ✓" [level=3] [ref=e33]:
+                - text: TechCorp Industries
+                - generic "Verified" [ref=e34]: ✓
+              - generic [ref=e35]:
+                - generic [ref=e36]: Manufacturer
+                - generic [ref=e37]: •
+                - generic [ref=e38]: 500+ employees
+                - generic [ref=e39]: •
+                - generic [ref=e40]: 📍 2.3 km
+            - paragraph [ref=e41]: Leading manufacturer of electronic components
+            - generic [ref=e42]:
+              - generic [ref=e43]:
+                - generic [ref=e44]: "Sectors:"
+                - generic [ref=e45]: Technology
+                - generic [ref=e46]: Electronics
+              - generic [ref=e47]:
+                - generic [ref=e48]: "Capabilities:"
+                - generic [ref=e49]: Manufacturing
+                - generic [ref=e50]: Assembly
+                - generic [ref=e51]: Design
+          - generic [ref=e52] [cursor=pointer]:
+            - generic [ref=e54]:
+              - heading "Global Supply Co ✓" [level=3] [ref=e55]:
+                - text: Global Supply Co
+                - generic "Verified" [ref=e56]: ✓
+              - generic [ref=e57]:
+                - generic [ref=e58]: Item Supplier
+                - generic [ref=e59]: •
+                - generic [ref=e60]: 100-499 employees
+                - generic [ref=e61]: •
+                - generic [ref=e62]: 📍 4.1 km
+            - paragraph [ref=e63]: Comprehensive supply chain solutions
+            - generic [ref=e64]:
+              - generic [ref=e65]:
+                - generic [ref=e66]: "Sectors:"
+                - generic [ref=e67]: Logistics
+                - generic [ref=e68]: Distribution
+              - generic [ref=e69]:
+                - generic [ref=e70]: "Capabilities:"
+                - generic [ref=e71]: Supply Chain
+                - generic [ref=e72]: Warehousing
+                - generic [ref=e73]: Distribution
+            - generic [ref=e75]: Female-owned
+          - generic [ref=e76] [cursor=pointer]:
+            - generic [ref=e78]:
+              - heading "ServiceMax Pro" [level=3] [ref=e79]
+              - generic [ref=e80]:
+                - generic [ref=e81]: Service Provider
+                - generic [ref=e82]: •
+                - generic [ref=e83]: 10-99 employees
+                - generic [ref=e84]: •
+                - generic [ref=e85]: 📍 5.7 km
+            - paragraph [ref=e86]: Professional maintenance and repair services
+            - generic [ref=e87]:
+              - generic [ref=e88]:
+                - generic [ref=e89]: "Sectors:"
+                - generic [ref=e90]: Services
+                - generic [ref=e91]: Maintenance
+              - generic [ref=e92]:
+                - generic [ref=e93]: "Capabilities:"
+                - generic [ref=e94]: Maintenance
+                - generic [ref=e95]: Repair
+                - generic [ref=e96]: Technical Support
+          - generic [ref=e97] [cursor=pointer]:
+            - generic [ref=e99]:
+              - heading "EcoTech Solutions ✓" [level=3] [ref=e100]:
+                - text: EcoTech Solutions
+                - generic "Verified" [ref=e101]: ✓
+              - generic [ref=e102]:
+                - generic [ref=e103]: Manufacturer
+                - generic [ref=e104]: •
+                - generic [ref=e105]: 100-499 employees
+                - generic [ref=e106]: •
+                - generic [ref=e107]: 📍 8.2 km
+            - paragraph [ref=e108]: Sustainable technology and environmental solutions
+            - generic [ref=e109]:
+              - generic [ref=e110]:
+                - generic [ref=e111]: "Sectors:"
+                - generic [ref=e112]: Environment
+                - generic [ref=e113]: Technology
+              - generic [ref=e114]:
+                - generic [ref=e115]: "Capabilities:"
+                - generic [ref=e116]: Green Technology
+                - generic [ref=e117]: Recycling
+                - generic [ref=e118]: Waste Management
+            - generic [ref=e120]: First Nations-owned
+          - generic [ref=e121] [cursor=pointer]:
+            - generic [ref=e123]:
+              - heading "Precision Parts Ltd ✓" [level=3] [ref=e124]:
+                - text: Precision Parts Ltd
+                - generic "Verified" [ref=e125]: ✓
+              - generic [ref=e126]:
+                - generic [ref=e127]: Component Supplier
+                - generic [ref=e128]: •
+                - generic [ref=e129]: 100-499 employees
+                - generic [ref=e130]: •
+                - generic [ref=e131]: 📍 12.5 km
+            - paragraph [ref=e132]: High-precision components for automotive industry
+            - generic [ref=e133]:
+              - generic [ref=e134]:
+                - generic [ref=e135]: "Sectors:"
+                - generic [ref=e136]: Manufacturing
+                - generic [ref=e137]: Automotive
+              - generic [ref=e138]:
+                - generic [ref=e139]: "Capabilities:"
+                - generic [ref=e140]: Precision Engineering
+                - generic [ref=e141]: CNC Machining
+                - generic [ref=e142]: Quality Control
+          - generic [ref=e143] [cursor=pointer]:
+            - generic [ref=e145]:
+              - heading "Digital Solutions Hub" [level=3] [ref=e146]
+              - generic [ref=e147]:
+                - generic [ref=e148]: Service Provider
+                - generic [ref=e149]: •
+                - generic [ref=e150]: 10-99 employees
+                - generic [ref=e151]: •
+                - generic [ref=e152]: 📍 3.8 km
+            - paragraph [ref=e153]: Digital transformation and IT solutions
+            - generic [ref=e154]:
+              - generic [ref=e155]:
+                - generic [ref=e156]: "Sectors:"
+                - generic [ref=e157]: Technology
+                - generic [ref=e158]: Services
+              - generic [ref=e159]:
+                - generic [ref=e160]: "Capabilities:"
+                - generic [ref=e161]: Software Development
+                - generic [ref=e162]: IT Support
+                - generic [ref=e163]: Cloud Services
+          - generic [ref=e164] [cursor=pointer]:
+            - generic [ref=e166]:
+              - heading "Melbourne Logistics ✓" [level=3] [ref=e167]:
+                - text: Melbourne Logistics
+                - generic "Verified" [ref=e168]: ✓
+              - generic [ref=e169]:
+                - generic [ref=e170]: Logistics Provider
+                - generic [ref=e171]: •
+                - generic [ref=e172]: 500+ employees
+                - generic [ref=e173]: •
+                - generic [ref=e174]: 📍 6.5 km
+            - paragraph [ref=e175]: End-to-end logistics solutions
+            - generic [ref=e176]:
+              - generic [ref=e177]:
+                - generic [ref=e178]: "Sectors:"
+                - generic [ref=e179]: Logistics
+                - generic [ref=e180]: Transport
+              - generic [ref=e181]:
+                - generic [ref=e182]: "Capabilities:"
+                - generic [ref=e183]: Freight Management
+                - generic [ref=e184]: Warehousing
+                - generic [ref=e185]: Last-Mile Delivery
+  - generic [ref=e186]:
+    - generic [ref=e187]: DEV MODE
+    - button "_" [ref=e188] [cursor=pointer]
+```
