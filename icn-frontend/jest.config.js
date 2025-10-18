@@ -1,4 +1,4 @@
-// jest.config.js - FIXED VERSION for Create React App
+// jest.config.js - COMPLETE FIXED VERSION for Create React App
 module.exports = {
   // Test environment
   testEnvironment: 'jsdom',
@@ -17,6 +17,11 @@ module.exports = {
     '^.+\\.(js|jsx)$': 'babel-jest',
   },
   
+  // CRITICAL: Tell Jest to transform axios and other ESM packages
+  transformIgnorePatterns: [
+    'node_modules/(?!(axios)/)',
+  ],
+  
   // Coverage collection
   collectCoverageFrom: [
     'src/**/*.{js,jsx}',
@@ -27,7 +32,7 @@ module.exports = {
     '!src/setupTests.js',
   ],
   
-  // Coverage thresholds (FIXED: singular not plural)
+  // Coverage thresholds
   coverageThreshold: {
     global: {
       branches: 70,

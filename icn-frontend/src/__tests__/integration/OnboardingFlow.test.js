@@ -2,6 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import OnboardingModal from '../../components/onboarding/OnboardingModal';
 import { mockUsers } from '../../utils/testUtils';
 
@@ -13,10 +14,18 @@ describe('Onboarding Flow', () => {
     jest.clearAllMocks();
   });
 
+  // Helper function to render with Router
+  const renderWithRouter = (component) => {
+    return render(
+      <MemoryRouter>
+        {component}
+      </MemoryRouter>
+    );
+  };
+
   it('completes full onboarding flow', async () => {
     const user = userEvent.setup();
-
-    render(
+    renderWithRouter(
       <OnboardingModal
         user={mockUsers.newUser}
         onComplete={mockOnComplete}
@@ -46,7 +55,8 @@ describe('Onboarding Flow', () => {
       expect(screen.getByText(/Preferred company size/i)).toBeInTheDocument();
     });
     
-    const anySize = screen.getByText(/Any size/i);
+    // Use getByRole to specifically target the button with "Any size" text
+    const anySize = screen.getByRole('button', { name: /Any size/i });
     await user.click(anySize);
     await user.click(nextButton);
 
@@ -75,8 +85,7 @@ describe('Onboarding Flow', () => {
 
   it('allows skipping onboarding', async () => {
     const user = userEvent.setup();
-
-    render(
+    renderWithRouter(
       <OnboardingModal
         user={mockUsers.newUser}
         onComplete={mockOnComplete}
@@ -86,14 +95,12 @@ describe('Onboarding Flow', () => {
 
     const skipButton = screen.getByText(/skip for now/i);
     await user.click(skipButton);
-
     expect(mockOnSkip).toHaveBeenCalled();
   });
 
   it('allows going back to previous steps', async () => {
     const user = userEvent.setup();
-
-    render(
+    renderWithRouter(
       <OnboardingModal
         user={mockUsers.newUser}
         onComplete={mockOnComplete}
