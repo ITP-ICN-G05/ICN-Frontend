@@ -49,13 +49,18 @@ function SavedSearchModal({
                 <div className="active-filters">
                   <strong>Active filters:</strong>
                   <div className="filter-tags">
-                    {Object.entries(filters).map(([key, value]) => (
-                      value && value.length > 0 && (
+                    {Object.entries(filters).map(([key, value]) => {
+                      // Check if value should be displayed
+                      const shouldShow = value != null && 
+                                         value !== '' && 
+                                         (!Array.isArray(value) || value.length > 0);
+                      
+                      return shouldShow && (
                         <span key={key} className="filter-tag">
                           {key}: {Array.isArray(value) ? value.join(', ') : value}
                         </span>
-                      )
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
