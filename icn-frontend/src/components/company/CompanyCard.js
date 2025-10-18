@@ -25,13 +25,13 @@ function CompanyCard({ company, onClick }) {
       <div className="company-tags">
         <div className="tag-group">
           <span className="tag-label">Sectors:</span>
-          {company.sectors.map(sector => (
+          {(company.sectors || []).map(sector => (
             <span key={sector} className="tag">{sector}</span>
           ))}
         </div>
         <div className="tag-group">
           <span className="tag-label">Capabilities:</span>
-          {company.capabilities.slice(0, 3).map(capability => (
+          {(company.capabilities || []).slice(0, 3).map(capability => (
             <span key={capability} className="tag">{capability}</span>
           ))}
         </div>
@@ -39,7 +39,7 @@ function CompanyCard({ company, onClick }) {
       
       {company.ownership.length > 0 && (
         <div className="company-ownership">
-          {company.ownership.map(own => (
+          {(company.ownership || []).map(own => (
             <span key={own} className="ownership-badge">{own}</span>
           ))}
         </div>

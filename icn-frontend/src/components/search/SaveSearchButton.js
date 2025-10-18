@@ -1,42 +1,47 @@
 import React, { useState } from 'react';
-import { useSavedSearches } from '../../hooks/useSavedSearches';
+import { getSavedSearchService } from '../../services/serviceFactory';
 import { useTierAccess } from '../../hooks/useTierAccess';
+import { useNavigate } from 'react-router-dom';
 import SavedSearchModal from './SavedSearchModal';
 import './SaveSearchButton.css';
 
 function SaveSearchButton({ searchParams, resultCount }) {
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { saveSearch, canSaveSearch, quota } = useSavedSearches();
-  const { userTier } = useTierAccess();
+  const savedSearchService = getSavedSearchService();
+  const { hasAccess } = useTierAccess();
+  const navigate = useNavigate();
 
   const handleSaveClick = () => {
-    if (userTier === 'free') {
-      alert('Upgrade to Plus or Premium to save searches');
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      alert('Please log in to save searches');
       return;
     }
-    
-    if (!canSaveSearch()) {
-      alert(`You've reached your saved search limit (${quota.limit})`);
+
+    if (!hasAccess('SAVED_SEARCHES')) {
+      const result = window.confirm('Saved searches require Plus or Premium tier. Would you like to upgrade now?');
+      if (result) {
+        navigate('/pricing');
+      }
       return;
     }
-    
     setShowModal(true);
   };
 
   const handleSaveSearch = async (searchData) => {
     setSaving(true);
     try {
-      await saveSearch({
+      await savedSearchService.saveSearch({
         ...searchData,
-        params: searchParams,
+        query: searchParams.query || '',
+        filters: searchParams.filters || {},
         resultCount,
-        createdAt: new Date().toISOString()
       });
       setShowModal(false);
       alert('Search saved successfully!');
     } catch (error) {
-      alert(`Failed to save search: ${error.message}`);
+      alert(error.message || 'Failed to save search');
     } finally {
       setSaving(false);
     }
@@ -45,7 +50,7 @@ function SaveSearchButton({ searchParams, resultCount }) {
   return (
     <>
       <button 
-        className="save-search-btn"
+        className="save-search-btn" 
         onClick={handleSaveClick}
         disabled={saving}
       >
@@ -59,6 +64,7 @@ function SaveSearchButton({ searchParams, resultCount }) {
           defaultQuery={searchParams.query || ''}
           filters={searchParams.filters || {}}
           resultCount={resultCount}
+          saving={saving}
         />
       )}
     </>

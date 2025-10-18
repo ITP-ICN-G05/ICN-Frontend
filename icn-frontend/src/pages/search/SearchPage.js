@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import FilterPanel from '../../components/search/FilterPanel';
+import { getCompanyService, getGeocodingService } from '../../services/serviceFactory';
 import CompanyCard from '../../components/company/CompanyCard';
 import SearchMap from '../../components/map/SearchMap';
 import './SearchPage.css';
@@ -8,11 +9,14 @@ import './SearchPage.css';
 function SearchPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const companyService = getCompanyService(); 
+  const geocodingService = getGeocodingService();
   const query = searchParams.get('q') || '';
   
   const [view, setView] = useState('list'); // 'list' or 'map'
   const [companies, setCompanies] = useState([]);
   const [filteredCompanies, setFilteredCompanies] = useState([]);
+  const [selectedMapCompany, setSelectedMapCompany] = useState(null);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     sectors: [],
@@ -25,7 +29,7 @@ function SearchPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('relevance');
 
-  // Mock data - replace with API call
+  // Mock data with complete geocoded positions
   const mockCompanies = [
     {
       id: 1,
@@ -39,7 +43,8 @@ function SearchPage() {
       verified: true,
       ownership: [],
       address: '123 Smith Street, Melbourne, VIC 3000',
-      description: 'Leading manufacturer of electronic components'
+      description: 'Leading manufacturer of electronic components',
+      position: { lat: -37.8136, lng: 144.9631 }
     },
     {
       id: 2,
@@ -53,7 +58,8 @@ function SearchPage() {
       verified: true,
       ownership: ['Female-owned'],
       address: '456 Queen Road, Melbourne, VIC 3006',
-      description: 'Comprehensive supply chain solutions'
+      description: 'Comprehensive supply chain solutions',
+      position: { lat: -37.8200, lng: 144.9780 }
     },
     {
       id: 3,
@@ -67,7 +73,8 @@ function SearchPage() {
       verified: false,
       ownership: [],
       address: '789 King Avenue, Melbourne, VIC 3141',
-      description: 'Professional maintenance and repair services'
+      description: 'Professional maintenance and repair services',
+      position: { lat: -37.8050, lng: 144.9500 }
     },
     {
       id: 4,
@@ -81,7 +88,8 @@ function SearchPage() {
       verified: true,
       ownership: ['First Nations-owned'],
       address: '321 Green Lane, Melbourne, VIC 3124',
-      description: 'Sustainable technology and environmental solutions'
+      description: 'Sustainable technology and environmental solutions',
+      position: { lat: -37.8300, lng: 144.9900 }
     },
     {
       id: 5,
@@ -95,7 +103,38 @@ function SearchPage() {
       verified: true,
       ownership: [],
       address: '555 Industrial Drive, Melbourne, VIC 3175',
-      description: 'High-precision components for automotive industry'
+      description: 'High-precision components for automotive industry',
+      position: { lat: -37.7900, lng: 144.9400 }
+    },
+    {
+      id: 6,
+      name: 'Digital Solutions Hub',
+      type: 'Service Provider',
+      sectors: ['Technology', 'Services'],
+      capabilities: ['Software Development', 'IT Support', 'Cloud Services'],
+      distance: 3.8,
+      size: 'Small',
+      employees: '10-99',
+      verified: false,
+      ownership: [],
+      address: '777 Tech Boulevard, Melbourne, VIC 3008',
+      description: 'Digital transformation and IT solutions',
+      position: { lat: -37.8250, lng: 144.9550 }
+    },
+    {
+      id: 7,
+      name: 'Melbourne Logistics',
+      type: 'Logistics Provider',
+      sectors: ['Logistics', 'Transport'],
+      capabilities: ['Freight Management', 'Warehousing', 'Last-Mile Delivery'],
+      distance: 6.5,
+      size: 'Large',
+      employees: '500+',
+      verified: true,
+      ownership: [],
+      address: '999 Transport Way, Melbourne, VIC 3207',
+      description: 'End-to-end logistics solutions',
+      position: { lat: -37.8400, lng: 144.9700 }
     }
   ];
 
@@ -107,27 +146,107 @@ function SearchPage() {
     applyFilters();
   }, [filters, companies, sortBy]);
 
+  // Helper function to generate mock positions in Melbourne area
+  const generateMockPosition = () => ({
+    lat: -37.8136 + (Math.random() - 0.5) * 0.2, // Melbourne area
+    lng: 144.9631 + (Math.random() - 0.5) * 0.2
+  });
+  
+  // Helper function to calculate distance from user's location (mock implementation)
+  const calculateDistance = (position) => {
+    // Mock calculation - in real app, you'd use user's actual location
+    const userLocation = { lat: -37.8136, lng: 144.9631 }; // Melbourne CBD
+    const R = 6371; // Earth's radius in km
+    const dLat = (position.lat - userLocation.lat) * Math.PI / 180;
+    const dLng = (position.lng - userLocation.lng) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(userLocation.lat * Math.PI / 180) * Math.cos(position.lat * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return Math.round(R * c * 10) / 10; // Distance in km, rounded to 1 decimal
+  };
+
   const searchCompanies = async () => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Use service factory company service
+      const response = await companyService.search({
+        query: query.trim(),
+        ...filters,
+      });
       
-      // If no query, return ALL companies instead of empty array
-      if (!query || query.trim() === '') {
-        setCompanies(mockCompanies);
-      } else {
+      let companiesData = response.data || response;
+      
+      // If service returns empty or no data, use mock data as fallback
+      if (!Array.isArray(companiesData) || companiesData.length === 0) {
         // Filter mock data based on search query
-        const results = mockCompanies.filter(company => 
-          company.name.toLowerCase().includes(query.toLowerCase()) ||
-          company.description.toLowerCase().includes(query.toLowerCase()) ||
-          company.sectors.some(s => s.toLowerCase().includes(query.toLowerCase())) ||
-          company.capabilities.some(c => c.toLowerCase().includes(query.toLowerCase()))
-        );
-        setCompanies(results);
+        if (!query || query.trim() === '') {
+          companiesData = mockCompanies;
+        } else {
+          companiesData = mockCompanies.filter(company => 
+            company.name.toLowerCase().includes(query.toLowerCase()) ||
+            company.description.toLowerCase().includes(query.toLowerCase()) ||
+            company.sectors.some(s => s.toLowerCase().includes(query.toLowerCase())) ||
+            company.capabilities.some(c => c.toLowerCase().includes(query.toLowerCase()))
+          );
+        }
       }
+      
+      // Ensure all companies have position data for map display
+      const companiesWithPositions = await Promise.all(
+        companiesData.map(async (company) => {
+          // If company already has position data, use it
+          if (company.position && company.position.lat && company.position.lng) {
+            return {
+              ...company,
+              distance: company.distance || calculateDistance(company.position)
+            };
+          }
+          
+          // If company has address but no position, try to geocode it
+          if (company.address && !company.position) {
+            try {
+              const geocodeResponse = await geocodingService.geocodeAddress(company.address);
+              const position = geocodeResponse.data || geocodeResponse;
+              
+              return {
+                ...company,
+                position: position || generateMockPosition(),
+                distance: company.distance || calculateDistance(position || generateMockPosition())
+              };
+            } catch (geocodeError) {
+              console.warn(`Geocoding failed for ${company.name}:`, geocodeError);
+              // Generate mock position as fallback
+              const mockPosition = generateMockPosition();
+              return {
+                ...company,
+                position: mockPosition,
+                distance: company.distance || calculateDistance(mockPosition)
+              };
+            }
+          }
+          
+          // If no address or position, generate mock position
+          const mockPosition = generateMockPosition();
+          return {
+            ...company,
+            position: mockPosition,
+            distance: company.distance || calculateDistance(mockPosition)
+          };
+        })
+      );
+      
+      setCompanies(companiesWithPositions);
     } catch (error) {
       console.error('Search error:', error);
+      // Use mock data as fallback with positions
+      const mockDataWithPositions = mockCompanies.map(company => ({
+        ...company,
+        position: company.position || generateMockPosition(),
+        distance: company.distance || calculateDistance(company.position || generateMockPosition())
+      }));
+      setCompanies(mockDataWithPositions);
     } finally {
       setLoading(false);
     }
@@ -212,6 +331,10 @@ function SearchPage() {
     if (filters.ownership.length > 0) count += filters.ownership.length;
     if (filters.verified) count++;
     return count;
+  };
+
+  const handleMapCompanySelect = (company) => {
+    setSelectedMapCompany(company);
   };
 
   return (
@@ -311,11 +434,55 @@ function SearchPage() {
                 <div className="results-map">
                   <SearchMap 
                     companies={filteredCompanies}
-                    selectedCompany={null}
-                    onCompanySelect={(company) => {
-                      console.log('Selected company:', company);
-                    }}
+                    selectedCompany={selectedMapCompany}
+                    onCompanySelect={handleMapCompanySelect}
                   />
+                  
+                  {/* Company Info Panel for Map */}
+                  {selectedMapCompany && (
+                    <div className="map-company-panel">
+                      <button 
+                        className="close-panel"
+                        onClick={() => setSelectedMapCompany(null)}
+                      >
+                        ×
+                      </button>
+                      <div className="panel-content">
+                        <h3>{selectedMapCompany.name}</h3>
+                        {selectedMapCompany.verified && (
+                          <span className="verified-badge">✓ Verified</span>
+                        )}
+                        <p className="company-type">{selectedMapCompany.type}</p>
+                        <p className="company-distance">📍 {selectedMapCompany.distance} km away</p>
+                        <p className="company-address">{selectedMapCompany.address}</p>
+                        <p className="company-description">{selectedMapCompany.description}</p>
+                        
+                        <div className="company-tags">
+                          {selectedMapCompany.sectors.map(sector => (
+                            <span key={sector} className="tag">{sector}</span>
+                          ))}
+                        </div>
+                        
+                        <div className="panel-actions">
+                          <button 
+                            className="btn-primary"
+                            onClick={() => navigate(`/company/${selectedMapCompany.id}`)}
+                          >
+                            View Details
+                          </button>
+                          <button 
+                            className="btn-secondary"
+                            onClick={() => {
+                              const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(selectedMapCompany.address)}`;
+                              window.open(url, '_blank');
+                            }}
+                          >
+                            Get Directions
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </>

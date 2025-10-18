@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { getAuthService } from '../../services/serviceFactory';
 import signUpImage from '../../assets/use_image/sign-up.png';
-import OnboardingModal from '../../components/onboarding/OnboardingModal'; // ADD THIS IMPORT
+import OnboardingModal from '../../components/onboarding/OnboardingModal';
 import './AuthPages.css';
 
 function SignUpPage({ onSignUp }) {
   const navigate = useNavigate();
-  const [showOnboarding, setShowOnboarding] = useState(false); // ADD THIS
-  const [currentUser, setCurrentUser] = useState(null); // ADD THIS
+  const authService = getAuthService();
+  const [showOnboarding, setShowOnboarding] = useState(false); 
+  const [currentUser, setCurrentUser] = useState(null); 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -99,8 +101,8 @@ function SignUpPage({ onSignUp }) {
       //   onSignUp(userData);
       // }
       
-      setCurrentUser(userData); // ADD THIS
-      setShowOnboarding(true); // ADD THIS
+      setCurrentUser(userData); 
+      setShowOnboarding(true); 
       
       // REMOVE: navigate('/');
     } catch (error) {

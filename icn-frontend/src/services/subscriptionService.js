@@ -1,20 +1,17 @@
 import api from './api';
 
 export const subscriptionService = {
-  getCurrentTier: () => api.get('/subscription/current'),
+  getCurrentSubscription: () => api.get('/subscription/current').then(r => r.data),
   
-  getAvailablePlans: () => api.get('/subscription/plans'),
+  getPlans: () => api.get('/subscription/plans').then(r => r.data),
   
-  upgradePlan: (planId, billingCycle) => 
-    api.post('/subscription/upgrade', { planId, billingCycle }),
+  changePlan: (planId, billingCycle) => 
+    api.post('/subscription/change', { planId, billingCycle }).then(r => r.data),
   
-  downgradePlan: (planId) => 
-    api.post('/subscription/downgrade', { planId }),
+  cancelSubscription: () => api.post('/subscription/cancel').then(r => r.data),
   
-  cancelSubscription: () => api.post('/subscription/cancel'),
-  
-  getUsageStats: () => api.get('/subscription/usage'),
+  getUsageStats: () => api.get('/subscription/usage').then(r => r.data),
   
   checkFeatureAccess: (feature) => 
-    api.get(`/subscription/feature-access/${feature}`),
+    api.get(`/subscription/feature-access/${feature}`).then(r => r.data),
 };

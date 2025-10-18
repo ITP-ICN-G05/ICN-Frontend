@@ -31,7 +31,12 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "start:mock": "REACT_APP_USE_MOCK=true react-scripts start",
+    "start:prod": "REACT_APP_USE_MOCK=false REACT_APP_API_URL=https://api.icnvictoria.com react-scripts start",
+    "start:dev": "REACT_APP_USE_MOCK=true REACT_APP_SHOW_DEV_TOOLS=true react-scripts start",
     "build": "react-scripts build",
+    "build:mock": "REACT_APP_USE_MOCK=true react-scripts build",
+    "build:prod": "REACT_APP_USE_MOCK=false REACT_APP_API_URL=https://api.icnvictoria.com react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint src/**/*.{js,jsx}",

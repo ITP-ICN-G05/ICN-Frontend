@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { adminService } from '../../services/adminService';
+import { getAdminService } from '../../services/serviceFactory';
 import './CompanyManagement.css';
 
 function CompanyManagement() {
+  const adminService = getAdminService(); 
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,10 +18,11 @@ function CompanyManagement() {
     setLoading(true);
     try {
       const response = await adminService.getAllCompanies();
-      setCompanies(response.data);
+      const data = response.data || response;
+      setCompanies(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error loading companies:', error);
-      // Mock data for demo
+      // Keep existing mock data as fallback
       setCompanies([
         {
           id: 1,
@@ -43,17 +45,19 @@ function CompanyManagement() {
       setLoading(false);
     }
   };
+  
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this company?')) {
       try {
-        await adminService.deleteCompany(id);
+        await adminService.deleteCompany?.(id);
         setCompanies(companies.filter(c => c.id !== id));
       } catch (error) {
-        alert('Failed to delete company');
+        alert('Failed to delete company: ' + (error.message || 'Unknown error'));
       }
     }
   };
+  
 
   const filteredCompanies = companies.filter(company =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase())

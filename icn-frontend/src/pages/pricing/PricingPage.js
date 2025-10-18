@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getSubscriptionService } from '../../services/serviceFactory';
 import './PricingPage.css';
 
 function PricingPage() {
   const navigate = useNavigate();
+  const subscriptionService = getSubscriptionService();
   const [user, setUser] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [billingCycle, setBillingCycle] = useState('monthly');
@@ -110,14 +112,30 @@ function PricingPage() {
     window.location.reload();
   };
 
-  const handlePaymentSubmit = (e) => {
+  const handlePaymentSubmit = async (e) => {
     e.preventDefault();
-    // Simulate payment processing
-    setTimeout(() => {
+    
+    try {
+      // Simulate payment processing with service
+      const response = await subscriptionService.updateSubscription({
+        plan: selectedPlan.id,
+        billingCycle,
+        paymentMethod: {
+          // Payment details would be collected from form
+          cardNumber: e.target.querySelector('input[placeholder*="1234"]').value,
+          expiryDate: e.target.querySelector('input[placeholder="MM/YY"]').value,
+          cvv: e.target.querySelector('input[placeholder="123"]').value,
+          name: e.target.querySelector('input[placeholder="John Smith"]').value
+        }
+      });
+      
+      // Update user with new plan
       updateUserPlan(selectedPlan);
       setShowPaymentModal(false);
-    }, 1000);
-  };
+    } catch (error) {
+      alert(error.message || 'Payment failed. Please try again.');
+    }
+  };  
 
   const calculateSavings = (plan) => {
     if (billingCycle === 'yearly' && plan.price.monthly > 0) {

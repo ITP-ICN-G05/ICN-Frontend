@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getCompanyService, getExportService } from '../../services/serviceFactory';
 import './CompaniesPage.css';
 
 function CompaniesPage() {
   const navigate = useNavigate();
+  const companyService = getCompanyService(); 
+  const exportService = getExportService(); 
   const [user, setUser] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [filteredCompanies, setFilteredCompanies] = useState([]);
@@ -110,11 +113,18 @@ function CompaniesPage() {
   const loadCompanies = async () => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setCompanies(mockCompanies);
+      const response = await companyService.getAll({
+        sectors: selectedSector !== 'all' ? [selectedSector] : undefined,
+        capabilities: selectedCapability !== 'all' ? [selectedCapability] : undefined,
+        search: searchTerm || undefined
+      });
+      
+      const data = response.data || response;
+      setCompanies(Array.isArray(data) ? data : mockCompanies);
     } catch (error) {
       console.error('Error loading companies:', error);
+      // Keep existing mock data as fallback
+      setCompanies(mockCompanies);
     } finally {
       setLoading(false);
     }
@@ -222,7 +232,7 @@ function CompaniesPage() {
         
         {canViewDetail('sectors') && (
           <div className="company-sectors">
-            {company.sectors.map(sector => (
+            {(company.sectors || []).map(sector => (
               <span key={sector} className="sector-tag">{sector}</span>
             ))}
           </div>
@@ -232,7 +242,7 @@ function CompaniesPage() {
           <div className="company-capabilities">
             <strong>Capabilities:</strong>
             <div className="capability-tags">
-              {company.capabilities.slice(0, 3).map(cap => (
+              {(company.capabilities || []).slice(0, 3).map(cap => (
                 <span key={cap} className="capability-tag">{cap}</span>
               ))}
             </div>
@@ -241,7 +251,7 @@ function CompaniesPage() {
         
         {userTier === 'premium' && company.ownership.length > 0 && (
           <div className="ownership-badges">
-            {company.ownership.map(own => (
+            {(company.ownership || []).map(own => (
               <span key={own} className="ownership-badge">{own}</span>
             ))}
           </div>
@@ -378,7 +388,7 @@ function CompaniesPage() {
               </div>
               
               <div className={`companies-grid ${viewMode}`}>
-                {filteredCompanies.map(renderCompanyCard)}
+                {(filteredCompanies || []).map(renderCompanyCard)}
               </div>
             </>
           )}

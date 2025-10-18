@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { adminService } from '../../services/adminService';
+import { getAdminService } from '../../services/serviceFactory';
 import './UserManagement.css';
 
 function UserManagement() {
+  const adminService = getAdminService();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filterTier, setFilterTier] = useState('all');
@@ -14,11 +15,12 @@ function UserManagement() {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const response = await adminService.getAllUsers();
-      setUsers(response.data);
+      const response = await adminService.getUsers();
+      const data = response.data || response;
+      setUsers(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error loading users:', error);
-      // Mock data for demo
+      // Keep existing mock data as fallback
       setUsers([
         {
           id: 1,
@@ -51,20 +53,21 @@ function UserManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   const handleStatusToggle = async (userId, currentStatus) => {
     try {
       if (currentStatus === 'active') {
-        await adminService.deactivateUser(userId);
+        await adminService.deactivateUser?.(userId);
       } else {
-        await adminService.reactivateUser(userId);
+        await adminService.reactivateUser?.(userId);
       }
-      loadUsers();
+      // Reload users to get updated status
+      await loadUsers();
     } catch (error) {
-      alert('Failed to update user status');
+      alert('Failed to update user status: ' + (error.message || 'Unknown error'));
     }
-  };
+  };  
 
   const filteredUsers = filterTier === 'all' 
     ? users 

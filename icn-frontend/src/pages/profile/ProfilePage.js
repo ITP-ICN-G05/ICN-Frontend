@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getBookmarkService, getSavedSearchService } from '../../services/serviceFactory';
 import './ProfilePage.css';
 
 function ProfilePage() {
   const navigate = useNavigate();
+  const bookmarkService = getBookmarkService(); 
+  const savedSearchService = getSavedSearchService();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [bookmarkedCompanies, setBookmarkedCompanies] = useState([]);
@@ -43,47 +46,91 @@ function ProfilePage() {
     });
   };
 
-  const loadBookmarks = () => {
-    // Mock bookmarked companies
-    const mockBookmarks = [
-      {
-        id: 1,
-        name: 'TechCorp Industries',
-        type: 'Manufacturer',
-        verified: true,
-        bookmarkedDate: '2024-12-10'
-      },
-      {
-        id: 2,
-        name: 'Global Supply Co',
-        type: 'Item Supplier',
-        verified: true,
-        bookmarkedDate: '2024-12-08'
+  const loadBookmarks = async () => {
+    try {
+      const response = await bookmarkService.getUserBookmarks();
+      const data = response.data || response;
+      
+      if (Array.isArray(data) && data.length > 0) {
+        // Transform API data to expected format
+        const transformedBookmarks = data.map(bookmark => ({
+          id: bookmark.id || bookmark.companyId,
+          name: bookmark.name || bookmark.companyName,
+          type: bookmark.type || bookmark.companyType || 'Company',
+          verified: bookmark.verified || bookmark.verificationStatus === 'verified',
+          bookmarkedDate: bookmark.bookmarkedDate || bookmark.createdAt?.split('T') || '2024-12-15'
+        }));
+        setBookmarkedCompanies(transformedBookmarks);
+      } else {
+        // Use mock data as fallback
+        const mockBookmarks = [
+          {
+            id: 1,
+            name: 'TechCorp Industries',
+            type: 'Manufacturer',
+            verified: true,
+            bookmarkedDate: '2024-12-10'
+          },
+          {
+            id: 2,
+            name: 'Global Supply Co',
+            type: 'Item Supplier',
+            verified: true,
+            bookmarkedDate: '2024-12-08'
+          }
+        ];
+        setBookmarkedCompanies(mockBookmarks);
       }
-    ];
-    setBookmarkedCompanies(mockBookmarks);
-  };
+    } catch (error) {
+      console.error('Error loading bookmarks:', error);
+      // Use mock data as fallback
+      const mockBookmarks = [
+        {
+          id: 1,
+          name: 'TechCorp Industries',
+          type: 'Manufacturer',
+          verified: true,
+          bookmarkedDate: '2024-12-10'
+        }
+      ];
+      setBookmarkedCompanies(mockBookmarks);
+    }
+  };  
 
-  const loadSavedSearches = () => {
-    // Mock saved searches
-    const mockSearches = [
-      {
-        id: 1,
-        query: 'Electronic manufacturers',
-        filters: { sectors: ['Technology'], distance: 50 },
-        savedDate: '2024-12-09',
-        resultsCount: 23
-      },
-      {
-        id: 2,
-        query: 'Female-owned suppliers',
-        filters: { ownership: ['Female-owned'], verified: true },
-        savedDate: '2024-12-07',
-        resultsCount: 15
+  const loadSavedSearches = async () => {
+    try {
+      const response = await savedSearchService.getSavedSearches();
+      const data = response.data || response;
+      
+      if (Array.isArray(data) && data.length > 0) {
+        // Transform API data to expected format
+        const transformedSearches = data.map(search => ({
+          id: search.id,
+          query: search.name || search.query,
+          filters: search.filters || {},
+          savedDate: search.createdAt?.split('T') || search.savedDate || '2024-12-09',
+          resultsCount: search.resultCount || search.resultsCount || 0
+        }));
+        setSavedSearches(transformedSearches);
+      } else {
+        // Use mock data as fallback
+        const mockSearches = [
+          {
+            id: 1,
+            query: 'Electronic manufacturers',
+            filters: { sectors: ['Technology'], distance: 50 },
+            savedDate: '2024-12-09',
+            resultsCount: 23
+          }
+        ];
+        setSavedSearches(mockSearches);
       }
-    ];
-    setSavedSearches(mockSearches);
-  };
+    } catch (error) {
+      console.error('Error loading saved searches:', error);
+      // Use mock data as fallback
+      setSavedSearches([]);
+    }
+  };  
 
   const loadRecentActivity = () => {
     // Mock recent activity
@@ -146,13 +193,29 @@ function ProfilePage() {
     });
   };
 
-  const removeBookmark = (companyId) => {
-    setBookmarkedCompanies(bookmarkedCompanies.filter(c => c.id !== companyId));
-  };
+  const removeBookmark = async (companyId) => {
+    try {
+      await bookmarkService.removeBookmark(companyId);
+      setBookmarkedCompanies(bookmarkedCompanies.filter(c => c.id !== companyId));
+    } catch (error) {
+      console.error('Error removing bookmark:', error);
+      // Fallback to local removal
+      setBookmarkedCompanies(bookmarkedCompanies.filter(c => c.id !== companyId));
+      alert(error.message || 'Failed to remove bookmark');
+    }
+  };  
 
-  const deleteSavedSearch = (searchId) => {
-    setSavedSearches(savedSearches.filter(s => s.id !== searchId));
-  };
+  const deleteSavedSearch = async (searchId) => {
+    try {
+      await savedSearchService.deleteSavedSearch(searchId);
+      setSavedSearches(savedSearches.filter(s => s.id !== searchId));
+    } catch (error) {
+      console.error('Error deleting saved search:', error);
+      // Fallback to local removal
+      setSavedSearches(savedSearches.filter(s => s.id !== searchId));
+      alert(error.message || 'Failed to delete saved search');
+    }
+  };  
 
   const runSavedSearch = (search) => {
     navigate(`/search?q=${encodeURIComponent(search.query)}`);
