@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { GoogleMap, Marker, InfoWindow, Circle } from '@react-google-maps/api';
-import { useNavigate } from 'react-router-dom';
+import { GoogleMap, Circle, MarkerF } from '@react-google-maps/api';
 import './SearchMap.css';
 
+// Map configuration
 const containerStyle = {
   width: '100%',
   height: '600px'
@@ -21,17 +21,39 @@ const mapOptions = {
   streetViewControl: false,
   rotateControl: false,
   fullscreenControl: true,
+  // Add mapId for Advanced Markers (you'll need to create this in Google Cloud Console)
+  mapId: process.env.REACT_APP_GOOGLE_MAP_ID || 'YOUR_MAP_ID',
 };
 
 function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
-  const navigate = useNavigate();
   const [map, setMap] = useState(null);
-  const [activeMarker, setActiveMarker] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [mapCenter, setMapCenter] = useState(fallbackCenter);
   const [locationError, setLocationError] = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
-  const [userZoomLevel, setUserZoomLevel] = useState(13); // Default zoom for user location
+  const [userZoomLevel] = useState(13);
+
+  // Create marker icons only when Google Maps is loaded
+  const markerIcons = useMemo(() => {
+    if (!window.google?.maps) {
+      return null;
+    }
+
+    const createMarkerIcon = (color) => ({
+      path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z',
+      fillColor: color,
+      fillOpacity: 1,
+      strokeColor: '#ffffff',
+      strokeWeight: 2,
+      scale: 1.5,
+      anchor: new window.google.maps.Point(12, 24)
+    });
+
+    return {
+      verified: createMarkerIcon('#34A853'),
+      unverified: createMarkerIcon('#EA4335')
+    };
+  }, []);
 
   const toNumber = (v) => (typeof v === 'string' ? parseFloat(v) : v);
   const hasValidCoords = (c) => Number.isFinite(toNumber(c.latitude)) && Number.isFinite(toNumber(c.longitude));
@@ -198,7 +220,6 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
   }, []);
 
   const handleMarkerClick = (company) => {
-    setActiveMarker(company.id);
     if (onCompanySelect) {
       onCompanySelect(company);
     }
@@ -277,10 +298,13 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
     );
   }
 
-  // Get counts for display
-  const nearbyCount = userLocation 
-    ? companiesWithCoordinates.filter(c => c.distanceFromUser && c.distanceFromUser <= 10).length
-    : 0;
+  // Function to get the appropriate marker icon
+  const getMarkerIcon = (isVerified) => {
+    if (!markerIcons) return undefined; // Return undefined if icons aren't ready
+    
+    if (isVerified) return markerIcons.verified;
+    return markerIcons.unverified;
+  };
 
   return (
     <div style={{ position: 'relative' }}>
@@ -385,47 +409,7 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
         )}
       </div>
 
-      {/* Stats Display */}
-      <div style={{
-        position: 'absolute',
-        top: '10px',
-        right: '10px',
-        zIndex: 1000,
-        background: 'white',
-        padding: '12px',
-        borderRadius: '4px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-        fontSize: '13px'
-      }}>
-        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-          Companies: {companiesWithCoordinates.length}
-        </div>
-        {userLocation && nearbyCount > 0 && (
-          <div style={{ color: '#4285F4' }}>
-            Within 10km: {nearbyCount}
-          </div>
-        )}
-        {userLocation && (
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '6px',
-            marginTop: '8px',
-            paddingTop: '8px',
-            borderTop: '1px solid #eee'
-          }}>
-            <div style={{
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-              background: '#4285F4',
-              border: '2px solid white',
-              boxShadow: '0 0 0 1px #4285F4'
-            }}></div>
-            <span style={{ color: '#666' }}>Your Location</span>
-          </div>
-        )}
-      </div>
+
 
       <GoogleMap
         mapContainerStyle={containerStyle}
@@ -440,7 +424,7 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
         {/* User Location - Blue dot with circle */}
         {userLocation && (
           <>
-            {/* Inner circle - 1km radius */}
+            {/* 1km radius circle */}
             <Circle
               center={userLocation}
               radius={1000}
@@ -468,79 +452,19 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
           </>
         )}
 
-        {/* Company Markers - Show distance if available */}
+        {/* Company Markers using MarkerF (functional component, no deprecation) */}
         {companiesWithCoordinates.map((company) => {
           const isVerified = company.verified || company.verificationStatus === 'verified';
           
           return (
-            <Marker
+            <MarkerF
               key={company.id}
               position={company.position}
               onClick={() => handleMarkerClick(company)}
               title={company.name}
+              icon={getMarkerIcon(isVerified)}
               zIndex={isVerified ? 200 : 100}
-              label={company.distanceFromUser && company.distanceFromUser <= 10 
-                ? {
-                    text: `${company.distanceFromUser.toFixed(1)}km`,
-                    color: 'white',
-                    fontSize: '10px',
-                    fontWeight: 'bold'
-                  }
-                : undefined
-              }
-            >
-              {activeMarker === company.id && (
-                <InfoWindow
-                  onCloseClick={() => setActiveMarker(null)}
-                  position={company.position}
-                >
-                  <div style={{ maxWidth: '200px' }}>
-                    <h3 style={{ margin: '0 0 8px 0', fontSize: '14px' }}>{company.name}</h3>
-                    {isVerified && (
-                      <span style={{ 
-                        background: '#34A853', 
-                        padding: '2px 8px', 
-                        borderRadius: '4px',
-                        fontSize: '11px',
-                        color: '#fff',
-                        fontWeight: 'bold'
-                      }}>
-                        ✓ Verified
-                      </span>
-                    )}
-                    {company.distanceFromUser && (
-                      <p style={{ 
-                        margin: '8px 0 4px', 
-                        fontSize: '13px', 
-                        color: '#4285F4',
-                        fontWeight: 'bold'
-                      }}>
-                        📍 {company.distanceFromUser.toFixed(1)} km from you
-                      </p>
-                    )}
-                    <p style={{ margin: '8px 0', fontSize: '12px', color: '#666' }}>
-                      {company.address}
-                    </p>
-                    <button 
-                      onClick={() => navigate(`/company/${company.id}`)}
-                      style={{
-                        background: '#4285F4',
-                        color: 'white',
-                        border: 'none',
-                        padding: '6px 12px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                        marginTop: '4px',
-                        width: '100%'
-                      }}
-                    >
-                      View Details
-                    </button>
-                  </div>
-                </InfoWindow>
-              )}
-            </Marker>
+            />
           );
         })}
       </GoogleMap>
