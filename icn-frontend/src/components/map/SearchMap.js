@@ -23,10 +23,6 @@ const mapOptions = {
   fullscreenControl: true,
 };
 
-// Helper functions
-const toNumber = (v) => (typeof v === 'string' ? parseFloat(v) : v);
-const hasValidCoords = (c) => Number.isFinite(toNumber(c.latitude)) && Number.isFinite(toNumber(c.longitude));
-
 function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
   const navigate = useNavigate();
   const [map, setMap] = useState(null);
@@ -35,6 +31,23 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
   const [mapCenter, setMapCenter] = useState(fallbackCenter);
   const [locationError, setLocationError] = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [userZoomLevel, setUserZoomLevel] = useState(13); // Default zoom for user location
+
+  const toNumber = (v) => (typeof v === 'string' ? parseFloat(v) : v);
+  const hasValidCoords = (c) => Number.isFinite(toNumber(c.latitude)) && Number.isFinite(toNumber(c.longitude));
+
+  // Calculate distance between two points
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // Distance in km
+  };
 
   const companiesWithCoordinates = useMemo(() => {
     if (!companies || companies.length === 0) {
@@ -47,24 +60,31 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
     console.log(`🗺️ Map received: ${companies.length} companies`);
     console.log(`✅ Valid coordinates: ${validCompanies.length} companies`);
     
-    if (validCompanies.length > 0) {
-      console.log('📍 First company:', {
-        name: validCompanies.name,
-        lat: validCompanies.latitude,
-        lng: validCompanies.longitude
-      });
-    }
-    
-    return validCompanies.map(company => ({
+    const companiesWithPos = validCompanies.map(company => ({
       ...company,
       position: {
         lat: toNumber(company.latitude),
         lng: toNumber(company.longitude)
       }
     }));
-  }, [companies]);
 
-  // Get user location
+    // If we have user location, sort by distance
+    if (userLocation) {
+      companiesWithPos.forEach(company => {
+        company.distanceFromUser = calculateDistance(
+          userLocation.lat, 
+          userLocation.lng,
+          company.position.lat,
+          company.position.lng
+        );
+      });
+      companiesWithPos.sort((a, b) => a.distanceFromUser - b.distanceFromUser);
+    }
+
+    return companiesWithPos;
+  }, [companies, userLocation]);
+
+  // Get user location on mount
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -73,13 +93,19 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
             lat: position.coords.latitude,
             lng: position.coords.longitude
           };
-          console.log('👤 User location obtained:', pos);
+          console.log('📍 User location obtained:', pos);
           setUserLocation(pos);
           setMapCenter(pos);
           setIsLoadingLocation(false);
+          
+          // If map is already loaded, center it on user location
+          if (map) {
+            map.panTo(pos);
+            map.setZoom(userZoomLevel);
+          }
         },
         (error) => {
-          console.error('❌ Geolocation error:', error);
+          console.error('Location error:', error);
           setLocationError(error.message);
           setMapCenter(fallbackCenter);
           setIsLoadingLocation(false);
@@ -94,63 +120,84 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
       setLocationError('Geolocation not supported');
       setIsLoadingLocation(false);
     }
-  }, []);
+  }, [map, userZoomLevel]);
 
   const onLoad = useCallback((map) => {
-    console.log('🗺️ Map loaded successfully');
     setMap(map);
+    console.log('🗺️ Map loaded');
     
-    if (companiesWithCoordinates.length > 0) {
+    // Priority 1: If we have user location, center on it
+    if (userLocation) {
+      console.log('📍 Centering map on user location');
+      map.setCenter(userLocation);
+      map.setZoom(userZoomLevel);
+      
+      // Optional: Show nearby companies within bounds
+      if (companiesWithCoordinates.length > 0) {
+        // Find companies within ~10km radius
+        const nearbyCompanies = companiesWithCoordinates.filter(
+          c => c.distanceFromUser && c.distanceFromUser <= 10
+        );
+        
+        if (nearbyCompanies.length > 0) {
+          console.log(`Found ${nearbyCompanies.length} companies within 10km`);
+          
+          // Adjust zoom to show nearby companies
+          setTimeout(() => {
+            const bounds = new window.google.maps.LatLngBounds();
+            bounds.extend(new window.google.maps.LatLng(userLocation.lat, userLocation.lng));
+            
+            nearbyCompanies.slice(0, 10).forEach(company => {
+              bounds.extend(new window.google.maps.LatLng(
+                company.position.lat,
+                company.position.lng
+              ));
+            });
+            
+            map.fitBounds(bounds);
+            
+            // Ensure we don't zoom out too much
+            const listener = window.google.maps.event.addListener(map, "idle", function() {
+              if (map.getZoom() < 11) map.setZoom(11);
+              if (map.getZoom() > 15) map.setZoom(14);
+              window.google.maps.event.removeListener(listener);
+            });
+          }, 500);
+        }
+      }
+    } 
+    // Priority 2: If no user location but have companies, fit to companies
+    else if (companiesWithCoordinates.length > 0) {
+      console.log('📍 No user location, fitting to companies');
       const bounds = new window.google.maps.LatLngBounds();
       
-      // Add company positions to bounds
-      companiesWithCoordinates.forEach(company => {
+      companiesWithCoordinates.slice(0, 20).forEach(company => {
         bounds.extend(new window.google.maps.LatLng(
           company.position.lat,
           company.position.lng
         ));
       });
       
-      // Only include user location if few companies
-      if (userLocation && companiesWithCoordinates.length <= 5) {
-        bounds.extend(new window.google.maps.LatLng(
-          userLocation.lat,
-          userLocation.lng
-        ));
-      }
-      
       map.fitBounds(bounds);
       
-      // Adjust zoom after fitting
       const listener = window.google.maps.event.addListener(map, "idle", function() {
-        const zoom = map.getZoom();
-        console.log(`🔍 Current zoom level: ${zoom}`);
-        
-        if (zoom > 15) {
-          console.log('⚠️ Zoom too close, adjusting to 15');
-          map.setZoom(15);
-        }
-        if (zoom < 8) {
-          console.log('⚠️ Zoom too far, adjusting to 8');
-          map.setZoom(8);
-        }
-        
+        if (map.getZoom() > 15) map.setZoom(13);
         window.google.maps.event.removeListener(listener);
       });
-    } else if (userLocation) {
-      console.log('📍 No companies, centering on user location');
-      map.setCenter(userLocation);
-      map.setZoom(12);
     }
-  }, [companiesWithCoordinates, userLocation]);
+    // Priority 3: Use fallback center
+    else {
+      console.log('📍 Using fallback center');
+      map.setCenter(mapCenter);
+      map.setZoom(11);
+    }
+  }, [companiesWithCoordinates, userLocation, mapCenter, userZoomLevel]);
 
   const onUnmount = useCallback(() => {
-    console.log('🗺️ Map unmounted');
     setMap(null);
   }, []);
 
   const handleMarkerClick = (company) => {
-    console.log('🖱️ Marker clicked:', company.name);
     setActiveMarker(company.id);
     if (onCompanySelect) {
       onCompanySelect(company);
@@ -174,14 +221,41 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
           
           if (map) {
             map.panTo(pos);
-            map.setZoom(12);
+            map.setZoom(userZoomLevel);
           }
         },
         (error) => {
           setLocationError(error.message);
           setIsLoadingLocation(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
+    }
+  };
+
+  const handleCenterOnUser = () => {
+    if (userLocation && map) {
+      map.panTo(userLocation);
+      map.setZoom(userZoomLevel);
+    }
+  };
+
+  const handleShowAllCompanies = () => {
+    if (map && companiesWithCoordinates.length > 0) {
+      const bounds = new window.google.maps.LatLngBounds();
+      
+      companiesWithCoordinates.forEach(company => {
+        bounds.extend(new window.google.maps.LatLng(
+          company.position.lat,
+          company.position.lng
+        ));
+      });
+      
+      map.fitBounds(bounds);
     }
   };
 
@@ -202,6 +276,11 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
       </div>
     );
   }
+
+  // Get counts for display
+  const nearbyCount = userLocation 
+    ? companiesWithCoordinates.filter(c => c.distanceFromUser && c.distanceFromUser <= 10).length
+    : 0;
 
   return (
     <div style={{ position: 'relative' }}>
@@ -224,12 +303,7 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
         }}>
           {isLoadingLocation && (
             <>
-              <div className="spinner" style={{ 
-                width: '16px', 
-                height: '16px', 
-                borderColor: 'white', 
-                borderTopColor: 'transparent' 
-              }}></div>
+              <div className="spinner" style={{ width: '16px', height: '16px', borderColor: 'white', borderTopColor: 'transparent' }}></div>
               <span>Getting your location...</span>
             </>
           )}
@@ -256,77 +330,147 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
         </div>
       )}
 
-      {/* User Location Indicator */}
-      {userLocation && (
-        <div style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-          zIndex: 1000,
-          background: 'white',
-          padding: '8px 12px',
-          borderRadius: '4px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-          fontSize: '13px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px'
-        }}>
-          <div style={{
-            width: '12px',
-            height: '12px',
-            borderRadius: '50%',
-            background: '#4285F4',
-            border: '2px solid white',
-            boxShadow: '0 0 0 1px #4285F4'
-          }}></div>
-          <span style={{ color: '#666' }}>Your Location</span>
-        </div>
-      )}
-
-      {/* Debug Counter - Bottom Left */}
+      {/* Map Controls */}
       <div style={{
         position: 'absolute',
-        bottom: '10px',
+        top: '60px',
         left: '10px',
         zIndex: 1000,
-        background: 'rgba(255, 255, 255, 0.95)',
-        padding: '8px 12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px'
+      }}>
+        {userLocation && (
+          <button
+            onClick={handleCenterOnUser}
+            style={{
+              background: 'white',
+              border: '2px solid #4285F4',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 'bold',
+              color: '#4285F4',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+            title="Center on my location"
+          >
+            <span style={{ fontSize: '16px' }}>📍</span>
+            My Location
+          </button>
+        )}
+        
+        {companiesWithCoordinates.length > 0 && (
+          <button
+            onClick={handleShowAllCompanies}
+            style={{
+              background: 'white',
+              border: '1px solid #666',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 'bold',
+              color: '#666',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+            }}
+            title="Show all companies"
+          >
+            Show All ({companiesWithCoordinates.length})
+          </button>
+        )}
+      </div>
+
+      {/* Stats Display */}
+      <div style={{
+        position: 'absolute',
+        top: '10px',
+        right: '10px',
+        zIndex: 1000,
+        background: 'white',
+        padding: '12px',
         borderRadius: '4px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-        fontSize: '12px',
-        fontWeight: 'bold',
-        color: companiesWithCoordinates.length > 0 ? '#34A853' : '#EA4335'
+        fontSize: '13px'
       }}>
-        📍 {companiesWithCoordinates.length} markers on map
+        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+          Companies: {companiesWithCoordinates.length}
+        </div>
+        {userLocation && nearbyCount > 0 && (
+          <div style={{ color: '#4285F4' }}>
+            Within 10km: {nearbyCount}
+          </div>
+        )}
+        {userLocation && (
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '6px',
+            marginTop: '8px',
+            paddingTop: '8px',
+            borderTop: '1px solid #eee'
+          }}>
+            <div style={{
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+              background: '#4285F4',
+              border: '2px solid white',
+              boxShadow: '0 0 0 1px #4285F4'
+            }}></div>
+            <span style={{ color: '#666' }}>Your Location</span>
+          </div>
+        )}
       </div>
 
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={mapCenter}
-        zoom={11}
+        zoom={userZoomLevel}
         onLoad={onLoad}
         onUnmount={onUnmount}
         options={mapOptions}
       >
-        {/* 
-          CRITICAL FIX: Render markers FIRST with HIGH zIndex
-          This ensures they appear on top of everything
-        */}
+        {console.log(`🎨 Rendering ${companiesWithCoordinates.length} company markers`)}
         
-        {/* Company Markers - HIGH PRIORITY (zIndex 500-1000) */}
-        {companiesWithCoordinates.map((company, index) => {
+        {/* User Location - Blue dot with circle */}
+        {userLocation && (
+          <>
+            {/* Inner circle - 1km radius */}
+            <Circle
+              center={userLocation}
+              radius={1000}
+              options={{
+                fillColor: '#4285F4',
+                fillOpacity: 0.15,
+                strokeColor: '#4285F4',
+                strokeOpacity: 0.6,
+                strokeWeight: 2,
+              }}
+            />
+            {/* Center dot */}
+            <Circle
+              center={userLocation}
+              radius={50}
+              options={{
+                fillColor: '#4285F4',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeOpacity: 1,
+                strokeWeight: 3,
+                zIndex: 999
+              }}
+            />
+          </>
+        )}
+
+        {/* Company Markers - Show distance if available */}
+        {companiesWithCoordinates.map((company) => {
           const isVerified = company.verified || company.verificationStatus === 'verified';
-          
-          // Log first 3 markers for debugging
-          if (index < 3) {
-            console.log(`✓ Rendering marker ${index + 1}:`, {
-              name: company.name,
-              lat: company.position.lat,
-              lng: company.position.lng,
-              verified: isVerified
-            });
-          }
           
           return (
             <Marker
@@ -334,92 +478,64 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
               position={company.position}
               onClick={() => handleMarkerClick(company)}
               title={company.name}
-              // ✅ FIX 1: HIGH zIndex to appear above circles
-              zIndex={isVerified ? 1000 : 500}
-              // ✅ FIX 2: Explicit marker icon with size
-              icon={{
-                path: window.google.maps.SymbolPath.CIRCLE,
-                scale: 12,
-                fillColor: isVerified ? '#34A853' : '#EA4335',
-                fillOpacity: 1,
-                strokeColor: '#ffffff',
-                strokeWeight: 3,
-              }}
-              // ✅ FIX 3: Disable optimization for consistent rendering
-              optimized={false}
+              zIndex={isVerified ? 200 : 100}
+              label={company.distanceFromUser && company.distanceFromUser <= 10 
+                ? {
+                    text: `${company.distanceFromUser.toFixed(1)}km`,
+                    color: 'white',
+                    fontSize: '10px',
+                    fontWeight: 'bold'
+                  }
+                : undefined
+              }
             >
               {activeMarker === company.id && (
                 <InfoWindow
                   onCloseClick={() => setActiveMarker(null)}
                   position={company.position}
                 >
-                  <div style={{ maxWidth: '220px' }}>
-                    <h3 style={{ 
-                      margin: '0 0 8px 0', 
-                      fontSize: '15px', 
-                      fontWeight: 'bold',
-                      color: '#202124'
-                    }}>
-                      {company.name}
-                    </h3>
-                    
+                  <div style={{ maxWidth: '200px' }}>
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '14px' }}>{company.name}</h3>
                     {isVerified && (
                       <span style={{ 
                         background: '#34A853', 
-                        padding: '3px 10px', 
-                        borderRadius: '12px',
+                        padding: '2px 8px', 
+                        borderRadius: '4px',
                         fontSize: '11px',
                         color: '#fff',
-                        fontWeight: 'bold',
-                        display: 'inline-block',
-                        marginBottom: '10px'
+                        fontWeight: 'bold'
                       }}>
                         ✓ Verified
                       </span>
                     )}
-                    
-                    <p style={{ 
-                      margin: '8px 0', 
-                      fontSize: '13px', 
-                      color: '#5f6368',
-                      lineHeight: '1.4'
-                    }}>
-                      {company.address}
-                    </p>
-                    
-                    {company.distance && (
+                    {company.distanceFromUser && (
                       <p style={{ 
-                        margin: '6px 0', 
-                        fontSize: '12px', 
-                        color: '#80868b',
-                        fontWeight: '500'
+                        margin: '8px 0 4px', 
+                        fontSize: '13px', 
+                        color: '#4285F4',
+                        fontWeight: 'bold'
                       }}>
-                        📍 {typeof company.distance === 'number' ? company.distance.toFixed(1) : company.distance} km away
+                        📍 {company.distanceFromUser.toFixed(1)} km from you
                       </p>
                     )}
-                    
+                    <p style={{ margin: '8px 0', fontSize: '12px', color: '#666' }}>
+                      {company.address}
+                    </p>
                     <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/company/${company.id}`);
-                      }}
+                      onClick={() => navigate(`/company/${company.id}`)}
                       style={{
-                        background: '#1a73e8',
+                        background: '#4285F4',
                         color: 'white',
                         border: 'none',
-                        padding: '10px 16px',
+                        padding: '6px 12px',
                         borderRadius: '4px',
                         cursor: 'pointer',
-                        fontSize: '13px',
-                        marginTop: '12px',
-                        width: '100%',
-                        fontWeight: '600',
-                        transition: 'background 0.2s'
+                        fontSize: '12px',
+                        marginTop: '4px',
+                        width: '100%'
                       }}
-                      onMouseOver={(e) => e.currentTarget.style.background = '#1557b0'}
-                      onMouseOut={(e) => e.currentTarget.style.background = '#1a73e8'}
                     >
-                      View Details →
+                      View Details
                     </button>
                   </div>
                 </InfoWindow>
@@ -427,40 +543,6 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
             </Marker>
           );
         })}
-
-        {/* User Location Circles - LOW PRIORITY (zIndex 1-2) */}
-        {userLocation && (
-          <>
-            {/* Outer accuracy circle */}
-            <Circle
-              center={userLocation}
-              radius={800}
-              options={{
-                fillColor: '#4285F4',
-                fillOpacity: 0.08,
-                strokeColor: '#4285F4',
-                strokeOpacity: 0.3,
-                strokeWeight: 1,
-                zIndex: 1,  // ✅ FIX 4: LOW zIndex - renders behind markers
-                clickable: false  // ✅ FIX 5: Don't intercept clicks
-              }}
-            />
-            {/* Inner location dot */}
-            <Circle
-              center={userLocation}
-              radius={30}
-              options={{
-                fillColor: '#4285F4',
-                fillOpacity: 1,
-                strokeColor: '#ffffff',
-                strokeOpacity: 1,
-                strokeWeight: 3,
-                zIndex: 2,  // ✅ FIX 4: Still low, just above outer circle
-                clickable: false
-              }}
-            />
-          </>
-        )}
       </GoogleMap>
     </div>
   );
