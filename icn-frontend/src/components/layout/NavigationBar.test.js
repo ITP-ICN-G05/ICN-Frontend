@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import NavigationBar from './NavigationBar';
 
 const mockUsers = {
@@ -24,14 +24,19 @@ const mockOnLogout = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
-  useLocation: () => ({ pathname: '/' }),
 }));
 
-const renderNav = (props = {}) => {
+const renderNav = (props = {}, initialPath = '/') => {
   return render(
-    <BrowserRouter>
+    <MemoryRouter 
+      initialEntries={[initialPath]}
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <NavigationBar onLogout={mockOnLogout} {...props} />
-    </BrowserRouter>
+    </MemoryRouter>
   );
 };
 
@@ -150,9 +155,9 @@ describe('NavigationBar', () => {
       const avatar = screen.getByTitle(/Logged in as/);
       fireEvent.click(avatar);
       
-      expect(screen.getByText('My Profile')).toBeInTheDocument();
-      expect(screen.getByText('Companies')).toBeInTheDocument();
-      expect(screen.getByText('Log out')).toBeInTheDocument();
+      expect(screen.getByText(/My Profile/)).toBeInTheDocument();
+      expect(screen.getByText(/Companies/)).toBeInTheDocument();
+      expect(screen.getByText(/Log out/)).toBeInTheDocument();
     });
 
     it('displays user name and email in dropdown', () => {
@@ -185,7 +190,7 @@ describe('NavigationBar', () => {
       const avatar = screen.getByTitle(/Logged in as/);
       fireEvent.click(avatar);
       
-      const profileButton = screen.getByText('👤 My Profile');
+      const profileButton = screen.getByText(/My Profile/);
       fireEvent.click(profileButton);
       
       expect(mockNavigate).toHaveBeenCalledWith('/profile');
@@ -196,7 +201,7 @@ describe('NavigationBar', () => {
       const avatar = screen.getByTitle(/Logged in as/);
       fireEvent.click(avatar);
       
-      const companiesButton = screen.getByText('🏢 Companies');
+      const companiesButton = screen.getByText(/Companies/);
       fireEvent.click(companiesButton);
       
       expect(mockNavigate).toHaveBeenCalledWith('/companies');
@@ -207,13 +212,13 @@ describe('NavigationBar', () => {
       const avatar = screen.getByTitle(/Logged in as/);
       fireEvent.click(avatar);
       
-      expect(screen.getByText('My Profile')).toBeInTheDocument();
+      expect(screen.getByText(/My Profile/)).toBeInTheDocument();
       
       // Click outside
       fireEvent.mouseDown(document.body);
       
       await waitFor(() => {
-        expect(screen.queryByText('My Profile')).not.toBeInTheDocument();
+        expect(screen.queryByText(/My Profile/)).not.toBeInTheDocument();
       });
     });
 
@@ -224,7 +229,7 @@ describe('NavigationBar', () => {
       const avatar = screen.getByTitle(/Logged in as/);
       fireEvent.click(avatar);
       
-      const logoutButton = screen.getByText('🚪 Log out');
+      const logoutButton = screen.getByText(/Log out/);
       fireEvent.click(logoutButton);
       
       expect(window.confirm).toHaveBeenCalled();
@@ -238,7 +243,7 @@ describe('NavigationBar', () => {
       const avatar = screen.getByTitle(/Logged in as/);
       fireEvent.click(avatar);
       
-      const logoutButton = screen.getByText('🚪 Log out');
+      const logoutButton = screen.getByText(/Log out/);
       fireEvent.click(logoutButton);
       
       expect(window.confirm).toHaveBeenCalled();
@@ -248,21 +253,13 @@ describe('NavigationBar', () => {
 
   describe('Styling', () => {
     it('applies active class to login button on login page', () => {
-      jest.spyOn(require('react-router-dom'), 'useLocation').mockReturnValue({
-        pathname: '/login',
-      });
-      
-      renderNav();
+      renderNav({}, '/login');
       const loginButton = screen.getByText('Log in');
       expect(loginButton).toHaveClass('active');
     });
 
     it('applies active class to signup button on signup page', () => {
-      jest.spyOn(require('react-router-dom'), 'useLocation').mockReturnValue({
-        pathname: '/signup',
-      });
-      
-      renderNav();
+      renderNav({}, '/signup');
       const signupButton = screen.getByText('Sign up');
       expect(signupButton).toHaveClass('active');
     });

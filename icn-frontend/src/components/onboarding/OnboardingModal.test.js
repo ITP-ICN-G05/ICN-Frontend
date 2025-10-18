@@ -87,7 +87,7 @@ describe('OnboardingModal', () => {
       
       expect(screen.getByText(/Finding suppliers/)).toBeInTheDocument();
       expect(screen.getByText(/Listing my company/)).toBeInTheDocument();
-      expect(screen.getByText('Both')).toBeInTheDocument();
+      expect(screen.getByText(/Both/)).toBeInTheDocument();
     });
 
     it('selects user type', async () => {
@@ -540,4 +540,3 @@ describe('OnboardingModal', () => {
     });
   });
 });
-

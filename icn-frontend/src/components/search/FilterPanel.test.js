@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import FilterPanel from './FilterPanel';
 
@@ -28,7 +28,7 @@ const renderFilterPanel = (props = {}) => {
   };
   
   return render(
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <FilterPanel {...defaultProps} {...props} />
     </BrowserRouter>
   );
@@ -99,8 +99,11 @@ describe('FilterPanel', () => {
       renderFilterPanel();
       const sectors = ['Technology', 'Manufacturing', 'Services', 'Logistics', 'Environment', 'Automotive'];
       
+      // Get the Sectors section specifically
+      const sectorsSection = screen.getByRole('heading', { name: 'Sectors' }).closest('.filter-group');
+      
       sectors.forEach(sector => {
-        expect(screen.getByText(sector)).toBeInTheDocument();
+        expect(within(sectorsSection).getByText(sector)).toBeInTheDocument();
       });
     });
 
@@ -108,8 +111,11 @@ describe('FilterPanel', () => {
       const filters = { ...mockFilters, sectors: ['Technology', 'Manufacturing'] };
       renderFilterPanel({ filters });
       
-      const techCheckbox = screen.getByLabelText('Technology');
-      const mfgCheckbox = screen.getByLabelText('Manufacturing');
+      // Scope to the Sectors section
+      const sectorsSection = screen.getByRole('heading', { name: 'Sectors' }).closest('.filter-group');
+      
+      const techCheckbox = within(sectorsSection).getByLabelText('Technology');
+      const mfgCheckbox = within(sectorsSection).getByLabelText('Manufacturing');
       
       expect(techCheckbox).toBeChecked();
       expect(mfgCheckbox).toBeChecked();
@@ -165,8 +171,11 @@ describe('FilterPanel', () => {
       renderFilterPanel();
       const capabilities = ['Manufacturing', 'Supply Chain', 'Design', 'Assembly', 'Distribution', 'Maintenance'];
       
+      // Get the Capabilities section specifically
+      const capabilitiesSection = screen.getByRole('heading', { name: 'Capabilities' }).closest('.filter-group');
+      
       capabilities.forEach(capability => {
-        expect(screen.getByText(capability)).toBeInTheDocument();
+        expect(within(capabilitiesSection).getByText(capability)).toBeInTheDocument();
       });
     });
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import CompanyCard from './CompanyCard';
 
 const mockCompany = {
@@ -68,9 +68,12 @@ describe('CompanyCard', () => {
   });
 
   it('renders all sectors', () => {
-    render(<CompanyCard company={mockCompany} onClick={mockOnClick} />);
-    expect(screen.getByText('Technology')).toBeInTheDocument();
-    expect(screen.getByText('Manufacturing')).toBeInTheDocument();
+    const { container } = render(<CompanyCard company={mockCompany} onClick={mockOnClick} />);
+    const tagGroups = container.querySelectorAll('.tag-group');
+    const sectorsGroup = tagGroups[0]; // First tag-group is sectors
+    
+    expect(within(sectorsGroup).getByText('Technology')).toBeInTheDocument();
+    expect(within(sectorsGroup).getByText('Manufacturing')).toBeInTheDocument();
   });
 
   it('renders capabilities with limit of 3', () => {
@@ -78,13 +81,15 @@ describe('CompanyCard', () => {
       ...mockCompany,
       capabilities: ['Design', 'Manufacturing', 'Assembly', 'Distribution', 'Testing'],
     };
-    render(<CompanyCard company={companyWithManyCaps} onClick={mockOnClick} />);
+    const { container } = render(<CompanyCard company={companyWithManyCaps} onClick={mockOnClick} />);
+    const tagGroups = container.querySelectorAll('.tag-group');
+    const capabilitiesGroup = tagGroups[1]; // Second tag-group is capabilities
     
-    expect(screen.getByText('Design')).toBeInTheDocument();
-    expect(screen.getByText('Manufacturing')).toBeInTheDocument();
-    expect(screen.getByText('Assembly')).toBeInTheDocument();
-    expect(screen.queryByText('Distribution')).not.toBeInTheDocument();
-    expect(screen.queryByText('Testing')).not.toBeInTheDocument();
+    expect(within(capabilitiesGroup).getByText('Design')).toBeInTheDocument();
+    expect(within(capabilitiesGroup).getByText('Manufacturing')).toBeInTheDocument();
+    expect(within(capabilitiesGroup).getByText('Assembly')).toBeInTheDocument();
+    expect(within(capabilitiesGroup).queryByText('Distribution')).not.toBeInTheDocument();
+    expect(within(capabilitiesGroup).queryByText('Testing')).not.toBeInTheDocument();
   });
 
   it('renders ownership badges', () => {

@@ -16,6 +16,7 @@ const mockSavedSearchService = {
 };
 
 const mockNavigate = jest.fn();
+let mockHasAccess = jest.fn(() => true);
 
 jest.mock('../../services/serviceFactory', () => ({
   getSavedSearchService: () => mockSavedSearchService,
@@ -28,7 +29,7 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock('../../hooks/useTierAccess', () => ({
   useTierAccess: () => ({
-    hasAccess: jest.fn(() => true),
+    hasAccess: mockHasAccess,
   }),
 }));
 
@@ -39,7 +40,7 @@ const renderButton = (props = {}) => {
   };
   
   return render(
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <SaveSearchButton {...defaultProps} {...props} />
     </BrowserRouter>
   );
@@ -52,6 +53,7 @@ describe('SaveSearchButton', () => {
     window.alert = jest.fn();
     window.confirm = jest.fn(() => true);
     mockSavedSearchService.saveSearch.mockResolvedValue({ success: true });
+    mockHasAccess = jest.fn(() => true);
   });
 
   describe('Rendering', () => {
@@ -73,16 +75,20 @@ describe('SaveSearchButton', () => {
       const button = screen.getByText('💾 Save Search');
       fireEvent.click(button);
       
-      // Modal should appear
+      // Wait for modal to appear by checking for the name input
       await waitFor(() => {
-        expect(screen.getByText('Save Search')).toBeInTheDocument();
+        expect(screen.getByLabelText(/Search Name/)).toBeInTheDocument();
       });
       
       // Submit the form
-      const saveButton = screen.getByRole('button', { name: /Save Search/i });
+      const saveButton = screen.getByRole('button', { name: /^Save Search$/ });
       fireEvent.click(saveButton);
       
-      expect(screen.getByText('Saving...')).toBeInTheDocument();
+      // Check the modal's submit button specifically shows "Saving..."
+      const savingButtons = screen.getAllByRole('button', { name: /^Saving\.\.\.$/ });
+      const modalSaveButton = savingButtons.find(btn => btn.classList.contains('btn-save'));
+      expect(modalSaveButton).toBeInTheDocument();
+      expect(modalSaveButton).toBeDisabled();
     });
 
     it('disables button when saving', async () => {
@@ -98,10 +104,10 @@ describe('SaveSearchButton', () => {
       fireEvent.click(screen.getByText('💾 Save Search'));
       
       await waitFor(() => {
-        expect(screen.getByText('Save Search')).toBeInTheDocument();
+        expect(screen.getByLabelText(/Search Name/)).toBeInTheDocument();
       });
       
-      const saveButton = screen.getByRole('button', { name: /Save Search/i });
+      const saveButton = screen.getByRole('button', { name: /^Save Search$/ });
       fireEvent.click(saveButton);
       
       expect(saveButton).toBeDisabled();
@@ -128,17 +134,14 @@ describe('SaveSearchButton', () => {
       fireEvent.click(button);
       
       await waitFor(() => {
-        expect(screen.getByText('Save Search')).toBeInTheDocument();
+        expect(screen.getByLabelText(/Search Name/)).toBeInTheDocument();
       });
     });
   });
 
   describe('Tier Access', () => {
     it('shows upgrade prompt for free tier users', () => {
-      const mockUseTierAccess = require('../../hooks/useTierAccess').useTierAccess;
-      mockUseTierAccess.mockReturnValue({
-        hasAccess: jest.fn(() => false),
-      });
+      mockHasAccess.mockReturnValue(false);
       
       const user = { id: 1, tier: 'free' };
       localStorage.setItem('user', JSON.stringify(user));
@@ -154,11 +157,7 @@ describe('SaveSearchButton', () => {
     });
 
     it('navigates to pricing when user confirms upgrade', () => {
-      const mockUseTierAccess = require('../../hooks/useTierAccess').useTierAccess;
-      mockUseTierAccess.mockReturnValue({
-        hasAccess: jest.fn(() => false),
-      });
-      
+      mockHasAccess.mockReturnValue(false);
       window.confirm = jest.fn(() => true);
       
       const user = { id: 1, tier: 'free' };
@@ -173,11 +172,7 @@ describe('SaveSearchButton', () => {
     });
 
     it('does not navigate when user cancels upgrade', () => {
-      const mockUseTierAccess = require('../../hooks/useTierAccess').useTierAccess;
-      mockUseTierAccess.mockReturnValue({
-        hasAccess: jest.fn(() => false),
-      });
-      
+      mockHasAccess.mockReturnValue(false);
       window.confirm = jest.fn(() => false);
       
       const user = { id: 1, tier: 'free' };
@@ -215,14 +210,14 @@ describe('SaveSearchButton', () => {
       fireEvent.click(screen.getByText('💾 Save Search'));
       
       await waitFor(() => {
-        expect(screen.getByText('Save Search')).toBeInTheDocument();
+        expect(screen.getByLabelText(/Search Name/)).toBeInTheDocument();
       });
       
       const cancelButton = screen.getByText('Cancel');
       fireEvent.click(cancelButton);
       
       await waitFor(() => {
-        expect(screen.queryByText('Save Search')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText(/Search Name/)).not.toBeInTheDocument();
       });
     });
 
@@ -238,7 +233,7 @@ describe('SaveSearchButton', () => {
       const nameInput = screen.getByLabelText(/Search Name/);
       fireEvent.change(nameInput, { target: { value: 'My Custom Search' } });
       
-      const saveButton = screen.getAllByText('Save Search')[1]; // Second one is in modal
+      const saveButton = screen.getByRole('button', { name: /^Save Search$/ });
       fireEvent.click(saveButton);
       
       await waitFor(() => {
@@ -261,7 +256,7 @@ describe('SaveSearchButton', () => {
         expect(screen.getByLabelText(/Search Name/)).toBeInTheDocument();
       });
       
-      const saveButton = screen.getAllByText('Save Search')[1];
+      const saveButton = screen.getByRole('button', { name: /^Save Search$/ });
       fireEvent.click(saveButton);
       
       await waitFor(() => {
@@ -282,7 +277,7 @@ describe('SaveSearchButton', () => {
         expect(screen.getByLabelText(/Search Name/)).toBeInTheDocument();
       });
       
-      const saveButton = screen.getAllByText('Save Search')[1];
+      const saveButton = screen.getByRole('button', { name: /^Save Search$/ });
       fireEvent.click(saveButton);
       
       await waitFor(() => {
@@ -299,7 +294,7 @@ describe('SaveSearchButton', () => {
         expect(screen.getByLabelText(/Search Name/)).toBeInTheDocument();
       });
       
-      const saveButton = screen.getAllByText('Save Search')[1];
+      const saveButton = screen.getByRole('button', { name: /^Save Search$/ });
       fireEvent.click(saveButton);
       
       await waitFor(() => {

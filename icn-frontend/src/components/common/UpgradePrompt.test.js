@@ -5,8 +5,8 @@ import UpgradePrompt from './UpgradePrompt';
 import { useTierAccess } from '../../hooks/useTierAccess';
 
 jest.mock('../../hooks/useTierAccess');
-const mockNavigate = jest.fn();
 
+const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
@@ -14,7 +14,12 @@ jest.mock('react-router-dom', () => ({
 
 const renderPrompt = (props = {}) => {
   return render(
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <UpgradePrompt {...props} />
     </BrowserRouter>
   );
@@ -31,7 +36,6 @@ describe('UpgradePrompt', () => {
 
   it('renders full prompt by default', () => {
     renderPrompt();
-
     expect(screen.getByText('Upgrade Your Plan')).toBeInTheDocument();
     expect(screen.getByText('Upgrade to access this feature')).toBeInTheDocument();
     expect(screen.getByText('View Plans')).toBeInTheDocument();
@@ -39,39 +43,32 @@ describe('UpgradePrompt', () => {
 
   it('renders compact version when compact is true', () => {
     renderPrompt({ compact: true });
-
     expect(screen.getByText('🔒 Upgrade')).toBeInTheDocument();
     expect(screen.queryByText('Upgrade Your Plan')).not.toBeInTheDocument();
   });
 
   it('displays custom message', () => {
     renderPrompt({ message: 'Custom upgrade message' });
-
     expect(screen.getByText('Custom upgrade message')).toBeInTheDocument();
   });
 
   it('shows current tier', () => {
     renderPrompt();
-
     expect(screen.getByText(/Current plan:/)).toBeInTheDocument();
     expect(screen.getByText('free')).toBeInTheDocument();
   });
 
   it('navigates to pricing page when clicked', () => {
     renderPrompt();
-
     const button = screen.getByText('View Plans');
     fireEvent.click(button);
-
     expect(mockNavigate).toHaveBeenCalledWith('/pricing');
   });
 
   it('navigates to pricing in compact mode', () => {
     renderPrompt({ compact: true });
-
     const button = screen.getByText('🔒 Upgrade');
     fireEvent.click(button);
-
     expect(mockNavigate).toHaveBeenCalledWith('/pricing');
   });
 
@@ -80,21 +77,17 @@ describe('UpgradePrompt', () => {
       userTier: 'premium',
       canUpgrade: jest.fn(() => false),
     });
-
     const { container } = renderPrompt();
-
     expect(container.firstChild).toBeNull();
   });
 
   it('renders emoji in full version', () => {
     renderPrompt();
-
     expect(screen.getByText('⬆️')).toBeInTheDocument();
   });
 
   it('accepts feature prop', () => {
     renderPrompt({ feature: 'ADVANCED_SEARCH' });
-
     // Component should still render even with feature prop
     expect(screen.getByText('Upgrade Your Plan')).toBeInTheDocument();
   });

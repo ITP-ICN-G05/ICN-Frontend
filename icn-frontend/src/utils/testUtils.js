@@ -1,7 +1,7 @@
+// src/utils/testUtils.js
 import React from 'react';
 import { render } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import { BookmarkProvider } from '../contexts/BookmarkContext';
+import { MemoryRouter } from 'react-router-dom';
 
 // Custom render function with all providers
 export function renderWithProviders(
@@ -19,12 +19,17 @@ export function renderWithProviders(
   }
 
   function Wrapper({ children }) {
+    // Only use MemoryRouter - let individual tests provide their own context mocks
     return (
-      <BrowserRouter>
-        <BookmarkProvider>
-          {children}
-        </BookmarkProvider>
-      </BrowserRouter>
+      <MemoryRouter 
+        initialEntries={initialEntries}
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
+        {children}
+      </MemoryRouter>
     );
   }
 

@@ -5,8 +5,8 @@ import TierAccessControl from './TierAccessControl';
 import { useTierAccess } from '../../hooks/useTierAccess';
 
 jest.mock('../../hooks/useTierAccess');
-const mockNavigate = jest.fn();
 
+const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
@@ -14,7 +14,12 @@ jest.mock('react-router-dom', () => ({
 
 const renderTierControl = (props = {}) => {
   return render(
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <TierAccessControl {...props} />
     </BrowserRouter>
   );

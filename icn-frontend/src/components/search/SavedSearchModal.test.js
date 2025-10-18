@@ -25,7 +25,7 @@ describe('SavedSearchModal', () => {
   describe('Rendering', () => {
     it('renders modal', () => {
       render(<SavedSearchModal {...defaultProps} />);
-      expect(screen.getByText('Save Search')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Save Search' })).toBeInTheDocument();
     });
 
     it('displays result count', () => {
