@@ -152,7 +152,7 @@ function SignUpPage({ onSignUp }) {
         <div className="signup-form-container">
         <div className="auth-card">
           <div className="auth-header">
-              <h1>Create an account</h1>
+              <h1>Sign up</h1>
           </div>
 
           <form className="auth-form" onSubmit={handleSubmit}>

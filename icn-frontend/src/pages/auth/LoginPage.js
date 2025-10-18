@@ -64,9 +64,25 @@ function LoginPage({ onLogin }) {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Check for admin credentials (for demo purposes)
-      const isAdmin = formData.email === 'admin@icn.vic.gov.au' && 
-                      formData.password === 'admin123';
+      // Define valid credentials for demo/testing
+      const validCredentials = [
+        { email: 'admin@icn.vic.gov.au', password: 'admin123', role: 'admin' },
+        { email: 'test@test.com', password: 'password123', role: 'user' },
+        { email: 'user@example.com', password: 'password123', role: 'user' }
+      ];
+
+      // Check if credentials match any valid user
+    const validUser = validCredentials.find(
+      cred => cred.email === formData.email && cred.password === formData.password
+    );
+    
+    // ❌ If no match found, throw error for invalid credentials
+    if (!validUser) {
+      throw new Error('Invalid credentials');
+    }
+    
+    // ✅ Valid credentials - proceed with login
+    const isAdmin = validUser.role === 'admin';
       
       // Mock successful login
       const userData = {
@@ -91,7 +107,7 @@ function LoginPage({ onLogin }) {
         navigate('/');
       }
     } catch (error) {
-      setErrors({ submit: 'Login failed. Please try again.' });
+      setErrors({ submit: 'Invalid email or password. Please try again.' });
     } finally {
       setLoading(false);
     }
