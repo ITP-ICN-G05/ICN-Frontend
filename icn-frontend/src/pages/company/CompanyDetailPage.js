@@ -255,7 +255,7 @@ function CompanyDetailPage() {
               <p className="company-description">{company.description}</p>
 
               <div className="company-tags-row">
-                {company.ownership.map(own => (
+                {(company.ownership || []).map(own => (
                   <span key={own} className="ownership-tag">{own}</span>
                 ))}
                 {company.exportCapability && (
@@ -359,7 +359,7 @@ function CompanyDetailPage() {
                   <div className="content-card">
                     <h2>Capabilities</h2>
                     <div className="capabilities-grid">
-                      {company.capabilities.map(capability => (
+                      {(company.capabilities || []).map(capability => (
                         <div key={capability} className="capability-item">
                           <span className="capability-icon">✓</span>
                           <span>{capability}</span>
@@ -375,7 +375,7 @@ function CompanyDetailPage() {
                   <div className="content-card">
                     <h2>Products</h2>
                     <div className="products-list">
-                      {company.products.map((product, index) => (
+                      {(company.products || []).map((product, index) => (
                         <div key={index} className="product-item">
                           <h3>{product.name}</h3>
                           <p>{product.description}</p>
@@ -386,7 +386,7 @@ function CompanyDetailPage() {
                   <div className="content-card">
                     <h2>Services</h2>
                     <div className="services-list">
-                      {company.services.map((service, index) => (
+                      {(company.services || []).map((service, index) => (
                         <div key={index} className="service-item">
                           <h3>{service.name}</h3>
                           <p>{service.description}</p>
@@ -402,7 +402,7 @@ function CompanyDetailPage() {
                   <div className="content-card">
                     <h2>Certifications & Compliance</h2>
                     <div className="certifications-list">
-                      {company.certifications.map(cert => (
+                      {(company.certifications || []).map(cert => (
                         <div key={cert} className="certification-item">
                           <span className="cert-icon">🏆</span>
                           <div>
@@ -468,7 +468,7 @@ function CompanyDetailPage() {
               <div className="sidebar-card">
                 <h3>Documents</h3>
                 <div className="documents-list">
-                  {company.documents.map((doc, index) => (
+                  {(company.documents || []).map((doc, index) => (
                     <div key={index} className="document-item">
                       <span className="doc-icon">📄</span>
                       <div className="doc-info">
