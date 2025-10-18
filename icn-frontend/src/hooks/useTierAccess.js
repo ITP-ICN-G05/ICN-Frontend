@@ -6,11 +6,31 @@ export const useTierAccess = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user?.tier) {
-      setUserTier(user.tier);
-    }
-    setLoading(false);
+    const initializeTier = () => {
+      try {
+        const userStr = localStorage.getItem('user');
+        
+        if (!userStr || userStr === '') {
+          setUserTier('free');
+          return;
+        }
+
+        const user = JSON.parse(userStr);
+        
+        if (user && user.tier) {
+          setUserTier(user.tier);
+        } else {
+          setUserTier('free');
+        }
+      } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+        setUserTier('free');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeTier();
   }, []);
 
   const hasAccess = (feature) => {

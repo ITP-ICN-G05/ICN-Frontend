@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { savedSearchService } from '../services/savedSearchService';
 import { useTierAccess } from './useTierAccess';
 import { getTierLimit } from '../utils/tierConfig';
@@ -9,66 +9,109 @@ export const useSavedSearches = () => {
   const [error, setError] = useState(null);
   const [quota, setQuota] = useState({ used: 0, limit: 0 });
   const { userTier } = useTierAccess();
+  
+  // Track if component is mounted to prevent state updates after unmount
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    loadSavedSearches();
-    loadQuota();
-  }, [userTier]);
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-  const loadSavedSearches = async () => {
+  const loadSavedSearches = useCallback(async () => {
     setLoading(true);
     try {
       const response = await savedSearchService.getSavedSearches();
-      setSavedSearches(response.data);
+      // Handle case where response might be undefined or malformed
+      const data = response?.data || [];
+      if (isMountedRef.current) {
+        setSavedSearches(data);
+        setError(null);
+      }
+      // Always return data, even if unmounted
+      return data;
     } catch (err) {
       console.error('Error loading saved searches:', err);
-      setError(err.message);
+      if (isMountedRef.current) {
+        setError(err.message);
+      }
+      return [];
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
 
-  const loadQuota = async () => {
+  const loadQuota = useCallback(async (currentSearches) => {
     try {
       const response = await savedSearchService.getSearchQuota();
-      setQuota(response.data);
+      if (isMountedRef.current) {
+        setQuota(response.data);
+      }
     } catch (err) {
       console.error('Error loading quota:', err);
-      const limit = getTierLimit(userTier, 'MAX_SAVED_SEARCHES');
-      setQuota({ used: savedSearches.length, limit });
+      if (isMountedRef.current) {
+        const limit = getTierLimit(userTier, 'MAX_SAVED_SEARCHES');
+        // Use the passed currentSearches instead of stale closure
+        setQuota({ used: currentSearches.length, limit });
+      }
     }
-  };
+  }, [userTier]);
 
-  const saveSearch = async (searchData) => {
+  useEffect(() => {
+    const initializeData = async () => {
+      // Load searches and get the data
+      const searchesData = await loadSavedSearches();
+      // Then load quota with the freshly loaded searches
+      if (isMountedRef.current) {
+        await loadQuota(searchesData);
+      }
+    };
+    
+    initializeData();
+  }, [userTier, loadSavedSearches, loadQuota]);
+
+  const saveSearch = useCallback(async (searchData) => {
     if (quota.limit !== -1 && quota.used >= quota.limit) {
       throw new Error(`Search limit reached (${quota.limit} searches max)`);
     }
     
     try {
       const response = await savedSearchService.saveSearch(searchData);
-      setSavedSearches([...savedSearches, response.data]);
-      setQuota({ ...quota, used: quota.used + 1 });
+      if (isMountedRef.current) {
+        setSavedSearches(prev => [...prev, response.data]);
+        setQuota(prev => ({ ...prev, used: prev.used + 1 }));
+      }
       return response.data;
     } catch (err) {
-      setError(err.message);
+      if (isMountedRef.current) {
+        setError(err.message);
+      }
       throw err;
     }
-  };
+  }, [quota.limit, quota.used]);
 
-  const deleteSearch = async (id) => {
+  const deleteSearch = useCallback(async (id) => {
     try {
       await savedSearchService.deleteSearch(id);
-      setSavedSearches(savedSearches.filter(s => s.id !== id));
-      setQuota({ ...quota, used: Math.max(0, quota.used - 1) });
+      if (isMountedRef.current) {
+        setSavedSearches(prev => prev.filter(s => s.id !== id));
+        setQuota(prev => ({ ...prev, used: Math.max(0, prev.used - 1) }));
+      }
     } catch (err) {
-      setError(err.message);
+      if (isMountedRef.current) {
+        setError(err.message);
+      }
       throw err;
     }
-  };
+  }, []);
 
-  const canSaveSearch = () => {
+  const canSaveSearch = useCallback(() => {
     return userTier !== 'free' && (quota.limit === -1 || quota.used < quota.limit);
-  };
+  }, [userTier, quota.limit, quota.used]);
 
   return {
     savedSearches,

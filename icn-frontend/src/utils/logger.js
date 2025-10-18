@@ -8,30 +8,30 @@ const LOG_LEVELS = {
 };
 
 class Logger {
-  constructor() {
-    this.level = LOG_LEVELS[config.LOG_LEVEL] || LOG_LEVELS.info;
+  getCurrentLevel() {
+    return LOG_LEVELS[config.LOG_LEVEL] ?? LOG_LEVELS.info;
   }
   
   debug(...args) {
-    if (this.level <= LOG_LEVELS.debug) {
+    if (this.getCurrentLevel() <= LOG_LEVELS.debug) {
       console.log('[DEBUG]', ...args);
     }
   }
   
   info(...args) {
-    if (this.level <= LOG_LEVELS.info) {
+    if (this.getCurrentLevel() <= LOG_LEVELS.info) {
       console.log('[INFO]', ...args);
     }
   }
   
   warn(...args) {
-    if (this.level <= LOG_LEVELS.warn) {
+    if (this.getCurrentLevel() <= LOG_LEVELS.warn) {
       console.warn('[WARN]', ...args);
     }
   }
   
   error(...args) {
-    if (this.level <= LOG_LEVELS.error) {
+    if (this.getCurrentLevel() <= LOG_LEVELS.error) {
       console.error('[ERROR]', ...args);
     }
   }
