@@ -1,495 +1,562 @@
-  .auth-page {
-    height: 100vh;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
-    padding: 0;
-    position: relative;
-    overflow: hidden;
-    padding-top: 5vh;
-    animation: fadeIn 0.5s ease-out;
+:root {
+  --nav-h: 60px;
+  --error: #DC2626;
+  --success: #B6D289;
+  --primary-orange: #F99F1C;
+  --orange-hover: #FAB249;
+  --orange-bg: rgba(249, 159, 28, 0.1);
+  --black-80: rgba(0, 0, 0, 0.8);
+  --black-50: rgba(0, 0, 0, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  
-  .auth-page::before {
-    content: '';
-    position: absolute;
-    bottom: -10%;
-    right: -5%;
-    width: 60vw;
-    height: 60vw;
-    max-width: 800px;
-    max-height: 800px;
-    background-image: url('../../assets/logo/ICN-logo-little.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: 0.1;
-    z-index: 0;
-    pointer-events: none;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .auth-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 2%;
-    position: relative;
-    z-index: 1;
-    padding: 0 2%;
-    padding-top: 3vh;
-    animation: fadeIn 0.6s ease-out 0.1s both;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
   }
-  
-  /* Mobile Preview Container */
-  .mobile-preview-container {
-    flex: 0 0 auto;
-    width: 48%;
-    height: 80vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding-top: 0;
-    animation: fadeIn 0.6s ease-out 0.2s both;
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
-  
-  /* Mobile Preview Styles */
-  .mobile-preview {
-    display: flex;
-    gap: -15px;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 40px;
-    position: relative;
-    animation: fadeIn 0.8s ease-out 0.5s both;
-    transform-style: preserve-3d;
-    perspective: 1000px;
-    transition: transform 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
   }
-  
-  .mobile-preview:hover {
-    transform: translateY(-3px);
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
-  
-  .phone-mockup {
-    width: 28vw;
-    height: 55vh;
-    min-width: 250px;
-    min-height: 450px;
-    max-width: 350px;
-    max-height: 650px;
-    background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-    border-radius: 30px;
-    padding: 0;
-    box-shadow: 
-      0 30px 60px rgba(0, 0, 0, 0.3),
-      0 15px 30px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.15),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.4);
-    position: relative;
-    border: 8px solid #2a2a2a;
-    border-top: 6px solid #1a1a1a;
-    border-bottom: 10px solid #1a1a1a;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
   }
-  
-  .phone-left {
-    transform: rotateY(-5deg) rotateZ(-2deg);
-    z-index: 2;
-    margin-right: -15px;
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
-  
-  .phone-right {
-    transform: rotateY(5deg) rotateZ(2deg);
-    z-index: 1;
-    margin-left: -15px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
   }
-  
-  .phone-left:hover {
-    transform: rotateY(-5deg) rotateZ(-2deg) translateY(-5px) scale(1.02);
-    transition: all 0.3s ease;
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
   }
-  
-  .phone-right:hover {
-    transform: rotateY(5deg) rotateZ(2deg) translateY(-5px) scale(1.02);
-    transition: all 0.3s ease;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: rotate(45deg) translateY(0px);
   }
-  
-  
-  .phone-screen {
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    border-radius: 18px;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    font-size: 12px;
-    overflow: hidden;
+  50% {
+    transform: rotate(45deg) translateY(-10px);
   }
-  
-  .phone-app-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 18px;
-    display: block;
-  }
-  
-  .app-header {
-    margin-bottom: 15px;
-  }
-  
-  .user-profile {
+}
+
+.auth-page,
+.signup-page,
+.forgot-password-page,
+.auth-container,
+.login-form-container,
+.signup-form-container,
+.forgot-password-form-container,
+.signup-image-container,
+.forgot-password-image-container,
+.auth-card {
+  box-sizing: border-box;
+}
+
+.auth-container {
+  width: 100%;
+  height: 100%;
     display: flex;
     align-items: center;
-    gap: 10px;
-  }
-  
-  .profile-pic {
-    width: 30px;
-    height: 30px;
-    background: #F6CA8B;
-    border-radius: 50%;
-  }
-  
-  .user-info h3 {
-    margin: 0;
-    font-size: 14px;
-    color: #333333;
-  }
-  
-  .pro-badge {
-    background: #F99F1C;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: bold;
-  }
-  
-  .app-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .plan-section, .saved-section {
-    padding: 10px;
-    background: #F9F9F9;
-    border-radius: 8px;
-  }
-  
-  .plan-section h4, .saved-section h4 {
-    margin: 0 0 5px 0;
-    font-size: 12px;
-    color: #333333;
-  }
-  
-  .plan-section p, .saved-section p {
-    margin: 0;
-    font-size: 10px;
-    color: #666666;
-  }
-  
-  .menu-section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .menu-item {
-    font-size: 11px;
-    color: #333333;
-    padding: 5px 0;
-  }
-  
-  .sign-out-btn {
-    background: #DC2626;
-    color: white;
-    border: none;
-    padding: 8px;
-    border-radius: 6px;
-    font-size: 11px;
-    margin-top: 10px;
-  }
-  
-  .company-images {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 10px;
-  }
-  
-  .image-placeholder {
-    flex: 1;
-    height: 40px;
-    background: #E5E5E5;
-    border-radius: 4px;
-  }
-  
-  .verified-badge {
-    background: #B6D289;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    text-align: center;
-    margin-bottom: 10px;
-  }
-  
-  .capabilities-section h4 {
-    margin: 0 0 8px 0;
-    font-size: 12px;
-    color: #333333;
-  }
-  
-  .filter-section {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  
-  .filter-section input {
-    padding: 4px 6px;
-    border: 1px solid #E5E5E5;
-    border-radius: 4px;
-    font-size: 10px;
-  }
-  
-  .filter-section button {
-    background: #F99F1C;
-    color: white;
-    border: none;
-    padding: 6px;
-    border-radius: 4px;
-    font-size: 10px;
-  }
-  
-  .bottom-nav {
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 0;
-    border-top: 1px solid #E5E5E5;
-    margin-top: auto;
-  }
-  
-  .nav-item {
-    font-size: 10px;
-    color: #666666;
-    text-align: center;
-  }
-  
-  /* Download Buttons */
-  .download-buttons {
-    display: flex;
-    flex-direction: row;
+    justify-content: center;
+  gap: 2%;
+  position: relative;
+  z-index: 1;
+  padding: 0 2%;
+  animation: fadeIn 0.6s ease-out 0.1s both;
+}
+
+.mobile-preview-container {
+  flex: 0 0 auto;
+  width: 45%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.6s ease-out 0.2s both;
+}
+
+.mobile-preview {
+  display: flex;
+  gap: -15px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: clamp(30px, 5vh, 40px);
+  position: relative;
+  animation: fadeIn 0.8s ease-out 0.5s both;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  transition: transform 0.3s ease;
+}
+
+.mobile-preview:hover {
+  transform: translateY(-3px);
+}
+
+.phone-mockup {
+  width: min(18vw, 280px);
+  aspect-ratio: 9 / 19.5;
+  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+  border-radius: 30px;
+  padding: 0;
+  box-shadow: 
+    0 30px 60px rgba(0, 0, 0, 0.3),
+    0 15px 30px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+  position: relative;
+  border: 8px solid #2a2a2a;
+  border-top: 6px solid #1a1a1a;
+  border-bottom: 10px solid #1a1a1a;
+}
+
+.phone-left {
+  transform: rotateY(-5deg) rotateZ(-2deg);
+  z-index: 2;
+  margin-right: -15px;
+}
+
+.phone-right {
+  transform: rotateY(5deg) rotateZ(2deg);
+  z-index: 1;
+  margin-left: -15px;
+}
+
+.phone-left:hover {
+  transform: rotateY(-5deg) rotateZ(-2deg) translateY(-5px) scale(1.02);
+  transition: all 0.3s ease;
+}
+
+.phone-right:hover {
+  transform: rotateY(5deg) rotateZ(2deg) translateY(-5px) scale(1.02);
+  transition: all 0.3s ease;
+}
+
+.phone-screen {
+    width: 100%;
+  height: 100%;
+  background: transparent;
+  border-radius: 18px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.phone-app-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 18px;
+  display: block;
+}
+
+.app-header {
+  margin-bottom: 15px;
+}
+
+.user-profile {
+  display: flex;
+    align-items: center;
+  gap: 10px;
+}
+
+.profile-pic {
+  width: 30px;
+  height: 30px;
+  background: #F6CA8B;
+  border-radius: 50%;
+}
+
+.user-info h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #333333;
+}
+
+.pro-badge {
+  background: #F99F1C;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.plan-section, .saved-section {
+  padding: 10px;
+  background: #F9F9F9;
+  border-radius: 8px;
+}
+
+.plan-section h4, .saved-section h4 {
+  margin: 0 0 5px 0;
+  font-size: 12px;
+  color: #333333;
+}
+
+.plan-section p, .saved-section p {
+  margin: 0;
+  font-size: 10px;
+  color: #666666;
+}
+
+.menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-item {
+  font-size: 11px;
+  color: #333333;
+  padding: 5px 0;
+}
+
+.sign-out-btn {
+  background: #DC2626;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  margin-top: 10px;
+}
+
+.company-images {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.image-placeholder {
+  flex: 1;
+  height: 40px;
+  background: #E5E5E5;
+  border-radius: 4px;
+}
+
+.verified-badge {
+  background: #B6D289;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.capabilities-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: #333333;
+}
+
+.filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.filter-section input {
+  padding: 4px 6px;
+  border: 1px solid #E5E5E5;
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.filter-section button {
+  background: #F99F1C;
+  color: white;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  border-top: 1px solid #E5E5E5;
+  margin-top: auto;
+}
+
+.nav-item {
+  font-size: 10px;
+  color: #666666;
+  text-align: center;
+}
+
+.download-buttons {
+  display: flex;
+  flex-direction: row;
     gap: 12px;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.8s ease-out 0.7s both;
-  }
-  
-  .download-btn {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 18px 28px;
-    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-    border: 2px solid #333333;
-    border-radius: 12px;
-    text-decoration: none;
-    color: #FFFFFF;
-    transition: all 0.3s ease;
-    min-width: 250px;
-    flex: 1;
-    max-width: 280px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  }
-  
-  .download-btn:hover {
-    background: linear-gradient(135deg, #1F2937 0%, #374151 100%);
-    border-color: #6B7280;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-  }
-  
-  .download-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .download-icon svg {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .download-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.2;
-  }
-  
-  .download-line1 {
-    font-size: 14px;
-    font-weight: 400;
-    color: #FFFFFF;
-  }
-  
-  .download-line2 {
-    font-size: 22px;
-    font-weight: 600;
-    color: #FFFFFF;
-  }
-  
-  .app-store .download-icon svg {
-    color: #FFFFFF;
-  }
-  
-  .google-play .download-icon svg {
-    color: #FFFFFF;
-  }
-  
-  /* Login Form Container */
-  .login-form-container {
-    flex: 0 0 auto;
-    width: 50%;
-    height: 80vh;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 5vh;
-    animation: fadeIn 0.6s ease-out 0.3s both;
-  }
-  
-  .auth-card {
-    background: transparent;
-    border-radius: 0;
-    box-shadow: none;
-    padding: 0;
-    width: 100%;
-    height: auto;
-    min-width: 500px;
-    max-width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 30px;
-    animation: fadeIn 0.8s ease-out 0.4s both;
-  }
-  
-  .auth-header {
-    text-align: left;
-    margin-bottom: 0;
-  }
-  
-  .auth-header h1 {
-    font-size: 4rem;
-    color: #000000;
-    margin: 0;
-    font-weight: 700;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.8s ease-out 0.7s both;
+}
+
+.download-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.5vw, 14px);
+  padding: clamp(12px, 1.8vh, 16px) clamp(20px, 2.5vw, 28px);
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;
+  border: 2px solid #333333;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #FFFFFF !important;
+  transition: all 0.3s ease;
+  width: clamp(220px, 18vw, 260px);
+  min-height: clamp(60px, 7vh, 70px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+.download-btn:hover {
+  background: linear-gradient(135deg, #1F2937 0%, #374151 100%) !important;
+  border-color: #6B7280;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.download-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.download-icon svg {
+  width: clamp(24px, 3.5vw, 32px);
+  height: clamp(24px, 3.5vw, 32px);
+}
+
+.download-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.download-line1 {
+  font-size: clamp(11px, 1.1vw, 13px);
+  font-weight: 400;
+  color: #FFFFFF !important;
+  text-align: left;
+}
+
+.download-line2 {
+  font-size: clamp(16px, 1.8vw, 20px);
+  font-weight: 600;
+  color: #FFFFFF !important;
+  text-align: left;
+}
+
+.app-store .download-icon svg {
+  color: #FFFFFF !important;
+}
+
+.google-play .download-icon svg {
+  color: #FFFFFF !important;
+}
+
+.app-store,
+.google-play {
+  flex-direction: row !important;
+}
+
+.app-store .download-text,
+.google-play .download-text {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+}
+
+.login-form-container {
+  flex: 0 0 auto;
+  width: 45%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  animation: fadeIn 0.6s ease-out 0.3s both;
+}
+
+.auth-card {
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(8px, 2vh, 30px);
+  animation: fadeIn 0.8s ease-out 0.4s both;
+}
+
+.auth-header {
+  text-align: left;
+  margin-bottom: 0;
+}
+
+.auth-header h1 {
+  font-size: clamp(2rem, min(5vw, 6vh), 4rem);
+  color: #000000;
+  margin: 0;
+  font-weight: 700;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   }
   
   .auth-form {
-    margin-bottom: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.2vh, 16px);
   }
   
   .form-group {
-    margin-bottom: 0;
-    min-height: 40px;
-    display: flex;
-    flex-direction: column;
+  margin-bottom: 0;
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
   }
   
   .form-group label {
     display: block;
-    margin-bottom: 4px;
-    font-size: 1rem;
-    font-weight: 500;
-    color: #000000;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  margin-bottom: clamp(2px, 0.4vh, 4px);
+  font-size: clamp(0.85rem, min(0.95vw, 1.2vh), 1rem);
+  font-weight: 500;
+  color: #000000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   }
   
   .form-group input[type="text"],
   .form-group input[type="email"],
   .form-group input[type="password"] {
     width: 100%;
-    padding: 24px 28px;
-    border: 1px solid #D1D5DB;
+  padding: clamp(8px, 1.5vh, 16px) clamp(12px, 2vw, 20px);
+  border: 1px solid #D1D5DB;
     border-radius: 8px;
-    font-size: 1.2rem;
-    transition: all 0.2s ease;
-    background: #FFFFFF;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    box-shadow: none;
+  font-size: clamp(0.85rem, min(1vw, 1.3vh), 1.1rem);
+  transition: all 0.2s ease;
+  background: #FFFFFF;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  box-shadow: none;
   }
   
   .form-group input:focus {
     outline: none;
-    border-color: #3B82F6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    transform: translateY(-1px);
-    transition: all 0.3s ease;
-  }
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
+  transition: all 0.3s ease;
+}
 
-  .form-group input:hover {
-    border-color: #3B82F6;
-    transform: translateY(-1px);
-    transition: all 0.2s ease;
+.form-group input:hover {
+  border-color: #3B82F6;
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
   }
   
   .form-group input.error {
-    border-color: #DC2626;
-  }
-  
-  .form-options {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    margin-bottom: 0;
-  }
-  
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    color: #000000;
-  }
-  
-  .checkbox-label input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: #000000;
+  border-color: #DC2626;
+}
+
+.form-options {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 0.8vh, 6px);
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  color: #000000;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #000000;
   }
   
   .error-text {
     display: block;
-    margin-top: 1px;
-    font-size: 0.75rem;
+  margin-top: clamp(0px, 0.1vh, 1px);
+  font-size: clamp(0.7rem, 0.8vw, 0.75rem);
     color: var(--error);
-    height: 12px;
-    line-height: 1.2;
-    visibility: hidden;
-  }
-  
-  .error-text:not(:empty) {
-    visibility: visible;
+  height: clamp(10px, 1.5vh, 12px);
+  line-height: 1.2;
+  visibility: hidden;
+}
+
+.error-text:not(:empty) {
+  visibility: visible;
   }
   
   .form-options {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+  margin-bottom: clamp(8px, 1.5vh, 16px);
   }
   
   .checkbox-label {
@@ -506,12 +573,12 @@
   }
   
   .checkbox-label span {
-    font-size: 0.875rem;
+  font-size: clamp(0.8rem, 0.9vw, 0.875rem);
     color: var(--black-80);
   }
   
   .forgot-link {
-    font-size: 0.875rem;
+  font-size: clamp(0.8rem, 0.9vw, 0.875rem);
     color: var(--primary-orange);
     text-decoration: none;
   }
@@ -524,51 +591,51 @@
     background-color: rgba(220, 38, 38, 0.1);
     border: 1px solid var(--error);
     color: var(--error);
-    padding: 6px 12px;
+  padding: clamp(4px, 0.8vh, 6px) clamp(8px, 1.5vw, 12px);
     border-radius: 8px;
-    margin-bottom: 8px;
-    font-size: 0.875rem;
-    height: 36px;
-    line-height: 1.4;
-    visibility: hidden;
-    display: flex;
-    align-items: center;
-  }
-  
-  .error-message:not(:empty) {
-    visibility: visible;
-  }
-  
-  .auth-form .btn-submit {
+  margin-bottom: clamp(4px, 1vh, 8px);
+  font-size: clamp(0.8rem, 0.9vw, 0.875rem);
+  height: clamp(28px, 4.5vh, 36px);
+  line-height: 1.4;
+  visibility: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.error-message:not(:empty) {
+  visibility: visible;
+}
+
+.auth-form .btn-submit {
     width: 100%;
-    padding: 18px 32px;
-    background: #1B3E6F !important;
-    color: #FFFFFF !important;
+  padding: clamp(8px, 1.5vh, 16px) clamp(16px, 2.5vw, 28px);
+  background: #1B3E6F !important;
+  color: #FFFFFF !important;
     border: none;
-    border-radius: 12px;
-    font-size: 1.4rem;
+  border-radius: 12px;
+  font-size: clamp(0.95rem, min(1.2vw, 1.5vh), 1.3rem);
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    box-shadow: 0 4px 15px rgba(27, 62, 111, 0.3);
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .auth-form .btn-submit:hover:not(:disabled) {
-    background: #15325A !important;
+  transition: all 0.3s ease;
+  margin-top: clamp(6px, 1vh, 12px);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  box-shadow: 0 4px 15px rgba(27, 62, 111, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-form .btn-submit:hover:not(:disabled) {
+  background: #15325A !important;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(27, 62, 111, 0.4);
-    transition: all 0.3s ease;
-  }
-  
-  .auth-form .btn-submit:active {
-    background: #0F2547 !important;
-    transform: translateY(0);
-    box-shadow: 0 2px 10px rgba(27, 62, 111, 0.3);
-    transition: all 0.1s ease;
+  box-shadow: 0 8px 25px rgba(27, 62, 111, 0.4);
+  transition: all 0.3s ease;
+}
+
+.auth-form .btn-submit:active {
+  background: #0F2547 !important;
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(27, 62, 111, 0.3);
+  transition: all 0.1s ease;
   }
   
   .btn-submit:disabled {
@@ -578,23 +645,23 @@
   
   .auth-divider {
     text-align: center;
-    margin: 8px 0;
+  margin: clamp(6px, 1vh, 12px) 0;
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   }
   
   .auth-divider span {
-    background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.9);
     padding: 0 16px;
-    color: #6B7280;
+  color: #6B7280;
     font-size: 0.875rem;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    position: relative;
-    z-index: 1;
-    border-radius: 4px;
-    backdrop-filter: blur(2px);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  position: relative;
+  z-index: 1;
+  border-radius: 4px;
+  backdrop-filter: blur(2px);
   }
   
   .auth-divider::before {
@@ -604,76 +671,74 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: #D1D5DB;
-    z-index: 0;
-  }
-  
-  /* Legal Text */
-  .legal-text {
-    margin: 0;
-  }
-  
-  .legal-text p {
-    font-size: 0.875rem;
-    color: #000000;
-    line-height: 1.5;
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  }
-  
-  .legal-link {
-    color: #000000;
-    text-decoration: underline;
-    font-weight: 500;
-  }
-  
-  .legal-link:hover {
-    color: #374151;
-  }
-  
-  /* Forgot Password */
-  .forgot-password {
-    text-align: center;
-    margin: 0;
-  }
-  
-  .forgot-link {
-    color: #3B82F6;
-    text-decoration: underline;
-    font-size: 0.875rem;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  }
-  
-  .forgot-link:hover {
-    color: #2563EB;
+  background: #D1D5DB;
+  z-index: 0;
+}
+
+.legal-text {
+  margin: 0;
+}
+
+.legal-text p {
+  font-size: 0.875rem;
+  color: #000000;
+  line-height: 1.5;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.legal-link {
+  color: #000000;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.legal-link:hover {
+  color: #374151;
+}
+
+.forgot-password {
+  text-align: center;
+  margin: 0;
+}
+
+.forgot-link {
+  color: #3B82F6;
+  text-decoration: underline;
+  font-size: 0.875rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.forgot-link:hover {
+  color: #2563EB;
   }
   
   .social-buttons {
     display: flex;
-    gap: 8px;
-    margin-bottom: 0;
-    justify-content: center;
+  gap: clamp(4px, 0.8vh, 8px);
+  margin-bottom: 0;
+  justify-content: center;
   }
   
   .social-btn {
-    width: 60px;
-    height: 60px;
-    border: 2px solid #E5E7EB;
-    background: #FFFFFF;
-    border-radius: 12px;
+  width: clamp(40px, 6vh, 55px);
+  height: clamp(40px, 6vh, 55px);
+  border: 2px solid #E5E7EB;
+  background: #FFFFFF;
+  border-radius: 12px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
   
   .social-btn:hover:not(:disabled) {
-    background: #F9FAFB;
-    border-color: #9CA3AF;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
   
   .social-btn:disabled {
@@ -681,51 +746,51 @@
     cursor: not-allowed;
   }
   
-  .social-icon {
-    width: 24px;
-    height: 24px;
-  }
-  
-  .social-btn.facebook .social-icon {
-    color: #1877F2;
-  }
-  
-  .social-btn.apple .social-icon {
-    color: #000000;
-  }
-  
-  .social-btn.google .social-icon {
-    color: #4285F4;
-  }
-  
-  .social-btn.twitter .social-icon {
-    color: #1DA1F2;
+.social-icon {
+  width: clamp(18px, 3vh, 22px);
+  height: clamp(18px, 3vh, 22px);
+}
+
+.social-btn.facebook .social-icon {
+  color: #1877F2;
+}
+
+.social-btn.apple .social-icon {
+  color: #000000;
+}
+
+.social-btn.google .social-icon {
+  color: #4285F4;
+}
+
+.social-btn.twitter .social-icon {
+  color: #1DA1F2;
   }
   
   .auth-footer {
     text-align: center;
-    margin: 0;
+  margin: clamp(6px, 1vh, 12px) 0 0 0;
   }
   
   .auth-footer p {
-    color: #000000;
-    font-size: 0.875rem;
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  color: #000000;
+  font-size: clamp(0.75rem, min(0.85vw, 1vh), 0.85rem);
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   }
   
   .link-primary {
-    color: #3B82F6;
-    text-decoration: underline;
-    font-weight: 500;
+  color: #3B82F6;
+  text-decoration: underline;
+  font-weight: 500;
   }
   
   .link-primary:hover {
-    color: #2563EB;
+  color: #2563EB;
   }
   
   .checkbox-group {
-    margin-bottom: 24px;
+  margin-bottom: clamp(8px, 1.5vh, 16px);
   }
   
   .checkbox-group .checkbox-label {
@@ -734,7 +799,7 @@
   }
   
   .checkbox-group .checkbox-label input[type="checkbox"] {
-    margin-top: 2px;
+  margin-top: clamp(1px, 0.3vh, 2px);
   }
   
   .checkbox-group .checkbox-label span {
@@ -751,324 +816,8 @@
     text-decoration: underline;
   }
   
-  /* Login and Sign Up Page Specific Styles */
-  .auth-page {
-    background: #FFFFFF;
-    position: fixed !important;
-    top: 60px !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    overflow: hidden;
-    z-index: 1;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100vw !important;
-    height: calc(100vh - 60px) !important;
-  }
-
-  /* Sign Up Page Specific Styles */
-  .signup-page {
-    background: #FFFFFF;
-    position: fixed !important;
-    top: 60px !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    overflow: hidden;
-    z-index: 1;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100vw !important;
-    height: calc(100vh - 60px) !important;
-    animation: fadeIn 0.5s ease-out;
-  }
-
-  .signup-page::before {
-    content: '';
-    position: absolute;
-    top: -10%;
-    left: -5%;
-    width: 60vw;
-    height: 60vw;
-    max-width: 800px;
-    max-height: 800px;
-    background-image: url('../../assets/logo/ICN-logo-little.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: 0.1;
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  .signup-page .auth-container {
-    display: flex !important;
-    height: 100% !important;
-    justify-content: center;
-    align-items: center;
-    gap: 0;
-    padding: 0 !important;
-    margin: 0 !important;
-    position: relative;
-    z-index: 1;
-    width: 100% !important;
-  }
-
-  .signup-form-container {
-    width: 55%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 5%;
-    position: relative;
-    animation: fadeIn 0.6s ease-out 0.2s both;
-  }
-
-
-
-  .signup-page .auth-card {
-    background: transparent;
-    box-shadow: none;
-    border-radius: 0;
-    padding: 0;
-    width: 100%;
-    max-width: 500px;
-    gap: 30px;
-  }
-
-  .signup-page .auth-header h1 {
-    font-size: 3.5rem;
-    color: #000000;
-    font-weight: 700;
-    margin-bottom: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  }
-
-  .signup-image-container {
-    width: 45%;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-    animation: fadeIn 0.6s ease-out 0.3s both;
-  }
-
-  .signup-image-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
-
-  .signup-promo-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: 20% center;
-    /* 可选：使用clip-path进行更精确的裁剪 */
-    /* clip-path: inset(0 0 0 0); */
-  }
-
-  .signup-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%);
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding: 15% 5% 5% 8%;
-  }
-
-  .signup-overlay-content {
-    text-align: left;
-    color: #FFFFFF;
-    width: 100%;
-    animation: fadeIn 0.8s ease-out 0.4s both;
-  }
-
-  .signup-overlay-circle {
-    width: 45px;
-    height: 45px;
-    background: #FFFFFF;
-    border-radius: 50%;
-    margin-bottom: 20px;
-    margin-left: 20px;
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  .signup-overlay-content h2 {
-    font-size: 3.8rem;
-    font-weight: 700;
-    margin-bottom: 20px;
-    line-height: 1.1;
-    white-space: nowrap;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    text-align: left;
-    padding: 0 20px;
-    margin: 0 0 20px 0;
-  }
-
-  .signup-overlay-content p {
-    font-size: 1.6rem;
-    font-weight: 400;
-    line-height: 1.4;
-    opacity: 0.9;
-    margin-bottom: 8px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    padding: 0 20px;
-    margin: 0 0 8px 0;
-  }
-
-  .signup-overlay-content p:last-child {
-    margin-bottom: 0;
-  }
-
-  .password-hint {
-    margin-top: -8px;
-    margin-bottom: 12px;
-  }
-
-  .password-hint p {
-    font-size: 0.875rem;
-    color: #666666;
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  }
-
-  /* Responsive Design */
-  @media (max-width: 1024px) {
-    .auth-container {
-      flex-direction: column;
-      height: 100%;
-      padding: 0 3%;
-      padding-top: 2vh;
-    }
-    
-    .mobile-preview-container {
-      order: 2;
-      width: 100%;
-      height: 30vh;
-      min-height: 250px;
-      padding-top: 2vh;
-    }
-    
-    .mobile-preview {
-      margin-bottom: 15px;
-    }
-    
-    .login-form-container {
-      order: 1;
-      width: 100%;
-      height: 60vh;
-      min-height: 450px;
-      padding-top: 2vh;
-    }
-    
-    .phone-mockup {
-      width: 20vw;
-      height: 40vh;
-      min-width: 150px;
-      min-height: 300px;
-      border: 6px solid #2a2a2a;
-      border-top: 4px solid #1a1a1a;
-      border-bottom: 8px solid #1a1a1a;
-      border-radius: 25px;
-    }
-    
-    .download-btn {
-      min-width: 200px;
-      padding: 14px 20px;
-      max-width: 220px;
-    }
-    
-    .auth-card {
-      width: calc(35vw + 200px);
-      height: calc(45vh + 200px);
-      min-width: 500px;
-      min-height: 650px;
-      max-width: calc(60vw + 200px);
-      max-height: calc(70vh + 200px);
-    }
-    
-    .auth-page::before {
-      width: 50vw;
-      height: 50vw;
-      bottom: -5%;
-      right: -3%;
-    }
-  }
-  
-  @media (max-width: 1024px) {
-    .signup-page .auth-container {
-      flex-direction: column;
-      height: 100vh;
-    }
-
-    .signup-form-container {
-      width: 100%;
-      height: 60vh;
-      padding: 0 5%;
-    }
-
-    .signup-image-container {
-      width: 100%;
-      height: 40vh;
-    }
-
-    .signup-overlay-content h2 {
-      font-size: 3rem;
-      font-weight: 700;
-      margin-bottom: 20px;
-    }
-
-    .signup-overlay-content p {
-      font-size: 1.4rem;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .auth-page {
-      padding: 0;
-      padding-top: 3vh;
-    }
-
-    .signup-page .auth-container {
-      flex-direction: column;
-      height: 100vh;
-    }
-
-    .signup-form-container {
-      width: 100%;
-      height: 70vh;
-      padding: 0 3%;
-    }
-
-    .signup-image-container {
-      width: 100%;
-      height: 30vh;
-    }
-
-    .signup-page .auth-header h1 {
-      font-size: 2.5rem;
-    }
-
-    .signup-overlay-content h2 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 20px;
-    }
-
-    .signup-overlay-content p {
-      font-size: 1.2rem;
-    }
-
-}
-
-/* Forgot Password Page Styles */
-.forgot-password-page {
+.auth-page {
+  background: #FFFFFF;
   position: fixed !important;
   top: 60px !important;
   left: 0 !important;
@@ -1079,19 +828,227 @@
   margin: 0 !important;
   padding: 0 !important;
   width: 100vw !important;
-  height: calc(100vh - 60px) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   animation: fadeIn 0.5s ease-out;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.auth-page::before {
+  content: '';
+  position: absolute;
+  bottom: -10%;
+  right: -5%;
+  width: 60vw;
+  height: 60vw;
+  max-width: 800px;
+  max-height: 800px;
+  background-image: url('../../assets/logo/ICN-logo-little.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.1;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.signup-page {
+  background: #FFFFFF;
+  position: fixed !important;
+  top: 60px !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  overflow: hidden;
+  z-index: 1;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100vw !important;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.signup-page::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: -5%;
+  width: 60vw;
+  height: 60vw;
+  max-width: 800px;
+  max-height: 800px;
+  background-image: url('../../assets/logo/ICN-logo-little.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.1;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.signup-page .auth-container {
+  display: flex !important;
+  height: 100% !important;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+  position: relative;
+  z-index: 1;
+  width: 100% !important;
+}
+
+.signup-form-container {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  align-items: safe center;
+  justify-content: center;
+  padding: clamp(10px, 2vh, 20px) clamp(2%, 3%, 5%);
+  position: relative;
+  animation: fadeIn 0.6s ease-out 0.2s both;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.signup-page .auth-card {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  width: 100%;
+  max-width: min(90%, 600px);
+  min-height: min-content;
+  gap: clamp(4px, 1vh, 20px);
+  overflow: visible;
+  display: flex;
+      flex-direction: column;
+  justify-content: center;
+  padding-top: clamp(10px, 2vh, 30px);
+  padding-bottom: clamp(10px, 2vh, 30px);
+}
+
+.signup-page .auth-header {
+  margin-bottom: clamp(8px, 1.5vh, 20px);
+}
+
+.signup-page .auth-header h1 {
+  font-size: clamp(1.8rem, min(4vw, 4vh), 3.5rem);
+  color: #000000;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.signup-image-container {
+  width: 50%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.6s ease-out 0.3s both;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.signup-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.signup-promo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 20% center;
+}
+
+.signup-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 15% 5% 5% 8%;
+}
+
+.signup-overlay-content {
+  text-align: left;
+  color: #FFFFFF;
+  width: 100%;
+  animation: fadeIn 0.8s ease-out 0.4s both;
+}
+
+.signup-overlay-circle {
+  width: 45px;
+  height: 45px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  margin-bottom: clamp(15px, 2.5vh, 20px);
+  margin-left: clamp(15px, 2vw, 20px);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.signup-overlay-content h2 {
+  font-size: clamp(2.5rem, 4vw, 3.8rem);
+  font-weight: 700;
+  margin-bottom: clamp(15px, 2.5vh, 20px);
+  line-height: 1.1;
+  white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  text-align: left;
+  padding: 0 clamp(10px, 2vw, 20px);
+  margin: 0 0 clamp(15px, 2.5vh, 20px) 0;
+}
+
+.signup-overlay-content p {
+  font-size: clamp(1.2rem, 1.8vw, 1.6rem);
+  font-weight: 400;
+  line-height: 1.4;
+  opacity: 0.9;
+  margin-bottom: clamp(6px, 1vh, 8px);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  padding: 0 clamp(10px, 2vw, 20px);
+  margin: 0 0 clamp(6px, 1vh, 8px) 0;
+}
+
+.signup-overlay-content p:last-child {
+  margin-bottom: 0;
+}
+
+.password-hint {
+  margin-top: clamp(4px, 0.5vh, 6px);
+  margin-bottom: clamp(8px, 1.5vh, 12px);
+}
+
+.password-hint p {
+  font-size: clamp(0.7rem, min(0.8vw, 0.9vh), 0.8rem);
+  color: #888888;
+  margin: 0;
+  line-height: 1.4;
+  font-weight: 400;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.forgot-password-page {
+  background: #FFFFFF;
+  position: fixed !important;
+  top: 60px !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  overflow: hidden;
+  z-index: 1;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100vw !important;
+  animation: fadeIn 0.5s ease-out;
 }
 
 .forgot-password-page::before {
@@ -1126,46 +1083,17 @@
 }
 
 .forgot-password-form-container {
-  width: 55%;
+  width: 50%;
   height: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 5%;
+  justify-content: safe center;
+  padding: clamp(10px, 2vh, 20px) clamp(2%, 3%, 5%);
   position: relative;
   animation: fadeIn 0.6s ease-out 0.2s both;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-
-@keyframes float {
-  0%, 100% {
-    transform: rotate(45deg) translateY(0px);
-  }
-  50% {
-    transform: rotate(45deg) translateY(-10px);
-  }
-}
-
 
 .forgot-password-page .auth-card {
   background: transparent;
@@ -1173,34 +1101,33 @@
   border-radius: 0;
   padding: 0;
   width: 100%;
-  max-width: 500px;
-  gap: 30px;
+  max-width: min(90%, 600px);
+  min-height: min-content;
+  gap: clamp(4px, 1vh, 20px);
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: clamp(10px, 2vh, 30px);
+  padding-bottom: clamp(10px, 2vh, 30px);
 }
 
 .forgot-password-page .auth-header h1 {
-  font-size: 3.5rem;
+  font-size: clamp(1.8rem, min(4vw, 4vh), 3.5rem);
   color: #000000;
   font-weight: 700;
   margin-bottom: 0;
 }
 
 .forgot-password-image-container {
-  width: 45%;
+  width: 50%;
   height: 100%;
   position: relative;
   overflow: hidden;
   animation: fadeIn 0.6s ease-out 0.3s both;
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .forgot-password-image-wrapper {
@@ -1236,65 +1163,42 @@
   animation: fadeIn 0.8s ease-out 0.4s both;
 }
 
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
 .forgot-password-overlay-circle {
   width: 45px;
   height: 45px;
   background: #FFFFFF;
   border-radius: 50%;
-  margin-bottom: 20px;
-  margin-left: 20px;
+  margin-bottom: clamp(15px, 2.5vh, 20px);
+  margin-left: clamp(15px, 2vw, 20px);
   animation: pulse 2s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.8;
-  }
-}
-
 .forgot-password-overlay-content h2 {
-  font-size: 3.8rem;
+  font-size: clamp(2.5rem, 4vw, 3.8rem);
   font-weight: 700;
-  margin-bottom: 20px;
+  margin-bottom: clamp(15px, 2.5vh, 20px);
   line-height: 1.1;
   white-space: nowrap;
   text-align: left;
-  padding: 0 20px;
-  margin: 0 0 20px 0;
+  padding: 0 clamp(10px, 2vw, 20px);
+  margin: 0 0 clamp(15px, 2.5vh, 20px) 0;
 }
 
 .forgot-password-overlay-content p {
-  font-size: 1.6rem;
+  font-size: clamp(1.2rem, 1.8vw, 1.6rem);
   font-weight: 400;
   line-height: 1.4;
   opacity: 0.9;
-  margin-bottom: 8px;
+  margin-bottom: clamp(6px, 1vh, 8px);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  padding: 0 20px;
-  margin: 0 0 8px 0;
+  padding: 0 clamp(10px, 2vw, 20px);
+  margin: 0 0 clamp(6px, 1vh, 8px) 0;
 }
 
 .forgot-password-overlay-content p:last-child {
   margin-bottom: 0;
 }
 
-/* Verification Input Wrapper */
 .verification-input-wrapper {
   position: relative;
   display: flex;
@@ -1358,243 +1262,96 @@
   color: #FFFFFF;
   cursor: not-allowed;
   transform: none;
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+  min-width: 60px;
+  text-align: center;
 }
 
-/* Password Hint */
-.password-hint {
-  margin: 8px 0 16px 0;
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.password-hint p {
-  font-size: 0.9rem;
-  color: #666666;
-  margin: 0;
+.password-input-wrapper input {
+  padding-right: 80px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6B7280;
+  font-size: 0.875rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  outline: none;
+  box-shadow: none;
+  width: 48px;
+  height: 48px;
+}
+
+.password-toggle:hover {
+  color: #374151;
+}
+
+.password-toggle:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.password-toggle svg {
+  color: inherit;
+}
+
+.password-input-wrapper + .error-text {
+  margin-top: clamp(2px, 0.5vh, 4px);
+}
+
+.checkbox-label.terms-checkbox {
+  display: flex;
+  align-items: flex-start;
+  margin: clamp(8px, 1.5vh, 16px) 0;
+  cursor: pointer;
+  font-size: clamp(0.8rem, min(0.9vw, 1.1vh), 0.95rem);
+  color: #333;
   line-height: 1.4;
 }
 
-/* Form Options */
-.form-options {
-  margin: 16px 0;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  color: #333333;
-}
-
-.checkbox-label input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: #1B3E6F;
+.checkbox-label.terms-checkbox input[type="checkbox"] {
+  margin-right: clamp(8px, 1.5vw, 10px);
+  margin-top: clamp(1px, 0.3vh, 2px);
+  min-width: 18px;
+  min-height: 18px;
   cursor: pointer;
 }
 
-.checkbox-label span {
-  user-select: none;
+.checkbox-label.terms-checkbox span {
+  flex: 1;
 }
 
-/* Responsive Design for Forgot Password Page */
-@media (max-width: 1024px) {
-  .forgot-password-page .auth-container {
-    flex-direction: column;
-    height: 100vh;
-  }
-  
-  .forgot-password-form-container {
-    width: 100%;
-    height: 60vh;
-  }
-  
-  .forgot-password-image-container {
-    width: 100%;
-    height: 40vh;
-  }
-  
-  .forgot-password-overlay-content h2 {
-    font-size: 3rem;
-    margin-bottom: 30px;
-  }
-  
-  .forgot-password-overlay-content p {
-    font-size: 1.4rem;
-  }
+.checkbox-label.terms-checkbox .link-primary {
+  color: #F99F1C;
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
-@media (max-width: 768px) {
-  .forgot-password-form-container {
-    height: 70vh;
-  }
-  
-  .forgot-password-image-container {
-    height: 30vh;
-  }
-  
-  .forgot-password-overlay-content h2 {
-    font-size: 2.5rem;
-    margin-bottom: 30px;
-  }
-  
-  .forgot-password-overlay-content p {
-    font-size: 1.2rem;
-  }
-  
+.checkbox-label.terms-checkbox .link-primary:hover {
+  color: #FAB249;
+  text-decoration: underline;
 }
 
-@media (max-width: 480px) {
-  .forgot-password-page {
-    top: 50px !important;
-    height: calc(100vh - 50px) !important;
-  }
-  
-  .forgot-password-page .auth-container {
-    margin-top: 0 !important;
-    height: 100% !important;
-  }
-}
-
-  @media (max-width: 480px) {
-    .auth-page {
-      top: 50px !important;
-      height: calc(100vh - 50px) !important;
-    }
-
-    .signup-page {
-      top: 50px !important;
-      height: calc(100vh - 50px) !important;
-    }
-
-    .auth-container {
-      gap: 5px;
-      padding: 0 2%;
-      padding-top: 1vh;
-      height: 100%;
-    }
-    
-    .mobile-preview-container {
-      height: 25vh;
-      min-height: 200px;
-      padding-top: 1vh;
-    }
-    
-    .mobile-preview {
-      margin-bottom: 10px;
-    }
-    
-    .login-form-container {
-      height: 65vh;
-      min-height: 450px;
-      padding-top: 1vh;
-    }
-    
-    .phone-mockup {
-      width: 15vw;
-      height: 30vh;
-      min-width: 120px;
-      min-height: 240px;
-      border: 4px solid #2a2a2a;
-      border-top: 3px solid #1a1a1a;
-      border-bottom: 6px solid #1a1a1a;
-      border-radius: 20px;
-    }
-    
-    .download-btn {
-      min-width: 180px;
-      padding: 12px 16px;
-      max-width: 200px;
-    }
-    
-    .download-line1 {
-      font-size: 9px;
-    }
-    
-    .download-line2 {
-      font-size: 12px;
-    }
-    
-    .phone-screen {
-      padding: 0;
-      font-size: 9px;
-      border-radius: 15px;
-    }
-    
-    .auth-card {
-      width: calc(40vw + 200px);
-      height: calc(50vh + 200px);
-      min-width: 480px;
-      min-height: 600px;
-      max-width: calc(70vw + 200px);
-      max-height: calc(75vh + 200px);
-      padding: 30px 20px;
-      margin: 20px;
-    }
-    
-    .auth-header h1 {
-      font-size: 2rem;
-    }
-    
-    .auth-page::before {
-      width: 40vw;
-      height: 40vw;
-      bottom: -3%;
-      right: -2%;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .mobile-preview {
-      display: none;
-    }
-    
-    .login-form-container {
-      width: 100%;
-      height: 90vh;
-      padding-top: 2vh;
-    }
-    
-    .auth-card {
-      width: calc(90vw + 200px);
-      height: calc(70vh + 150px);
-      min-width: 480px;
-      min-height: 600px;
-      padding: 24px 16px;
-      margin: 10px;
-    }
-    
-    .auth-header h1 {
-      font-size: 1.75rem;
-    }
-    
-    .form-group input[type="text"],
-    .form-group input[type="email"],
-    .form-group input[type="password"] {
-      padding: 14px 16px;
-      font-size: 0.9rem;
-    }
-    
-    .btn-submit {
-      padding: 14px 20px;
-      font-size: 1rem;
-    }
-    
-    .social-buttons {
-      gap: 8px;
-    }
-    
-    .social-btn {
-      width: 45px;
-      height: 45px;
-    }
-    
-    .auth-page::before {
-      width: 35vw;
-      height: 35vw;
-      bottom: -2%;
-      right: -1%;
-    }
+.checkbox-label.terms-checkbox + .error-text {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: clamp(2px, 0.5vh, 4px);
+  margin-left: clamp(24px, 3vw, 28px);
   }
 
   .btn-secondary {
@@ -1608,7 +1365,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
-    margin-top: 12px;
+  margin-top: clamp(8px, 1.5vh, 12px);
   }
   
   .btn-secondary:hover:not(:disabled) {
@@ -1616,13 +1373,13 @@
   }
   
   .code-help {
-    margin-top: 12px;
+  margin-top: clamp(8px, 1.5vh, 12px);
   }
   
   .help-text {
     font-size: 0.875rem;
     color: var(--black-50);
-    margin: 8px 0;
+  margin: clamp(6px, 1vh, 8px) 0;
   }
   
   .demo-note {
@@ -1631,7 +1388,7 @@
     background: rgba(182, 210, 137, 0.1);
     padding: 8px 12px;
     border-radius: 4px;
-    margin-top: 12px;
+  margin-top: clamp(8px, 1.5vh, 12px);
   }
   
   .link-button {
@@ -1654,7 +1411,7 @@
   }
   
   .password-requirements {
-    margin-top: 12px;
+  margin-top: clamp(8px, 1.5vh, 12px);
     padding: 12px;
     background: var(--orange-bg);
     border-radius: 8px;
@@ -1664,7 +1421,7 @@
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--black-80);
-    margin-bottom: 8px;
+  margin-bottom: clamp(6px, 1vh, 8px);
   }
   
   .password-requirements ul {
@@ -1676,7 +1433,7 @@
   .password-requirements li {
     font-size: 0.813rem;
     color: var(--black-50);
-    padding: 4px 0;
+  padding: clamp(3px, 0.5vh, 4px) 0;
     padding-left: 20px;
     position: relative;
   }
@@ -1697,7 +1454,6 @@
     color: var(--success);
   }
   
-  /* Verification code input styling */
   input[pattern="[0-9]{6}"] {
     letter-spacing: 0.5em;
     font-size: 1.25rem;
@@ -1705,107 +1461,328 @@
     text-align: center;
   }
 
-  /* Password Input with Toggle */
-.password-input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
+@media (max-height: 700px) {
+  .signup-page .auth-header h1,
+  .forgot-password-page .auth-header h1 {
+    font-size: clamp(1.5rem, 3.5vw, 2.5rem);
   }
   
-  .password-input-wrapper input {
-    padding-right: 80px;
+  .auth-form {
+    gap: clamp(4px, 0.8vh, 10px);
   }
   
-  .password-toggle {
-    position: absolute;
-    right: 12px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #6B7280;
-    font-size: 0.875rem;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    outline: none;
-    box-shadow: none;
-    width: 48px;
-    height: 48px;
+  .form-group input[type="text"],
+  .form-group input[type="email"],
+  .form-group input[type="password"] {
+    padding: clamp(6px, 1vh, 10px) clamp(10px, 1.5vw, 14px);
   }
   
-  .password-toggle:hover {
-    color: #374151;
+  .auth-form .btn-submit {
+    padding: clamp(6px, 1vh, 10px) clamp(14px, 2vw, 20px);
   }
   
-  .password-toggle:focus {
-    outline: none;
-    box-shadow: none;
+  .social-btn {
+    width: clamp(35px, 5vh, 45px);
+    height: clamp(35px, 5vh, 45px);
   }
   
-  .password-toggle svg {
-    color: inherit;
+  .checkbox-label.terms-checkbox {
+    margin: clamp(6px, 1vh, 10px) 0;
+  }
+}
+
+@media (max-height: 600px) {
+  .signup-form-container,
+  .forgot-password-form-container {
+    padding-top: max(10px, 1.5vh);
   }
   
+  .signup-page .auth-card,
+  .forgot-password-page .auth-card {
+    gap: clamp(3px, 0.6vh, 8px);
+    padding-top: clamp(5px, 1vh, 15px);
+    padding-bottom: clamp(5px, 1vh, 15px);
+  }
   
-  /* Ensure proper spacing when error text appears */
-  .password-input-wrapper + .error-text {
-    margin-top: 4px;
+  .signup-page .auth-header h1,
+  .forgot-password-page .auth-header h1 {
+    font-size: clamp(1.3rem, 3vw, 2rem);
+  }
+  
+  .form-group label {
+    font-size: clamp(0.75rem, 0.85vw, 0.9rem);
+  }
+  
+  .form-group input[type="text"],
+  .form-group input[type="email"],
+  .form-group input[type="password"] {
+    padding: 6px 10px;
+    font-size: clamp(0.8rem, 0.95vw, 0.95rem);
+  }
+  
+  .auth-form .btn-submit {
+    padding: 8px 14px;
+    font-size: clamp(0.9rem, 1vw, 1.1rem);
+  }
+  
+  .social-btn {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .social-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-height: 500px), (max-width: 480px) and (max-height: 700px) {
+  .signup-form-container,
+  .forgot-password-form-container {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .signup-page .auth-card,
+  .forgot-password-page .auth-card {
+    min-height: auto;
+    padding-bottom: 20px;
+  }
+}
+
+@media (max-width: 1024px) {
+  :root { --nav-h: 60px; }
+  
+  .auth-container {
+    flex-direction: column;
+    height: 100%;
+    padding: 0 3%;
+    padding-top: 2vh;
+  }
+  
+  .mobile-preview-container {
+    order: 2;
+    width: 100%;
+    height: 100%;
+    padding-top: 2vh;
+  }
+  
+  .mobile-preview {
+    margin-bottom: 15px;
+  }
+  
+  .login-form-container {
+    order: 1;
+    width: 100%;
+    height: 100%;
+    padding-top: 2vh;
+  }
+  
+  .phone-mockup {
+    width: 20vw;
+    height: 40vh;
+    min-width: 150px;
+    min-height: 300px;
+    border: 6px solid #2a2a2a;
+    border-top: 4px solid #1a1a1a;
+    border-bottom: 8px solid #1a1a1a;
+    border-radius: 25px;
+  }
+  
+  .download-btn {
+    width: clamp(200px, 17vw, 240px);
+    padding: clamp(10px, 1.5vh, 14px) clamp(18px, 2.2vw, 24px);
+  }
+  
+  .auth-card {
+    width: 100%;
+    max-width: min(90%, 600px);
+    height: 100%;
+    padding: clamp(20px, 4vh, 30px) clamp(16px, 3vw, 20px);
+    margin: 0;
+  }
+  
+  .auth-page::before {
+    width: 50vw;
+    height: 50vw;
+    bottom: -5%;
+    right: -3%;
+  }
+  
+  .signup-page .auth-container,
+  .forgot-password-page .auth-container {
+    flex-direction: column;
+    height: 100%;
   }
 
-  .checkbox-label.terms-checkbox {
-    display: flex;
-    align-items: flex-start;
-    margin: 20px 0;
-    cursor: pointer;
-    font-size: 14px;
-    color: #333;
-    line-height: 1.5;
+  .signup-form-container,
+  .forgot-password-form-container {
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+    padding: clamp(15px, 3vh, 30px) 5%;
+    justify-content: flex-start;
+  }
+
+  .signup-page .auth-card,
+  .forgot-password-page .auth-card {
+    max-width: 100%;
+    padding-top: clamp(15px, 2.5vh, 40px);
+  }
+
+  .signup-image-container,
+  .forgot-password-image-container {
+    display: none;
+  }
+
+  .signup-overlay-content h2,
+  .forgot-password-overlay-content h2 {
+    font-size: 3rem;
+    margin-bottom: 30px;
   }
   
-  .checkbox-label.terms-checkbox input[type="checkbox"] {
-    margin-right: 10px;
-    margin-top: 2px;
-    min-width: 18px;
-    min-height: 18px;
-    cursor: pointer;
+  .signup-overlay-content p,
+  .forgot-password-overlay-content p {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .signup-form-container,
+  .forgot-password-form-container {
+    padding: clamp(10px, 2vh, 20px) 20px;
+  }
+
+  .signup-page .auth-header h1,
+  .forgot-password-page .auth-header h1 {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+  }
+
+  .signup-overlay-content h2,
+  .forgot-password-overlay-content h2 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
   }
   
-  .checkbox-label.terms-checkbox span {
-    flex: 1;
+  .signup-overlay-content p,
+  .forgot-password-overlay-content p {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root { --nav-h: 50px; }
+  
+  .auth-page,
+  .signup-page,
+  .forgot-password-page {
+    top: var(--nav-h) !important;
+  }
+
+  .auth-container {
+    gap: 5px;
+    padding: 0 2%;
+    height: 100%;
   }
   
-  .checkbox-label.terms-checkbox .link-primary {
-    color: #F99F1C;
-    text-decoration: none;
-    transition: color 0.2s ease;
+  .mobile-preview-container {
+    height: 100%;
+    padding-top: 1vh;
+    display: none;
   }
   
-  .checkbox-label.terms-checkbox .link-primary:hover {
-    color: #FAB249;
-    text-decoration: underline;
+  .mobile-preview {
+    margin-bottom: 10px;
   }
   
-  /* Error text for checkbox */
-  .checkbox-label.terms-checkbox + .error-text {
-    color: #dc3545;
-    font-size: 12px;
-    margin-top: 4px;
-    margin-left: 28px; /* Align with checkbox text */
+  .login-form-container {
+    width: 100%;
+    height: 100%;
+    padding-top: 2vh;
   }
   
-  /* Adjust spacing between elements */
-  .password-hint {
-    margin-bottom: 20px;
+  .phone-mockup {
+    width: 15vw;
+    height: 30vh;
+    min-width: 120px;
+    min-height: 240px;
+    border: 4px solid #2a2a2a;
+    border-top: 3px solid #1a1a1a;
+    border-bottom: 6px solid #1a1a1a;
+    border-radius: 20px;
   }
   
-  .auth-footer {
-    margin-top: 16px;
-    margin-bottom: 16px;
+  .download-btn {
+    width: clamp(180px, 15vw, 220px);
+    padding: clamp(8px, 1.2vh, 12px) clamp(14px, 1.8vw, 20px);
   }
   
-  /* Ensure proper spacing for submit button */
+  .download-line1 {
+    font-size: clamp(9px, 0.9vw, 11px);
+  }
+  
+  .download-line2 {
+    font-size: clamp(13px, 1.4vw, 16px);
+  }
+  
+  .phone-screen {
+    padding: 0;
+    font-size: 9px;
+    border-radius: 15px;
+  }
+  
+  .auth-card {
+    width: 100%;
+    max-width: min(90%, 500px);
+    height: 100%;
+    padding: clamp(16px, 3vh, 24px) clamp(12px, 3vw, 16px);
+    margin: 0;
+  }
+  
+  .auth-header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .form-group input[type="text"],
+  .form-group input[type="email"],
+  .form-group input[type="password"] {
+    padding: 14px 16px;
+    font-size: 0.9rem;
+  }
+  
   .btn-submit {
-    margin-top: 24px;
+    padding: 14px 20px;
+    font-size: 1rem;
+  }
+  
+  .social-buttons {
+    gap: 8px;
+  }
+  
+  .social-btn {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .auth-page::before {
+    width: 35vw;
+    height: 35vw;
+    bottom: -2%;
+    right: -1%;
+  }
+
+  .signup-form-container,
+  .forgot-password-form-container {
+    padding: clamp(10px, 2vh, 20px) 16px;
+  }
+
+  .signup-page .auth-header h1,
+  .forgot-password-page .auth-header h1 {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+  
+  .forgot-password-page .auth-container {
+    margin-top: 0 !important;
+    height: 100% !important;
+  }
   }
