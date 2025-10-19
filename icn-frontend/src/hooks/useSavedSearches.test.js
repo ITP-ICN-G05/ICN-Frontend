@@ -114,6 +114,34 @@ describe('useSavedSearches', () => {
         expect(result.current.loading).toBe(false);
       });
     });
+
+    it('should handle undefined response data gracefully', async () => {
+      // Tests the || [] fallback in: const data = response?.data || [];
+      savedSearchService.getSavedSearches.mockResolvedValue({ data: undefined });
+      savedSearchService.getSearchQuota.mockResolvedValue({ data: { used: 0, limit: 10 } });
+
+      const { result } = renderHook(() => useSavedSearches());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.savedSearches).toEqual([]);
+    });
+
+    it('should handle completely undefined response', async () => {
+      // Tests response?.data when response is undefined
+      savedSearchService.getSavedSearches.mockResolvedValue(undefined);
+      savedSearchService.getSearchQuota.mockResolvedValue({ data: { used: 0, limit: 10 } });
+
+      const { result } = renderHook(() => useSavedSearches());
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.savedSearches).toEqual([]);
+    });
   });
 
   describe('loadQuota', () => {
@@ -131,6 +159,43 @@ describe('useSavedSearches', () => {
       });
 
       expect(getTierLimit).toHaveBeenCalledWith('plus', 'MAX_SAVED_SEARCHES');
+      consoleSpy.mockRestore();
+    });
+
+    it('should use fallback quota calculation when API fails with empty searches', async () => {
+      // Tests the fallback path with 0 searches
+      savedSearchService.getSavedSearches.mockResolvedValue({ data: [] });
+      savedSearchService.getSearchQuota.mockRejectedValue(new Error('Quota API error'));
+      getTierLimit.mockReturnValue(10);
+
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const { result } = renderHook(() => useSavedSearches());
+
+      await waitFor(() => {
+        expect(result.current.quota).toEqual({ used: 0, limit: 10 });
+      });
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should use fallback quota calculation when API fails with multiple searches', async () => {
+      // Tests the fallback path with multiple searches
+      const mockSearches = [
+        { id: 1, name: 'Search 1' },
+        { id: 2, name: 'Search 2' },
+        { id: 3, name: 'Search 3' },
+      ];
+      savedSearchService.getSavedSearches.mockResolvedValue({ data: mockSearches });
+      savedSearchService.getSearchQuota.mockRejectedValue(new Error('Quota API error'));
+      getTierLimit.mockReturnValue(10);
+
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const { result } = renderHook(() => useSavedSearches());
+
+      await waitFor(() => {
+        expect(result.current.quota).toEqual({ used: 3, limit: 10 });
+      });
+
       consoleSpy.mockRestore();
     });
   });
@@ -217,6 +282,41 @@ describe('useSavedSearches', () => {
       // Note: Error state may not be reliably set in tests due to async timing
       // The throw itself is the primary error handling mechanism
     });
+
+    it('should allow saving when quota.used is exactly at limit - 1', async () => {
+      // Tests the boundary condition: quota.used < quota.limit
+      const newSearch = { name: 'New Search', criteria: {} };
+      const savedSearch = { id: 1, ...newSearch };
+      
+      savedSearchService.getSavedSearches.mockResolvedValue({ data: [] });
+      savedSearchService.getSearchQuota.mockResolvedValue({ data: { used: 9, limit: 10 } });
+      savedSearchService.saveSearch.mockResolvedValue({ data: savedSearch });
+
+      const { result } = renderHook(() => useSavedSearches());
+
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      await act(async () => {
+        await result.current.saveSearch(newSearch);
+      });
+
+      expect(result.current.savedSearches).toContainEqual(savedSearch);
+    });
+
+    it('should handle quota with limit of 0 for free tier', async () => {
+      // Tests edge case where limit is 0 (not -1, not positive)
+      useTierAccess.mockReturnValue({ userTier: 'free' });
+      savedSearchService.getSavedSearches.mockResolvedValue({ data: [] });
+      savedSearchService.getSearchQuota.mockResolvedValue({ data: { used: 0, limit: 0 } });
+
+      const { result } = renderHook(() => useSavedSearches());
+
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      await expect(act(async () => {
+        await result.current.saveSearch({ name: 'Test' });
+      })).rejects.toThrow('Search limit reached (0 searches max)');
+    });
   });
 
   describe('deleteSearch', () => {
@@ -283,6 +383,41 @@ describe('useSavedSearches', () => {
       // Note: Error state may not be reliably set in tests due to async timing
       // The throw itself is the primary error handling mechanism
     });
+
+    it('should handle deleting when quota.used is already 0', async () => {
+      // Tests Math.max(0, prev.used - 1) when result would be negative
+      savedSearchService.getSavedSearches.mockResolvedValue({ data: [{ id: 1 }] });
+      savedSearchService.getSearchQuota.mockResolvedValue({ data: { used: 0, limit: 10 } });
+      savedSearchService.deleteSearch.mockResolvedValue({});
+
+      const { result } = renderHook(() => useSavedSearches());
+
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      await act(async () => {
+        await result.current.deleteSearch(1);
+      });
+
+      // Should stay at 0, not go negative
+      expect(result.current.quota.used).toBe(0);
+    });
+
+    it('should handle deleting when quota.used is 1', async () => {
+      // Tests Math.max where result is exactly 0
+      savedSearchService.getSavedSearches.mockResolvedValue({ data: [{ id: 1 }] });
+      savedSearchService.getSearchQuota.mockResolvedValue({ data: { used: 1, limit: 10 } });
+      savedSearchService.deleteSearch.mockResolvedValue({});
+
+      const { result } = renderHook(() => useSavedSearches());
+
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      await act(async () => {
+        await result.current.deleteSearch(1);
+      });
+
+      expect(result.current.quota.used).toBe(0);
+    });
   });
 
   describe('canSaveSearch', () => {
@@ -338,6 +473,45 @@ describe('useSavedSearches', () => {
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
+
+      expect(result.current.canSaveSearch()).toBe(true);
+    });
+
+    it('should return false for free tier even with available quota', async () => {
+      // Tests: userTier !== 'free' returns false, so second condition not evaluated
+      useTierAccess.mockReturnValue({ userTier: 'free' });
+      savedSearchService.getSavedSearches.mockResolvedValue({ data: [] });
+      savedSearchService.getSearchQuota.mockResolvedValue({ data: { used: 0, limit: 5 } });
+
+      const { result } = renderHook(() => useSavedSearches());
+
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      expect(result.current.canSaveSearch()).toBe(false);
+    });
+
+    it('should return true for plus tier when exactly at limit - 1', async () => {
+      // Tests: used < limit returns true
+      useTierAccess.mockReturnValue({ userTier: 'plus' });
+      savedSearchService.getSavedSearches.mockResolvedValue({ data: [] });
+      savedSearchService.getSearchQuota.mockResolvedValue({ data: { used: 9, limit: 10 } });
+
+      const { result } = renderHook(() => useSavedSearches());
+
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      expect(result.current.canSaveSearch()).toBe(true);
+    });
+
+    it('should return true for premium tier with unlimited quota regardless of used count', async () => {
+      // Tests: quota.limit === -1 short-circuits to true
+      useTierAccess.mockReturnValue({ userTier: 'premium' });
+      savedSearchService.getSavedSearches.mockResolvedValue({ data: [] });
+      savedSearchService.getSearchQuota.mockResolvedValue({ data: { used: 999999, limit: -1 } });
+
+      const { result } = renderHook(() => useSavedSearches());
+
+      await waitFor(() => expect(result.current.loading).toBe(false));
 
       expect(result.current.canSaveSearch()).toBe(true);
     });
@@ -398,6 +572,79 @@ describe('useSavedSearches', () => {
       await waitFor(() => {
         expect(savedSearchService.getSavedSearches).toHaveBeenCalledTimes(2);
       });
+    });
+  });
+
+  describe('unmounted component scenarios', () => {
+    it('should not update state after unmount during loadSavedSearches', async () => {
+      savedSearchService.getSavedSearches.mockImplementation(() => 
+        new Promise(resolve => setTimeout(() => resolve({ data: [{ id: 1 }] }), 100))
+      );
+      savedSearchService.getSearchQuota.mockResolvedValue({ data: { used: 0, limit: 10 } });
+
+      const { result, unmount } = renderHook(() => useSavedSearches());
+
+      // Unmount before async operation completes
+      unmount();
+
+      // Wait to ensure no state updates occur
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      // No assertions needed - this test passes if no errors are thrown
+    });
+
+    it('should not update state after unmount during saveSearch', async () => {
+      savedSearchService.getSavedSearches.mockResolvedValue({ data: [] });
+      savedSearchService.getSearchQuota.mockResolvedValue({ data: { used: 0, limit: 10 } });
+      savedSearchService.saveSearch.mockImplementation(() =>
+        new Promise(resolve => setTimeout(() => resolve({ data: { id: 1 } }), 100))
+      );
+
+      const { result, unmount } = renderHook(() => useSavedSearches());
+
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      // Start save but unmount before completion
+      act(() => {
+        result.current.saveSearch({ name: 'Test' });
+      });
+      unmount();
+
+      await new Promise(resolve => setTimeout(resolve, 150));
+    });
+
+    it('should not update state after unmount during deleteSearch', async () => {
+      savedSearchService.getSavedSearches.mockResolvedValue({ data: [{ id: 1 }] });
+      savedSearchService.getSearchQuota.mockResolvedValue({ data: { used: 1, limit: 10 } });
+      savedSearchService.deleteSearch.mockImplementation(() =>
+        new Promise(resolve => setTimeout(() => resolve({}), 100))
+      );
+
+      const { result, unmount } = renderHook(() => useSavedSearches());
+
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      // Start delete but unmount before completion
+      act(() => {
+        result.current.deleteSearch(1);
+      });
+      unmount();
+
+      await new Promise(resolve => setTimeout(resolve, 150));
+    });
+
+    it('should not update state after unmount during loadQuota', async () => {
+      savedSearchService.getSavedSearches.mockResolvedValue({ data: [] });
+      savedSearchService.getSearchQuota.mockImplementation(() =>
+        new Promise(resolve => setTimeout(() => resolve({ data: { used: 0, limit: 10 } }), 100))
+      );
+
+      const { unmount } = renderHook(() => useSavedSearches());
+
+      // Unmount before quota loading completes
+      unmount();
+
+      await new Promise(resolve => setTimeout(resolve, 150));
     });
   });
 });

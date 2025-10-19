@@ -27,12 +27,28 @@ describe('BookmarkContext', () => {
     mockAddBookmark.mockClear();
     mockRemoveBookmark.mockClear();
 
-    // Mock localStorage
-    localStorageMock = {
-      getItem: jest.fn(),
-      setItem: jest.fn(),
-      clear: jest.fn(),
-    };
+    // Create localStorage mock
+    localStorageMock = (() => {
+      let store = {};
+      return {
+        getItem: jest.fn((key) => store[key] || null),
+        setItem: jest.fn((key, value) => {
+          store[key] = value.toString();
+        }),
+        clear: jest.fn(() => {
+          store = {};
+        }),
+        removeItem: jest.fn((key) => {
+          delete store[key];
+        }),
+      };
+    })();
+
+    // Mock both global and window.localStorage
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock,
+      writable: true
+    });
     global.localStorage = localStorageMock;
   });
 
@@ -50,7 +66,7 @@ describe('BookmarkContext', () => {
     });
 
     it('should provide bookmark context when used within provider', async () => {
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1, tier: 'free' }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1, tier: 'free' }));
       mockGetUserBookmarks.mockResolvedValue({ data: [] });
 
       const { result } = renderHook(() => useBookmarks(), { wrapper });
@@ -68,74 +84,168 @@ describe('BookmarkContext', () => {
     });
   });
 
+  describe('initial state', () => {
+    it('should initialize with correct default state', () => {
+      const { result } = renderHook(() => useBookmarks(), { wrapper });
+
+      expect(result.current.bookmarks).toEqual([]);
+      expect(result.current.loading).toBe(false);
+      expect(result.current.error).toBe(null);
+    });
+  });
+
   describe('loadBookmarks', () => {
+    it('should set loading to true during fetch', async () => {
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
+      
+      let resolvePromise;
+      const promise = new Promise(resolve => {
+        resolvePromise = resolve;
+      });
+      mockGetUserBookmarks.mockReturnValue(promise);
+
+      const { result } = renderHook(() => useBookmarks(), { wrapper });
+
+      // Check loading is true while promise is pending
+      await waitFor(() => expect(result.current.loading).toBe(true));
+      
+      // Resolve the promise
+      await act(async () => {
+        resolvePromise({ data: [] });
+        await promise;
+      });
+
+      expect(result.current.loading).toBe(false);
+    });
+
     it('should load bookmarks on mount when user exists', async () => {
       const mockBookmarks = [
         { id: 1, name: 'Company A' },
         { id: 2, name: 'Company B' },
       ];
       
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1, tier: 'free' }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1, tier: 'free' }));
       mockGetUserBookmarks.mockResolvedValue({ data: mockBookmarks });
 
       const { result } = renderHook(() => useBookmarks(), { wrapper });
 
-      await waitFor(() => expect(result.current.loading).toBe(false));
+      await waitFor(() => {
+        expect(result.current.bookmarks).toEqual(mockBookmarks);
+        expect(result.current.loading).toBe(false);
+      });
 
-      expect(result.current.bookmarks).toEqual(mockBookmarks);
       expect(mockGetUserBookmarks).toHaveBeenCalledTimes(1);
     });
 
     it('should handle response without data wrapper', async () => {
       const mockBookmarks = [{ id: 1, name: 'Company A' }];
       
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1, tier: 'free' }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1, tier: 'free' }));
       mockGetUserBookmarks.mockResolvedValue(mockBookmarks);
 
       const { result } = renderHook(() => useBookmarks(), { wrapper });
 
-      await waitFor(() => expect(result.current.bookmarks).toEqual(mockBookmarks));
+      await waitFor(() => {
+        expect(result.current.bookmarks).toEqual(mockBookmarks);
+        expect(result.current.loading).toBe(false);
+      });
     });
 
     it('should set empty array when no user in localStorage', async () => {
-      localStorageMock.getItem.mockReturnValue(null);
-
       const { result } = renderHook(() => useBookmarks(), { wrapper });
 
       await waitFor(() => expect(result.current.bookmarks).toEqual([]));
 
       expect(mockGetUserBookmarks).not.toHaveBeenCalled();
+      expect(result.current.loading).toBe(false);
     });
 
     it('should handle loading error', async () => {
       const errorMessage = 'Failed to load bookmarks';
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1 }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
       mockGetUserBookmarks.mockRejectedValue(new Error(errorMessage));
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       const { result } = renderHook(() => useBookmarks(), { wrapper });
 
-      await waitFor(() => expect(result.current.error).toBe(errorMessage));
+      await waitFor(() => {
+        expect(result.current.error).toBe(errorMessage);
+        expect(result.current.loading).toBe(false);
+      });
 
       expect(result.current.bookmarks).toEqual([]);
-      expect(result.current.loading).toBe(false);
       consoleSpy.mockRestore();
     });
 
     it('should handle non-array response', async () => {
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1 }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
       mockGetUserBookmarks.mockResolvedValue({ data: null });
 
       const { result } = renderHook(() => useBookmarks(), { wrapper });
 
-      await waitFor(() => expect(result.current.bookmarks).toEqual([]));
+      await waitFor(() => {
+        expect(result.current.bookmarks).toEqual([]);
+        expect(result.current.loading).toBe(false);
+      });
+    });
+
+    it('should handle invalid JSON in localStorage', async () => {
+      // Manually override getItem for this test to return invalid JSON
+      localStorageMock.getItem.mockReturnValue('invalid json{');
+      
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const { result } = renderHook(() => useBookmarks(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.bookmarks).toEqual([]);
+      expect(result.current.error).toBeTruthy();
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle empty string in localStorage', async () => {
+      localStorageMock.setItem('user', '');
+      
+      const { result } = renderHook(() => useBookmarks(), { wrapper });
+
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      expect(result.current.bookmarks).toEqual([]);
+      expect(mockGetUserBookmarks).not.toHaveBeenCalled();
+    });
+
+    it('should clear error state on successful reload', async () => {
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
+      mockGetUserBookmarks
+        .mockRejectedValueOnce(new Error('Initial error'))
+        .mockResolvedValueOnce({ data: [] });
+
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const { result } = renderHook(() => useBookmarks(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Initial error');
+      });
+
+      await act(async () => {
+        await result.current.reloadBookmarks();
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBe(null);
+        expect(result.current.bookmarks).toEqual([]);
+      });
+
+      consoleSpy.mockRestore();
     });
   });
 
   describe('addBookmark', () => {
     it('should add bookmark successfully', async () => {
       const company = { id: 3, name: 'Company C' };
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1 }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
       mockGetUserBookmarks.mockResolvedValue({ data: [] });
       mockAddBookmark.mockResolvedValue({});
 
@@ -153,11 +263,28 @@ describe('BookmarkContext', () => {
       expect(mockAddBookmark).toHaveBeenCalledWith(3);
     });
 
+    it('should return true on successful add', async () => {
+      const company = { id: 1, name: 'Test' };
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
+      mockGetUserBookmarks.mockResolvedValue({ data: [] });
+      mockAddBookmark.mockResolvedValue({});
+
+      const { result } = renderHook(() => useBookmarks(), { wrapper });
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      let returnValue;
+      await act(async () => {
+        returnValue = await result.current.addBookmark(company);
+      });
+
+      expect(returnValue).toBe(true);
+    });
+
     it('should handle add bookmark error', async () => {
       const company = { id: 3, name: 'Company C' };
       const errorMessage = 'Failed to add bookmark';
       
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1 }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
       mockGetUserBookmarks.mockResolvedValue({ data: [] });
       mockAddBookmark.mockRejectedValue(new Error(errorMessage));
 
@@ -166,11 +293,43 @@ describe('BookmarkContext', () => {
 
       await waitFor(() => expect(result.current.loading).toBe(false));
 
-      await expect(act(async () => {
-        await result.current.addBookmark(company);
-      })).rejects.toThrow(errorMessage);
+      // Call addBookmark and expect it to throw
+      let thrownError = null;
+      try {
+        await act(async () => {
+          await result.current.addBookmark(company);
+        });
+      } catch (err) {
+        thrownError = err;
+      }
 
-      expect(result.current.error).toBe(errorMessage);
+      // Verify error was thrown with correct message
+      expect(thrownError).toBeTruthy();
+      expect(thrownError.message).toBe(errorMessage);
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should not add duplicate bookmarks on error', async () => {
+      const company = { id: 3, name: 'Company C' };
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
+      mockGetUserBookmarks.mockResolvedValue({ data: [] });
+      mockAddBookmark.mockRejectedValue(new Error('Failed'));
+
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const { result } = renderHook(() => useBookmarks(), { wrapper });
+
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      try {
+        await act(async () => {
+          await result.current.addBookmark(company);
+        });
+      } catch (err) {
+        // Expected to throw
+      }
+
+      expect(result.current.bookmarks).toEqual([]);
       consoleSpy.mockRestore();
     });
   });
@@ -182,13 +341,16 @@ describe('BookmarkContext', () => {
         { id: 2, name: 'Company B' },
       ];
       
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1 }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
       mockGetUserBookmarks.mockResolvedValue({ data: mockBookmarks });
       mockRemoveBookmark.mockResolvedValue({});
 
       const { result } = renderHook(() => useBookmarks(), { wrapper });
 
-      await waitFor(() => expect(result.current.bookmarks).toEqual(mockBookmarks));
+      await waitFor(() => {
+        expect(result.current.bookmarks).toEqual(mockBookmarks);
+        expect(result.current.loading).toBe(false);
+      });
 
       let success;
       await act(async () => {
@@ -200,10 +362,47 @@ describe('BookmarkContext', () => {
       expect(mockRemoveBookmark).toHaveBeenCalledWith(1);
     });
 
+    it('should return true on successful remove', async () => {
+      const mockBookmarks = [{ id: 1, name: 'Company A' }];
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
+      mockGetUserBookmarks.mockResolvedValue({ data: mockBookmarks });
+      mockRemoveBookmark.mockResolvedValue({});
+
+      const { result } = renderHook(() => useBookmarks(), { wrapper });
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      let returnValue;
+      await act(async () => {
+        returnValue = await result.current.removeBookmark(1);
+      });
+
+      expect(returnValue).toBe(true);
+    });
+
+    it('should handle removing non-existent bookmark', async () => {
+      const mockBookmarks = [{ id: 1, name: 'Company A' }];
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
+      mockGetUserBookmarks.mockResolvedValue({ data: mockBookmarks });
+      mockRemoveBookmark.mockResolvedValue({});
+
+      const { result } = renderHook(() => useBookmarks(), { wrapper });
+      await waitFor(() => {
+        expect(result.current.bookmarks).toEqual(mockBookmarks);
+        expect(result.current.loading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.removeBookmark(999); // Non-existent ID
+      });
+
+      // Bookmarks should remain unchanged
+      expect(result.current.bookmarks).toEqual(mockBookmarks);
+    });
+
     it('should handle remove bookmark error', async () => {
       const errorMessage = 'Failed to remove bookmark';
       
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1 }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
       mockGetUserBookmarks.mockResolvedValue({ data: [{ id: 1 }] });
       mockRemoveBookmark.mockRejectedValue(new Error(errorMessage));
 
@@ -212,11 +411,46 @@ describe('BookmarkContext', () => {
 
       await waitFor(() => expect(result.current.loading).toBe(false));
 
-      await expect(act(async () => {
-        await result.current.removeBookmark(1);
-      })).rejects.toThrow(errorMessage);
+      // Call removeBookmark and expect it to throw
+      let thrownError = null;
+      try {
+        await act(async () => {
+          await result.current.removeBookmark(1);
+        });
+      } catch (err) {
+        thrownError = err;
+      }
 
-      expect(result.current.error).toBe(errorMessage);
+      // Verify error was thrown with correct message
+      expect(thrownError).toBeTruthy();
+      expect(thrownError.message).toBe(errorMessage);
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should not remove bookmark from state on error', async () => {
+      const mockBookmarks = [{ id: 1, name: 'Company A' }];
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
+      mockGetUserBookmarks.mockResolvedValue({ data: mockBookmarks });
+      mockRemoveBookmark.mockRejectedValue(new Error('Failed'));
+
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const { result } = renderHook(() => useBookmarks(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.bookmarks).toEqual(mockBookmarks);
+        expect(result.current.loading).toBe(false);
+      });
+
+      try {
+        await act(async () => {
+          await result.current.removeBookmark(1);
+        });
+      } catch (err) {
+        // Expected to throw
+      }
+
+      expect(result.current.bookmarks).toEqual(mockBookmarks);
       consoleSpy.mockRestore();
     });
   });
@@ -225,18 +459,21 @@ describe('BookmarkContext', () => {
     it('should return true for bookmarked company', async () => {
       const mockBookmarks = [{ id: 1, name: 'Company A' }];
       
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1 }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
       mockGetUserBookmarks.mockResolvedValue({ data: mockBookmarks });
 
       const { result } = renderHook(() => useBookmarks(), { wrapper });
 
-      await waitFor(() => expect(result.current.bookmarks).toEqual(mockBookmarks));
+      await waitFor(() => {
+        expect(result.current.bookmarks).toEqual(mockBookmarks);
+        expect(result.current.loading).toBe(false);
+      });
 
       expect(result.current.isBookmarked(1)).toBe(true);
     });
 
     it('should return false for non-bookmarked company', async () => {
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1 }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
       mockGetUserBookmarks.mockResolvedValue({ data: [] });
 
       const { result } = renderHook(() => useBookmarks(), { wrapper });
@@ -244,6 +481,22 @@ describe('BookmarkContext', () => {
       await waitFor(() => expect(result.current.loading).toBe(false));
 
       expect(result.current.isBookmarked(999)).toBe(false);
+    });
+
+    it('should return false for null/undefined id', async () => {
+      const mockBookmarks = [{ id: 1, name: 'Company A' }];
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
+      mockGetUserBookmarks.mockResolvedValue({ data: mockBookmarks });
+
+      const { result } = renderHook(() => useBookmarks(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.bookmarks).toEqual(mockBookmarks);
+        expect(result.current.loading).toBe(false);
+      });
+
+      expect(result.current.isBookmarked(null)).toBe(false);
+      expect(result.current.isBookmarked(undefined)).toBe(false);
     });
   });
 
@@ -255,18 +508,21 @@ describe('BookmarkContext', () => {
         { id: 3, name: 'Company C' },
       ];
       
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1 }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
       mockGetUserBookmarks.mockResolvedValue({ data: mockBookmarks });
 
       const { result } = renderHook(() => useBookmarks(), { wrapper });
 
-      await waitFor(() => expect(result.current.bookmarks).toEqual(mockBookmarks));
+      await waitFor(() => {
+        expect(result.current.bookmarks).toEqual(mockBookmarks);
+        expect(result.current.loading).toBe(false);
+      });
 
       expect(result.current.getBookmarkCount()).toBe(3);
     });
 
     it('should return 0 for empty bookmarks', async () => {
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1 }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
       mockGetUserBookmarks.mockResolvedValue({ data: [] });
 
       const { result } = renderHook(() => useBookmarks(), { wrapper });
@@ -285,21 +541,68 @@ describe('BookmarkContext', () => {
         { id: 2, name: 'Company B' },
       ];
       
-      localStorageMock.getItem.mockReturnValue(JSON.stringify({ id: 1 }));
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
       mockGetUserBookmarks
         .mockResolvedValueOnce({ data: initialBookmarks })
         .mockResolvedValueOnce({ data: updatedBookmarks });
 
       const { result } = renderHook(() => useBookmarks(), { wrapper });
 
-      await waitFor(() => expect(result.current.bookmarks).toEqual(initialBookmarks));
+      await waitFor(() => {
+        expect(result.current.bookmarks).toEqual(initialBookmarks);
+        expect(result.current.loading).toBe(false);
+      });
 
       await act(async () => {
         await result.current.reloadBookmarks();
       });
 
-      expect(result.current.bookmarks).toEqual(updatedBookmarks);
+      await waitFor(() => {
+        expect(result.current.bookmarks).toEqual(updatedBookmarks);
+      });
+
       expect(mockGetUserBookmarks).toHaveBeenCalledTimes(2);
+    });
+
+    it('should set loading state during reload', async () => {
+      localStorageMock.setItem('user', JSON.stringify({ id: 1 }));
+      mockGetUserBookmarks.mockResolvedValue({ data: [] });
+
+      const { result } = renderHook(() => useBookmarks(), { wrapper });
+
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      let loadingWasTrue = false;
+      
+      // Create a promise that we control
+      let resolvePromise;
+      const controlledPromise = new Promise(resolve => {
+        resolvePromise = resolve;
+      });
+      
+      mockGetUserBookmarks.mockReturnValue(controlledPromise);
+
+      // Start the reload
+      act(() => {
+        result.current.reloadBookmarks();
+      });
+
+      // Check if loading became true
+      await waitFor(() => {
+        if (result.current.loading === true) {
+          loadingWasTrue = true;
+        }
+        return result.current.loading === true;
+      });
+
+      // Now resolve the promise
+      await act(async () => {
+        resolvePromise({ data: [] });
+        await controlledPromise;
+      });
+
+      expect(loadingWasTrue).toBe(true);
+      expect(result.current.loading).toBe(false);
     });
   });
 });
