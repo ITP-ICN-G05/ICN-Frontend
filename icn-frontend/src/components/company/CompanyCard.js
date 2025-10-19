@@ -37,7 +37,7 @@ function CompanyCard({ company, onClick }) {
         </div>
       </div>
       
-      {company.ownership.length > 0 && (
+      {(company.ownership || []).length > 0 && (
         <div className="company-ownership">
           {(company.ownership || []).map(own => (
             <span key={own} className="ownership-badge">{own}</span>
