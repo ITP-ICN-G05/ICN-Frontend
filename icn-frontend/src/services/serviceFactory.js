@@ -20,7 +20,7 @@ import { mockSubscriptionService } from './mockSubscriptionService';
 import { mockExportService } from './mockExportService';
 import { mockAdminService } from './mockAdminService';
 
-const USE_MOCK = true;
+const USE_MOCK = process.env.REACT_APP_USE_MOCK !== 'false';
 
 export const getService = (serviceName) => {
   if (USE_MOCK) {

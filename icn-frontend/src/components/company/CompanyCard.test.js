@@ -149,4 +149,23 @@ describe('CompanyCard', () => {
       render(<CompanyCard company={mockCompany} />);
     }).not.toThrow();
   });
+
+  // New tests for 100% branch coverage
+  it('handles undefined sectors', () => {
+    const companyUndefinedSectors = { ...mockCompany, sectors: undefined };
+    render(<CompanyCard company={companyUndefinedSectors} onClick={mockOnClick} />);
+    expect(screen.getByText('Sectors:')).toBeInTheDocument();
+  });
+
+  it('handles undefined capabilities', () => {
+    const companyUndefinedCaps = { ...mockCompany, capabilities: undefined };
+    render(<CompanyCard company={companyUndefinedCaps} onClick={mockOnClick} />);
+    expect(screen.getByText('Capabilities:')).toBeInTheDocument();
+  });
+
+  it('handles undefined ownership', () => {
+    const companyUndefinedOwnership = { ...mockCompany, ownership: undefined };
+    const { container } = render(<CompanyCard company={companyUndefinedOwnership} onClick={mockOnClick} />);
+    expect(container.querySelector('.company-ownership')).not.toBeInTheDocument();
+  });
 });
