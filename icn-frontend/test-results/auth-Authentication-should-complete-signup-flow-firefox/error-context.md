@@ -28,7 +28,7 @@
   - main [ref=e25]:
     - generic [ref=e27]:
       - generic [ref=e29]:
-        - heading "Create an account" [level=1] [ref=e31]
+        - heading "Sign up" [level=1] [ref=e31]
         - generic [ref=e32]:
           - generic [ref=e33]:
             - generic [ref=e34]: User name

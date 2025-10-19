@@ -1,0 +1,79 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - link "ICN Victoria Logo Navigator by ICN Victoria" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "ICN Victoria Logo" [ref=e8]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Navigator
+          - generic [ref=e11]: by ICN Victoria
+      - generic [ref=e12]:
+        - button "Log in" [ref=e13] [cursor=pointer]
+        - button "Sign up" [ref=e14] [cursor=pointer]
+  - main [ref=e15]:
+    - generic [ref=e17]:
+      - generic [ref=e19]:
+        - link "Download on the App Store" [ref=e20] [cursor=pointer]:
+          - /url: "#"
+          - img [ref=e22]
+          - generic [ref=e24]:
+            - generic [ref=e25]: Download on the
+            - generic [ref=e26]: App Store
+        - link "GET IT ON Google Play" [ref=e27] [cursor=pointer]:
+          - /url: "#"
+          - img [ref=e29]
+          - generic [ref=e31]:
+            - generic [ref=e32]: GET IT ON
+            - generic [ref=e33]: Google Play
+      - generic [ref=e35]:
+        - heading "Log in" [level=1] [ref=e37]
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - generic [ref=e40]: Email address or user name
+            - textbox "Email address or user name" [ref=e41]:
+              - /placeholder: Enter your email address here
+              - text: test@example.com
+          - generic [ref=e42]:
+            - generic [ref=e43]: Password
+            - generic [ref=e44]:
+              - textbox "Password" [ref=e45]:
+                - /placeholder: Enter your password here
+                - text: password123
+              - button "Show password" [ref=e46] [cursor=pointer]:
+                - img [ref=e47]
+          - generic [ref=e51] [cursor=pointer]:
+            - checkbox "Remember me" [checked] [ref=e52]
+            - generic [ref=e53]: Remember me
+          - paragraph [ref=e55]:
+            - text: By continuing, you agree to the
+            - link "Terms of use" [ref=e56] [cursor=pointer]:
+              - /url: /terms
+            - text: and
+            - link "Privacy Policy" [ref=e57] [cursor=pointer]:
+              - /url: /privacy
+            - text: .
+          - generic [ref=e58]: Invalid email or password. Please try again.
+          - button "Log in" [ref=e59] [cursor=pointer]
+        - link "Forget your password" [ref=e61] [cursor=pointer]:
+          - /url: /forgot-password
+        - paragraph [ref=e63]:
+          - text: Don't have an account?
+          - link "Sign up" [ref=e64] [cursor=pointer]:
+            - /url: /signup
+        - generic [ref=e66]: Or continue with
+        - generic [ref=e67]:
+          - button [ref=e68] [cursor=pointer]:
+            - img [ref=e69]
+          - button [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+          - button [ref=e74] [cursor=pointer]:
+            - img [ref=e75]
+          - button [ref=e80] [cursor=pointer]:
+            - img [ref=e81]
+  - generic [ref=e83]:
+    - generic [ref=e84]: DEV MODE
+    - button "_" [ref=e85] [cursor=pointer]
+```

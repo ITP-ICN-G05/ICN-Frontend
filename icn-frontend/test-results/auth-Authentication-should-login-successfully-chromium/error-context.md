@@ -1,0 +1,100 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - link "ICN Victoria Logo Navigator by ICN Victoria" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "ICN Victoria Logo" [ref=e8]
+        - generic [ref=e9]:
+          - generic [ref=e10]: Navigator
+          - generic [ref=e11]: by ICN Victoria
+      - generic [ref=e12]:
+        - link "Home" [ref=e13] [cursor=pointer]:
+          - /url: /
+        - link "Navigation" [ref=e14] [cursor=pointer]:
+          - /url: /navigation
+        - link "Mobile designs" [ref=e15] [cursor=pointer]:
+          - /url: /mobile-designs
+        - link "Illustrations" [ref=e16] [cursor=pointer]:
+          - /url: /illustrations
+      - generic [ref=e17]:
+        - img [ref=e19]
+        - textbox "Search" [ref=e21]
+      - generic [ref=e22]:
+        - button "Log in" [ref=e23] [cursor=pointer]
+        - button "Sign up" [ref=e24] [cursor=pointer]
+  - main [ref=e25]:
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e29]:
+          - img "Company Information App Screen" [ref=e32]
+          - img "Map Page App Screen" [ref=e35]
+        - generic [ref=e36]:
+          - link "Download on the App Store" [ref=e37] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e39]
+            - generic [ref=e41]:
+              - generic [ref=e42]: Download on the
+              - generic [ref=e43]: App Store
+          - link "GET IT ON Google Play" [ref=e44] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e46]
+            - generic [ref=e48]:
+              - generic [ref=e49]: GET IT ON
+              - generic [ref=e50]: Google Play
+      - generic [ref=e52]:
+        - heading "Log in" [level=1] [ref=e54]
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - generic [ref=e57]: Email address or user name
+            - textbox "Email address or user name" [ref=e58]:
+              - /placeholder: Enter your email address here
+              - text: test@example.com
+          - generic [ref=e59]:
+            - generic [ref=e60]: Password
+            - generic [ref=e61]:
+              - textbox "Password" [ref=e62]:
+                - /placeholder: Enter your password here
+                - text: password123
+              - button "Show password" [ref=e63] [cursor=pointer]:
+                - img [ref=e64]
+          - generic [ref=e68] [cursor=pointer]:
+            - checkbox "Remember me" [checked] [ref=e69]
+            - generic [ref=e70]: Remember me
+          - paragraph [ref=e72]:
+            - text: By continuing, you agree to the
+            - link "Terms of use" [ref=e73] [cursor=pointer]:
+              - /url: /terms
+            - text: and
+            - link "Privacy Policy" [ref=e74] [cursor=pointer]:
+              - /url: /privacy
+            - text: .
+          - generic [ref=e75]: Invalid email or password. Please try again.
+          - button "Log in" [ref=e76] [cursor=pointer]
+        - link "Forget your password" [ref=e78] [cursor=pointer]:
+          - /url: /forgot-password
+        - paragraph [ref=e80]:
+          - text: Don't have an account?
+          - link "Sign up" [ref=e81] [cursor=pointer]:
+            - /url: /signup
+        - generic [ref=e83]: Or continue with
+        - generic [ref=e84]:
+          - button [ref=e85] [cursor=pointer]:
+            - img [ref=e86]
+          - button [ref=e88] [cursor=pointer]:
+            - img [ref=e89]
+          - button [ref=e91] [cursor=pointer]:
+            - img [ref=e92]
+          - button [ref=e97] [cursor=pointer]:
+            - img [ref=e98]
+  - generic [ref=e100]:
+    - generic [ref=e101]: DEV MODE
+    - generic [ref=e102]: "Mock Data: ON"
+    - generic [ref=e103]: "• Companies: 2669"
+    - generic [ref=e104]: "• Verified: 2669"
+    - generic [ref=e105]: "• Sectors: 15"
+    - generic [ref=e106]: "• Source: ICN JSON"
+    - button "_" [ref=e107] [cursor=pointer]
+```
