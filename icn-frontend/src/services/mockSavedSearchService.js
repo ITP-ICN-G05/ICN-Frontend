@@ -4,6 +4,7 @@ import { TIER_FEATURES, TIER_LIMITS } from '../utils/tierConfig';
 class MockSavedSearchService {
   constructor() {
     this.savedSearches = new Map(); // userId -> array of saved searches
+    this.idCounter = 0; // Add counter for unique IDs
   }
   
   async getSavedSearches() {
@@ -16,7 +17,7 @@ class MockSavedSearchService {
     
     const searches = this.savedSearches.get(user.id) || [];
     
-    return { data: searches };
+    return { data: [...searches] };
   }
   
   async saveSearch(searchData) {
@@ -40,7 +41,7 @@ class MockSavedSearchService {
     }
     
     const newSearch = {
-      id: 'search_' + Date.now(),
+      id: 'search_' + (++this.idCounter), // Use counter instead of Date.now()
       name: searchData.name || `Search ${new Date().toLocaleDateString()}`,
       query: searchData.query || '',
       filters: searchData.filters || {},
@@ -51,8 +52,7 @@ class MockSavedSearchService {
       enableAlerts: false
     };
     
-    userSearches.push(newSearch);
-    this.savedSearches.set(user.id, userSearches);
+    this.savedSearches.set(user.id, [...userSearches, newSearch]);
     
     return { data: newSearch };
   }
@@ -68,9 +68,16 @@ class MockSavedSearchService {
       throw new Error('Saved search not found');
     }
     
-    userSearches[index] = { ...userSearches[index], ...searchData };
+    const updatedSearch = { ...userSearches[index], ...searchData };
+    const newSearches = [
+      ...userSearches.slice(0, index),
+      updatedSearch,
+      ...userSearches.slice(index + 1)
+    ];
     
-    return { data: userSearches[index] };
+    this.savedSearches.set(user.id, newSearches);
+    
+    return { data: updatedSearch };
   }
   
   async deleteSearch(id) {
@@ -91,15 +98,26 @@ class MockSavedSearchService {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const userSearches = this.savedSearches.get(user.id) || [];
     
-    const search = userSearches.find(s => s.id === id);
-    if (!search) {
+    const searchIndex = userSearches.findIndex(s => s.id === id);
+    if (searchIndex === -1) {
       throw new Error('Saved search not found');
     }
     
-    // Update last executed time
-    search.lastExecuted = new Date().toISOString();
+    const search = userSearches[searchIndex];
     
-    // Return redirect URL instead of executing search directly
+    const updatedSearch = {
+      ...search,
+      lastExecuted: new Date().toISOString()
+    };
+    
+    const newSearches = [
+      ...userSearches.slice(0, searchIndex),
+      updatedSearch,
+      ...userSearches.slice(searchIndex + 1)
+    ];
+    
+    this.savedSearches.set(user.id, newSearches);
+    
     const params = new URLSearchParams();
     if (search.query) params.set('q', search.query);
     
@@ -134,14 +152,25 @@ class MockSavedSearchService {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const userSearches = this.savedSearches.get(user.id) || [];
     
-    const search = userSearches.find(s => s.id === id);
-    if (!search) {
+    const searchIndex = userSearches.findIndex(s => s.id === id);
+    if (searchIndex === -1) {
       throw new Error('Saved search not found');
     }
     
-    search.enableAlerts = enabled;
+    const updatedSearch = {
+      ...userSearches[searchIndex],
+      enableAlerts: enabled
+    };
     
-    return { data: search };
+    const newSearches = [
+      ...userSearches.slice(0, searchIndex),
+      updatedSearch,
+      ...userSearches.slice(searchIndex + 1)
+    ];
+    
+    this.savedSearches.set(user.id, newSearches);
+    
+    return { data: updatedSearch };
   }
   
   delay(ms) {
