@@ -95,7 +95,7 @@ function NavigationPage() {
     
     if (filters.ownership.length > 0) {
       filtered = filtered.filter(company =>
-        filters.ownership.some(own => company.ownership.includes(own))
+        filters.ownership.some(own => (company.ownership || []).includes(own))
       );
     }
     

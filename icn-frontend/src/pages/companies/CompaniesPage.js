@@ -249,7 +249,7 @@ function CompaniesPage() {
           </div>
         )}
         
-        {userTier === 'premium' && company.ownership.length > 0 && (
+        {userTier === 'premium' && (company.ownership || []).length > 0 && (
           <div className="ownership-badges">
             {(company.ownership || []).map(own => (
               <span key={own} className="ownership-badge">{own}</span>
