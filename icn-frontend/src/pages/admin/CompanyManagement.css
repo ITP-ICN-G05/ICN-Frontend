@@ -1,97 +1,245 @@
 .company-management {
-    min-height: calc(100vh - 70px);
-    background: #F5F6FA;
-    padding: 32px;
-  }
-  
-  .management-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
-  }
-  
-  .management-header h1 {
-    color: var(--navy);
-  }
-  
-  .btn-add {
-    padding: 12px 24px;
-    background: var(--primary-orange);
-    color: var(--white);
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  
-  .management-controls {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  
-  .search-input {
-    flex: 1;
-    padding: 12px;
-    border: 1px solid var(--black-20);
-    border-radius: 8px;
-    font-size: 1rem;
-  }
-  
-  .btn-import,
-  .btn-export {
-    padding: 12px 24px;
-    background: var(--white);
-    border: 1px solid var(--black-20);
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-  }
-  
-  .companies-table {
-    background: var(--white);
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  
-  .companies-table table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .companies-table th {
-    background: var(--navy);
-    color: var(--white);
-    padding: 16px;
-    text-align: left;
-  }
-  
-  .companies-table td {
-    padding: 16px;
-    border-bottom: 1px solid var(--black-20);
-  }
-  
-  .status.verified {
-    color: var(--success);
-  }
-  
-  .btn-edit,
-  .btn-delete {
-    padding: 6px 12px;
-    margin: 0 4px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.875rem;
-  }
-  
-  .btn-edit {
-    background: var(--orange-bg);
-    color: var(--black-80);
-  }
-  
-  .btn-delete {
-    background: rgba(220, 38, 38, 0.1);
-    color: var(--error);
-  }
+  min-height: calc(100vh - 70px);
+  background: #F5F6FA;
+  padding: 32px;
+}
+
+.management-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.management-header h1 {
+  color: var(--navy);
+  margin: 0;
+}
+
+.btn-add {
+  padding: 12px 24px;
+  background: var(--primary-orange);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-add:hover {
+  opacity: 0.9;
+}
+
+.management-controls {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid var(--black-20);
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-orange);
+}
+
+.btn-import,
+.btn-export {
+  padding: 12px 24px;
+  background: var(--white);
+  border: 1px solid var(--black-20);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-import:hover,
+.btn-export:hover {
+  background: #f9fafb;
+}
+
+.companies-table {
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.companies-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.companies-table th {
+  background: var(--navy);
+  color: var(--white);
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.companies-table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--black-20);
+}
+
+.companies-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.status {
+  display: inline-block;
+  font-weight: 500;
+}
+
+.status.verified {
+  color: var(--success);
+}
+
+.status:not(.verified) {
+  color: var(--error);
+}
+
+.btn-edit,
+.btn-delete {
+  padding: 6px 12px;
+  margin: 0 4px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.btn-edit {
+  background: var(--orange-bg);
+  color: var(--black-80);
+}
+
+.btn-edit:hover {
+  opacity: 0.8;
+}
+
+.btn-delete {
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--error);
+}
+
+.btn-delete:hover {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--white);
+  padding: 32px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-content h2 {
+  margin: 0 0 24px 0;
+  color: var(--navy);
+  font-size: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--black-80);
+  font-size: 0.875rem;
+}
+
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--black-20);
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.form-group input[type="text"]:focus {
+  outline: none;
+  border-color: var(--primary-orange);
+}
+
+.form-group input[type="checkbox"] {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.form-group label:has(input[type="checkbox"]) {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-save {
+  flex: 1;
+  padding: 12px 24px;
+  background: var(--primary-orange);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-save:hover {
+  opacity: 0.9;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 12px 24px;
+  background: var(--white);
+  color: var(--black-80);
+  border: 1px solid var(--black-20);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #f9fafb;
+}

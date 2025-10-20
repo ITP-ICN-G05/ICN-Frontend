@@ -9,6 +9,9 @@ function NavigationBar({ user, onLogout }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
 
+  // Check if user is admin
+  const isAdmin = user?.role === 'admin' || user?.isAdmin === true;
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -38,6 +41,11 @@ function NavigationBar({ user, onLogout }) {
 
   const handleProfileClick = () => {
     navigate('/profile');
+    setShowUserMenu(false);
+  };
+
+  const handleAdminClick = () => {
+    navigate('/admin');
     setShowUserMenu(false);
   };
 
@@ -110,6 +118,7 @@ function NavigationBar({ user, onLogout }) {
                   <div className="dropdown-header">
                     <div className="dropdown-user-name">{user.name}</div>
                     <div className="dropdown-user-email">{user.email}</div>
+                    {isAdmin && <div className="dropdown-user-role">Admin</div>}
                   </div>
                   <div className="dropdown-divider"></div>
                   <button className="dropdown-item" onClick={handleProfileClick}>
@@ -121,6 +130,17 @@ function NavigationBar({ user, onLogout }) {
                   <button className="dropdown-item" onClick={() => {navigate('/search'); setShowUserMenu(false);}}>
                     🔍 Search
                   </button>
+                  
+                  {/* Admin Menu Item - Only shown for admins */}
+                  {isAdmin && (
+                    <>
+                      <div className="dropdown-divider"></div>
+                      <button className="dropdown-item dropdown-item-admin" onClick={handleAdminClick}>
+                        ⚙️ Admin Dashboard
+                      </button>
+                    </>
+                  )}
+                  
                   <div className="dropdown-divider"></div>
                   <button className="dropdown-item logout" onClick={handleLogoutClick}>
                     🚪 Log out
