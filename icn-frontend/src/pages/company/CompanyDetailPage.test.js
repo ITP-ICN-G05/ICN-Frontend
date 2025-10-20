@@ -1,15 +1,15 @@
 // src/pages/company/CompanyDetailPage.test.js
 import React from 'react';
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders, mockUsers, mockCompanies } from '../../utils/testUtils';
+import { renderWithProviders, mockUsers } from '../../utils/testUtils';
 import CompanyDetailPage from './CompanyDetailPage';
 import { getCompanyService, getBookmarkService } from '../../services/serviceFactory';
 
 // Mock the service factory
 jest.mock('../../services/serviceFactory');
 
-// Mock navigator.clipboard
+// Mock navigator.clipboard and set up secure context
 Object.assign(navigator, {
   clipboard: {
     writeText: jest.fn(() => Promise.resolve()),
@@ -17,12 +17,18 @@ Object.assign(navigator, {
   share: jest.fn(() => Promise.resolve()),
 });
 
+// Set secure context for clipboard API
+Object.defineProperty(window, 'isSecureContext', {
+  writable: true,
+  configurable: true,
+  value: true,
+});
+
 describe('CompanyDetailPage', () => {
   let mockCompanyService;
   let mockBookmarkService;
   
   beforeAll(() => {
-    // Mock window.alert for all tests
     global.alert = jest.fn();
   });
 
@@ -94,13 +100,9 @@ describe('CompanyDetailPage', () => {
   };
 
   beforeEach(() => {
-    // Clear localStorage
     localStorage.clear();
-    
-    // Reset mocks
     jest.clearAllMocks();
     
-    // Setup service mocks
     mockCompanyService = {
       getById: jest.fn(),
     };
@@ -114,7 +116,6 @@ describe('CompanyDetailPage', () => {
     getCompanyService.mockReturnValue(mockCompanyService);
     getBookmarkService.mockReturnValue(mockBookmarkService);
     
-    // Ensure no bookmarks in localStorage by default
     localStorage.setItem('bookmarkedCompanies', JSON.stringify([]));
   });
 
@@ -196,6 +197,41 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText('Manufacturing')).toBeInTheDocument();
       });
     });
+
+    test('handles avatar image error and shows fallback', async () => {
+      mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+
+      const { container } = renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
+      });
+
+      const avatarImg = container.querySelector('.avatar-image');
+      
+      if (avatarImg) {
+        // Simulate image error by creating a proper error event
+        const errorEvent = new Event('error', { bubbles: true });
+        Object.defineProperty(errorEvent, 'target', {
+          value: avatarImg,
+          writable: false,
+          configurable: true
+        });
+        
+        avatarImg.dispatchEvent(errorEvent);
+
+        await waitFor(() => {
+          expect(avatarImg.style.display).toBe('none');
+          const fallback = container.querySelector('.avatar-text');
+          expect(fallback).toBeInTheDocument();
+          expect(fallback.textContent).toBe('T'); // First letter of company name
+        });
+      }
+    });
   });
 
   describe('User Tier-Based Content Visibility', () => {
@@ -214,16 +250,9 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
       });
 
-      // Should NOT show ABN
       expect(screen.queryByText('Company ABN')).not.toBeInTheDocument();
-      
-      // Should NOT show company summary
       expect(screen.queryByText('Company Summary')).not.toBeInTheDocument();
-      
-      // Should NOT show diversity markers
       expect(screen.queryByText('Diversity Markers')).not.toBeInTheDocument();
-      
-      // Should NOT show past projects
       expect(screen.queryByText('Past Projects')).not.toBeInTheDocument();
     });
 
@@ -237,17 +266,10 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
       });
 
-      // Should show ABN
       expect(screen.getByText('Company ABN')).toBeInTheDocument();
       expect(screen.getByText('12 345678901')).toBeInTheDocument();
-      
-      // Should show company summary
       expect(screen.getByText('Company Summary')).toBeInTheDocument();
-      
-      // Should NOT show diversity markers (premium only)
       expect(screen.queryByText('Diversity Markers')).not.toBeInTheDocument();
-      
-      // Should NOT show past projects (premium only)
       expect(screen.queryByText('Past Projects')).not.toBeInTheDocument();
     });
 
@@ -261,25 +283,14 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
       });
 
-      // Should show ABN
       expect(screen.getByText('Company ABN')).toBeInTheDocument();
-      
-      // Should show company summary
       expect(screen.getByText('Company Summary')).toBeInTheDocument();
-      
-      // Should show diversity markers
       expect(screen.getByText('Diversity Markers')).toBeInTheDocument();
       expect(screen.getByText('Female-owned')).toBeInTheDocument();
       expect(screen.getByText('Social Enterprise')).toBeInTheDocument();
-      
-      // Should show certifications
       expect(screen.getByText('Certifications & Badges')).toBeInTheDocument();
       expect(screen.getByText('ISO 9001')).toBeInTheDocument();
-      
-      // Should show past projects
       expect(screen.getByText('Past Projects')).toBeInTheDocument();
-      
-      // Should show business metrics
       expect(screen.getByText('Business Metrics')).toBeInTheDocument();
     });
 
@@ -293,16 +304,40 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText('Items & Services')).toBeInTheDocument();
       });
 
-      // Expand capabilities
       const capabilitiesHeader = screen.getByText('Items & Services').closest('.collapsible-header-capability');
       await userEvent.click(capabilitiesHeader);
 
       await waitFor(() => {
-        // Look for the badge specifically, not just any text
         const capabilityBadges = document.querySelectorAll('.modern-capability-type-badge');
         expect(capabilityBadges.length).toBeGreaterThan(0);
         expect(capabilityBadges[0].textContent).toBe('Manufacturing');
         expect(screen.getByText('85% Local')).toBeInTheDocument();
+      });
+    });
+
+    test('plus tier shows capability type badges but not local content', async () => {
+      mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.plus,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Items & Services')).toBeInTheDocument();
+      });
+
+      const capabilitiesHeader = screen.getByText('Items & Services').closest('.collapsible-header-capability');
+      await userEvent.click(capabilitiesHeader);
+
+      await waitFor(() => {
+        const typeBadges = document.querySelectorAll('.modern-capability-type-badge');
+        expect(typeBadges.length).toBeGreaterThan(0);
+        expect(typeBadges[0].textContent).toBe('Manufacturing');
+        
+        // Plus tier should NOT show local content percentage
+        expect(screen.queryByText('85% Local')).not.toBeInTheDocument();
       });
     });
   });
@@ -313,7 +348,6 @@ describe('CompanyDetailPage', () => {
     });
 
     test('shows unbookmarked state initially', async () => {
-      // Return false directly, not wrapped in { data: false }
       mockBookmarkService.isBookmarked.mockResolvedValue(false);
       
       const { container } = renderWithProviders(<CompanyDetailPage />, {
@@ -321,12 +355,10 @@ describe('CompanyDetailPage', () => {
         user: mockUsers.free,
       });
 
-      // Wait for company data to load first
       await waitFor(() => {
         expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
       });
 
-      // Find bookmark button directly by class
       await waitFor(() => {
         const bookmarkButton = container.querySelector('.bookmark-action');
         expect(bookmarkButton).toBeTruthy();
@@ -337,7 +369,6 @@ describe('CompanyDetailPage', () => {
     });
 
     test('shows bookmarked state when company is bookmarked', async () => {
-      // Return true directly
       mockBookmarkService.isBookmarked.mockResolvedValue(true);
       
       const { container } = renderWithProviders(<CompanyDetailPage />, {
@@ -366,12 +397,10 @@ describe('CompanyDetailPage', () => {
         user: mockUsers.free,
       });
 
-      // Wait for company data to load
       await waitFor(() => {
         expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
       });
 
-      // Find bookmark button
       let bookmarkButton;
       await waitFor(() => {
         bookmarkButton = container.querySelector('.bookmark-action');
@@ -456,6 +485,33 @@ describe('CompanyDetailPage', () => {
         expect(bookmarkedButton.textContent).toContain('Bookmarked');
       });
     });
+
+    test('shows error message when bookmark fails with message', async () => {
+      window.alert = jest.fn();
+      
+      mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
+      mockBookmarkService.isBookmarked.mockResolvedValue(false);
+      mockBookmarkService.addBookmark.mockRejectedValue(new Error('Bookmark limit reached'));
+
+      const { container } = renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
+      });
+
+      const bookmarkButton = await waitFor(() => {
+        return container.querySelector('.bookmark-action');
+      });
+
+      await userEvent.click(bookmarkButton);
+
+      await waitFor(() => {
+        expect(window.alert).toHaveBeenCalledWith('Bookmark limit reached');
+      });
+    });
   });
 
   describe('Collapsible Sections', () => {
@@ -474,10 +530,8 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText('Company Summary')).toBeInTheDocument();
       });
 
-      // Summary should be collapsed initially
       expect(screen.queryByText(mockCompanyData.description)).not.toBeInTheDocument();
 
-      // Click to expand
       const summaryHeader = screen.getByText('Company Summary').closest('.collapsible-header');
       await userEvent.click(summaryHeader);
 
@@ -485,7 +539,6 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText(mockCompanyData.description)).toBeInTheDocument();
       });
 
-      // Click to collapse
       await userEvent.click(summaryHeader);
 
       await waitFor(() => {
@@ -503,7 +556,6 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText('Items & Services')).toBeInTheDocument();
       });
 
-      // Click to expand
       const capabilitiesHeader = screen.getByText('Items & Services').closest('.collapsible-header-capability');
       await userEvent.click(capabilitiesHeader);
 
@@ -523,10 +575,8 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText('Contact Details')).toBeInTheDocument();
       });
 
-      // Contact should be collapsed initially
       expect(screen.queryByText('contact@techsolutions.com.au')).not.toBeInTheDocument();
 
-      // Click to expand
       const contactHeader = screen.getByText('Contact Details').closest('.collapsible-header-contact');
       await userEvent.click(contactHeader);
 
@@ -545,7 +595,6 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText('Past Projects')).toBeInTheDocument();
       });
 
-      // Click to expand
       const projectsHeader = screen.getByText('Past Projects').closest('.collapsible-header-projects');
       await userEvent.click(projectsHeader);
 
@@ -553,6 +602,34 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText('Infrastructure Project')).toBeInTheDocument();
         expect(screen.getByText('Manufacturing Solution')).toBeInTheDocument();
       });
+    });
+
+    test('shows capability preview when collapsed', async () => {
+      mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+
+      const { container } = renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.premium,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Items & Services')).toBeInTheDocument();
+      });
+
+      // Capabilities should be collapsed by default, showing preview
+      await waitFor(() => {
+        const previewContainer = container.querySelector('.preview-container');
+        expect(previewContainer).toBeInTheDocument();
+        
+        const previewTags = container.querySelectorAll('.preview-tag');
+        expect(previewTags.length).toBeLessThanOrEqual(3);
+      });
+
+      // If more than 3 capabilities, should show "+X more" tag
+      if (mockCompanyData.icnCapabilities.length > 3) {
+        expect(container.querySelector('.more-tag')).toBeInTheDocument();
+      }
     });
   });
 
@@ -584,18 +661,15 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText('Items & Services')).toBeInTheDocument();
       });
 
-      // Expand capabilities
       const capabilitiesHeader = screen.getByText('Items & Services').closest('.collapsible-header-capability');
       await userEvent.click(capabilitiesHeader);
 
       await waitFor(() => {
-        // Should show first 6 capabilities
         expect(screen.getByText('Capability 1')).toBeInTheDocument();
         expect(screen.getByText('Capability 6')).toBeInTheDocument();
         expect(screen.queryByText('Capability 7')).not.toBeInTheDocument();
       });
 
-      // Click next page
       const nextButtons = screen.getAllByRole('button');
       const nextButton = nextButtons.find(btn => {
         const svg = btn.querySelector('polyline');
@@ -626,6 +700,135 @@ describe('CompanyDetailPage', () => {
       await waitFor(() => {
         const prevButton = document.querySelector('.separated-nav-button.disabled');
         expect(prevButton).toBeInTheDocument();
+      });
+    });
+
+    test('navigates capabilities using page dots', async () => {
+      const manyCapabilities = Array.from({ length: 15 }, (_, i) => ({
+        itemName: `Capability ${i + 1}`,
+        detailedItemName: `Detailed capability ${i + 1}`,
+        capabilityType: 'Manufacturing',
+        localContentPercentage: 75,
+      }));
+
+      mockCompanyService.getById.mockResolvedValue({
+        data: {
+          ...mockCompanyData,
+          icnCapabilities: manyCapabilities,
+        },
+      });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+
+      const { container } = renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.premium,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Items & Services')).toBeInTheDocument();
+      });
+
+      const capabilitiesHeader = screen.getByText('Items & Services').closest('.collapsible-header-capability');
+      await userEvent.click(capabilitiesHeader);
+
+      await waitFor(() => {
+        const pageDots = container.querySelectorAll('.compact-page-dot');
+        expect(pageDots.length).toBe(3); // 15 capabilities / 6 per page = 3 pages
+      });
+
+      // Click second page dot
+      const pageDots = container.querySelectorAll('.compact-page-dot');
+      await userEvent.click(pageDots[1]);
+
+      await waitFor(() => {
+        expect(screen.getByText('Capability 7')).toBeInTheDocument();
+        expect(screen.queryByText('Capability 1')).not.toBeInTheDocument();
+      });
+    });
+
+    test('shows correct capability count in badge', async () => {
+      const manyCapabilities = Array.from({ length: 15 }, (_, i) => ({
+        itemName: `Capability ${i + 1}`,
+        capabilityType: 'Manufacturing',
+      }));
+
+      mockCompanyService.getById.mockResolvedValue({
+        data: {
+          ...mockCompanyData,
+          icnCapabilities: manyCapabilities,
+        },
+      });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+
+      const { container } = renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.premium,
+      });
+
+      await waitFor(() => {
+        const countBadge = container.querySelector('.items-count-badge');
+        expect(countBadge).toBeInTheDocument();
+        expect(countBadge.textContent).toBe('15');
+      });
+
+      // Expand and check paginated count
+      const capabilitiesHeader = screen.getByText('Items & Services').closest('.collapsible-header-capability');
+      await userEvent.click(capabilitiesHeader);
+
+      await waitFor(() => {
+        const countBadge = container.querySelector('.items-count-badge');
+        expect(countBadge.textContent).toBe('6/15'); // First page showing 6 of 15
+      });
+    });
+
+    test('paginates past projects correctly', async () => {
+      const manyProjects = Array.from({ length: 10 }, (_, i) => ({
+        id: i + 1,
+        name: `Project ${i + 1}`,
+        description: `Description for project ${i + 1}`,
+        client: `Client ${i + 1}`,
+        date: '2023',
+        value: 1000000 * (i + 1),
+      }));
+
+      mockCompanyService.getById.mockResolvedValue({
+        data: {
+          ...mockCompanyData,
+          pastProjects: manyProjects,
+        },
+      });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.premium,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Past Projects')).toBeInTheDocument();
+      });
+
+      const projectsHeader = screen.getByText('Past Projects').closest('.collapsible-header-projects');
+      await userEvent.click(projectsHeader);
+
+      await waitFor(() => {
+        expect(screen.getByText('Project 1')).toBeInTheDocument();
+        expect(screen.getByText('Project 3')).toBeInTheDocument();
+        expect(screen.queryByText('Project 4')).not.toBeInTheDocument();
+      });
+
+      // Navigate to next page
+      const nextButtons = screen.getAllByRole('button');
+      const nextButton = nextButtons.find(btn => {
+        const svg = btn.querySelector('polyline');
+        return svg && svg.getAttribute('points') === '9 18 15 12 9 6';
+      });
+      
+      await userEvent.click(nextButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Project 4')).toBeInTheDocument();
+        expect(screen.getByText('Project 6')).toBeInTheDocument();
       });
     });
   });
@@ -699,15 +902,49 @@ describe('CompanyDetailPage', () => {
         );
       });
     });
+
+    test('shows analyze placeholder message', async () => {
+      window.alert = jest.fn();
+      
+      mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.premium,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Analyze')).toBeInTheDocument();
+      });
+
+      const analyzeButton = screen.getByText('Analyze').closest('button');
+      await userEvent.click(analyzeButton);
+
+      expect(window.alert).toHaveBeenCalledWith('Analysis coming soon');
+    });
   });
 
   describe('Contact Actions', () => {
+    let originalLocation;
+
     beforeEach(() => {
       mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
       mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
       window.open = jest.fn();
+      
+      // Save original location
+      originalLocation = window.location;
+      
+      // Mock window.location for these tests
       delete window.location;
       window.location = { href: '' };
+    });
+
+    afterEach(() => {
+      // Restore window.location properly
+      delete window.location;
+      window.location = originalLocation;
     });
 
     test('opens website when clicked', async () => {
@@ -773,6 +1010,37 @@ describe('CompanyDetailPage', () => {
 
       expect(window.location.href).toBe('mailto:contact@techsolutions.com.au');
     });
+
+    test('handles website without https protocol', async () => {
+      const companyWithBasicURL = {
+        ...mockCompanyData,
+        website: 'www.techsolutions.com.au',
+      };
+
+      mockCompanyService.getById.mockResolvedValue({ data: companyWithBasicURL });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+      window.open = jest.fn();
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Contact Details')).toBeInTheDocument();
+      });
+
+      const contactHeader = screen.getByText('Contact Details').closest('.collapsible-header-contact');
+      await userEvent.click(contactHeader);
+
+      const websiteRow = screen.getByText('Website').closest('.contact-row');
+      await userEvent.click(websiteRow);
+
+      expect(window.open).toHaveBeenCalledWith(
+        'https://www.techsolutions.com.au',
+        '_blank'
+      );
+    });
   });
 
   describe('Edge Cases', () => {
@@ -796,10 +1064,7 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText('Minimal Company')).toBeInTheDocument();
       });
 
-      // Should not show verified badge
       expect(screen.queryByText(/ICN Verified/)).not.toBeInTheDocument();
-      
-      // Should handle missing address
       expect(screen.queryByText('Address not available')).toBeInTheDocument();
     });
 
@@ -822,7 +1087,6 @@ describe('CompanyDetailPage', () => {
         expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
       });
 
-      // Should not show capabilities section
       expect(screen.queryByText('Items & Services')).not.toBeInTheDocument();
     });
 
@@ -832,28 +1096,508 @@ describe('CompanyDetailPage', () => {
 
       const { container } = renderWithProviders(<CompanyDetailPage />, {
         initialEntries: ['/company/1'],
-        // No user provided - simulating unauthenticated state
       });
 
-      // Wait for company data to load
       await waitFor(() => {
         expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
       });
 
-      // Find bookmark button - should still render even without auth
       let bookmarkButton;
       await waitFor(() => {
         bookmarkButton = container.querySelector('.bookmark-action');
         expect(bookmarkButton).toBeTruthy();
       }, { timeout: 3000 });
       
-      // Click should trigger navigation attempt
       await userEvent.click(bookmarkButton);
       
-      // Bookmark service should not be called when not authenticated
       await waitFor(() => {
         expect(mockBookmarkService.addBookmark).not.toHaveBeenCalled();
       }, { timeout: 500 });
+    });
+
+    test('handles projects without value', async () => {
+      const projectsWithoutValue = [
+        {
+          id: 1,
+          name: 'Confidential Project',
+          description: 'Details are confidential',
+          client: 'Private Client',
+          date: '2023',
+          value: null,
+        },
+      ];
+
+      mockCompanyService.getById.mockResolvedValue({
+        data: {
+          ...mockCompanyData,
+          pastProjects: projectsWithoutValue,
+        },
+      });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.premium,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Past Projects')).toBeInTheDocument();
+      });
+
+      const projectsHeader = screen.getByText('Past Projects').closest('.collapsible-header-projects');
+      await userEvent.click(projectsHeader);
+
+      await waitFor(() => {
+        expect(screen.getByText('Confidential Project')).toBeInTheDocument();
+        // Value badge should not be present when value is null
+        const valueBadges = document.querySelectorAll('.project-value-badge');
+        expect(valueBadges.length).toBe(0);
+      });
+    });
+  });
+
+  describe('Helper Functions', () => {
+    beforeEach(() => {
+      mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+    });
+
+    test('formats ABN with correct spacing', async () => {
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.plus,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('12 345678901')).toBeInTheDocument();
+      });
+    });
+
+    test('handles missing contact information with placeholders', async () => {
+      const companyNoContact = {
+        ...mockCompanyData,
+        phone: null,
+        email: null,
+        website: null,
+      };
+
+      mockCompanyService.getById.mockResolvedValue({ data: companyNoContact });
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Contact Details')).toBeInTheDocument();
+      });
+
+      const contactHeader = screen.getByText('Contact Details').closest('.collapsible-header-contact');
+      await userEvent.click(contactHeader);
+
+      await waitFor(() => {
+        expect(screen.getAllByText('Visit ICN Portal').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Contact via ICN Portal').length).toBeGreaterThan(0);
+      });
+    });
+
+    test('shows ICN contact modal for missing contact info', async () => {
+      window.alert = jest.fn();
+      
+      const companyNoContact = {
+        ...mockCompanyData,
+        website: null,
+      };
+
+      mockCompanyService.getById.mockResolvedValue({ data: companyNoContact });
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Contact Details')).toBeInTheDocument();
+      });
+
+      const contactHeader = screen.getByText('Contact Details').closest('.collapsible-header-contact');
+      await userEvent.click(contactHeader);
+
+      const websiteRow = screen.getByText('Website').closest('.contact-row');
+      await userEvent.click(websiteRow);
+
+      expect(window.alert).toHaveBeenCalledWith(
+        expect.stringContaining('ICN Victoria portal')
+      );
+    });
+  });
+
+  describe('Products and Services', () => {
+    test('displays products section when available', async () => {
+      mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Products')).toBeInTheDocument();
+        expect(screen.getByText('Product A')).toBeInTheDocument();
+        expect(screen.getByText('High quality product')).toBeInTheDocument();
+      });
+    });
+
+    test('displays services section when available', async () => {
+      mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Services')).toBeInTheDocument();
+        expect(screen.getByText('Service B')).toBeInTheDocument();
+        expect(screen.getByText('Professional service')).toBeInTheDocument();
+      });
+    });
+
+    test('hides products and services when not available', async () => {
+      const companyNoProductsServices = {
+        ...mockCompanyData,
+        products: [],
+        services: [],
+      };
+
+      mockCompanyService.getById.mockResolvedValue({ data: companyNoProductsServices });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText('Products')).not.toBeInTheDocument();
+      expect(screen.queryByText('Services')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Industry News Section', () => {
+    beforeEach(() => {
+      mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+      window.open = jest.fn();
+    });
+
+    test('expands and collapses news section', async () => {
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Industry News & Trends')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText(/ICN Victoria Industry Research Team/)).not.toBeInTheDocument();
+
+      const newsHeader = screen.getByText('Industry News & Trends').closest('.collapsible-header-news');
+      await userEvent.click(newsHeader);
+
+      await waitFor(() => {
+        expect(screen.getByText(/ICN Victoria Industry Research Team/)).toBeInTheDocument();
+      });
+    });
+
+    test('opens external news link', async () => {
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Industry News & Trends')).toBeInTheDocument();
+      });
+
+      const newsHeader = screen.getByText('Industry News & Trends').closest('.collapsible-header-news');
+      await userEvent.click(newsHeader);
+
+      await waitFor(() => {
+        const viewAllButton = screen.getByText('View All ICN News').closest('button');
+        expect(viewAllButton).toBeInTheDocument();
+      });
+
+      const viewAllButton = screen.getByText('View All ICN News').closest('button');
+      await userEvent.click(viewAllButton);
+
+      expect(window.open).toHaveBeenCalledWith('https://icn.org.au/news', '_blank');
+    });
+
+    test('shows sector-specific news subtitle', async () => {
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        const subtitle = screen.getByText(/ICN Victoria research and insights for Technology/);
+        expect(subtitle).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Business Metrics - Premium Tier', () => {
+    test('displays all business metrics for premium users', async () => {
+      mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.premium,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Business Metrics')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Annual Revenue')).toBeInTheDocument();
+      expect(screen.getByText('$25.0M')).toBeInTheDocument();
+      
+      expect(screen.getByText('Team Size')).toBeInTheDocument();
+      expect(screen.getByText('150')).toBeInTheDocument();
+      
+      expect(screen.getByText('Local Content')).toBeInTheDocument();
+      expect(screen.getByText('75%')).toBeInTheDocument();
+    });
+
+    test('hides business metrics for basic tier', async () => {
+      mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: { ...mockUsers.free, tier: 'basic' },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText('Business Metrics')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Export Functionality', () => {
+    beforeEach(() => {
+      mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+      console.log = jest.fn();
+    });
+
+    test('shows export tier information for basic users', async () => {
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: { ...mockUsers.free, tier: 'basic' },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Export Data')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Basic info')).toBeInTheDocument();
+    });
+
+    test('shows export tier information for plus users', async () => {
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.plus,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Export Data')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Limited data')).toBeInTheDocument();
+    });
+
+    test('shows export tier information for premium users', async () => {
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.premium,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Export Data')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Complete profile')).toBeInTheDocument();
+    });
+
+    test('triggers export functionality', async () => {
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.premium,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Export Data')).toBeInTheDocument();
+      });
+
+      const exportButton = screen.getByText('Export Data').closest('button');
+      await userEvent.click(exportButton);
+
+      expect(console.log).toHaveBeenCalledWith('Exporting company profile as PDF');
+    });
+  });
+
+  describe('Share Functionality Fallbacks', () => {
+    let originalClipboard;
+    let originalShare;
+    let originalLocation;
+
+    beforeEach(() => {
+      mockCompanyService.getById.mockResolvedValue({ data: mockCompanyData });
+      mockBookmarkService.isBookmarked.mockResolvedValue({ data: false });
+      
+      // Save originals
+      originalClipboard = navigator.clipboard;
+      originalShare = navigator.share;
+      originalLocation = window.location;
+      
+      // Ensure window.location is available with href
+      if (!window.location || !window.location.href) {
+        delete window.location;
+        window.location = { href: 'http://localhost:3000/company/1' };
+      }
+    });
+
+    afterEach(() => {
+      // Restore to original state
+      if (!navigator.share && originalShare) {
+        navigator.share = originalShare;
+      }
+      if (navigator.clipboard !== originalClipboard) {
+        Object.defineProperty(navigator, 'clipboard', {
+          writable: true,
+          configurable: true,
+          value: originalClipboard
+        });
+      }
+      if (window.location !== originalLocation) {
+        delete window.location;
+        window.location = originalLocation;
+      }
+    });
+
+    test('falls back to clipboard when share API unavailable', async () => {
+      // Remove share API
+      delete navigator.share;
+      
+      // Create a completely fresh, isolated mock for clipboard
+      const freshWriteTextMock = jest.fn(() => Promise.resolve());
+      Object.defineProperty(navigator, 'clipboard', {
+        writable: true,
+        configurable: true,
+        value: { writeText: freshWriteTextMock }
+      });
+      
+      // Set up window.location.href to return the company URL
+      delete window.location;
+      window.location = {
+        href: 'http://localhost:3000/company/1',
+        protocol: 'http:',
+        host: 'localhost:3000',
+        pathname: '/company/1'
+      };
+      
+      window.alert = jest.fn();
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
+        expect(screen.getByText('Share')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByText('Share').closest('button');
+      
+      // Verify mock is clean before clicking
+      expect(freshWriteTextMock).not.toHaveBeenCalled();
+      
+      await userEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(freshWriteTextMock).toHaveBeenCalled();
+        expect(window.alert).toHaveBeenCalledWith('Link copied to clipboard');
+      });
+      
+      // Verify it was called with a URL
+      expect(freshWriteTextMock).toHaveBeenCalledTimes(1);
+      const callArg = freshWriteTextMock.mock.calls[0][0];
+      // Just verify it was called with some URL string
+      expect(typeof callArg).toBe('string');
+      expect(callArg.length).toBeGreaterThan(0);
+    });
+
+    test('uses execCommand fallback when clipboard API unavailable', async () => {
+      delete navigator.share;
+      delete navigator.clipboard;
+      
+      // Mock document.execCommand
+      document.execCommand = jest.fn(() => true);
+      window.alert = jest.fn();
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Share')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByText('Share').closest('button');
+      await userEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(document.execCommand).toHaveBeenCalledWith('copy');
+        expect(window.alert).toHaveBeenCalledWith('Link copied to clipboard');
+      });
+
+      delete document.execCommand;
+    });
+
+    test('handles share failure', async () => {
+      navigator.share = jest.fn(() => Promise.reject(new Error('Share failed')));
+      window.alert = jest.fn();
+      console.error = jest.fn();
+
+      renderWithProviders(<CompanyDetailPage />, {
+        initialEntries: ['/company/1'],
+        user: mockUsers.free,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Share')).toBeInTheDocument();
+      });
+
+      const shareButton = screen.getByText('Share').closest('button');
+      await userEvent.click(shareButton);
+
+      await waitFor(() => {
+        expect(console.error).toHaveBeenCalledWith('Share failed:', expect.any(Error));
+        expect(window.alert).toHaveBeenCalledWith('Unable to share. Please copy the URL manually.');
+      });
     });
   });
 });

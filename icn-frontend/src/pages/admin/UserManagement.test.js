@@ -295,4 +295,84 @@ describe('UserManagement', () => {
       expect(screen.getByText('Mike Chen')).toBeInTheDocument();
     });
   });
+
+  // ===== ADDITIONAL TESTS FOR 100% BRANCH COVERAGE =====
+
+  // ===== ADDITIONAL TESTS FOR 100% BRANCH COVERAGE =====
+
+  test('handles response without data property', async () => {
+    // Test the response.data || response branch
+    mockAdminService.getUsers.mockResolvedValue(mockUsers); // Direct array, no .data property
+    
+    renderComponent();
+    
+    await waitFor(() => {
+      expect(screen.getByText('John Smith')).toBeInTheDocument();
+      expect(screen.getByText('Sarah Johnson')).toBeInTheDocument();
+      expect(screen.getByText('Mike Chen')).toBeInTheDocument();
+    });
+  });
+
+  test('handles non-array response data', async () => {
+    // Test the Array.isArray(data) ? data : [] branch
+    mockAdminService.getUsers.mockResolvedValue({
+      data: { users: mockUsers } // Object instead of array
+    });
+    
+    renderComponent();
+    
+    await waitFor(() => {
+      // Should fall back to empty array, showing only the header row
+      const rows = screen.getAllByRole('row');
+      expect(rows.length).toBe(1); // Only header row
+    });
+  });
+
+  test('handles status toggle when deactivateUser method does not exist', async () => {
+    // Test optional chaining when method is undefined
+    const serviceWithoutDeactivate = {
+      getUsers: jest.fn().mockResolvedValue({ data: mockUsers }),
+      reactivateUser: jest.fn()
+      // deactivateUser is missing
+    };
+    serviceFactory.getAdminService.mockReturnValue(serviceWithoutDeactivate);
+    
+    renderComponent();
+    
+    await waitFor(() => {
+      expect(screen.getByText('John Smith')).toBeInTheDocument();
+    });
+
+    const deactivateButtons = screen.getAllByText('Deactivate');
+    fireEvent.click(deactivateButtons[0]);
+
+    await waitFor(() => {
+      // Should reload users even though deactivateUser doesn't exist
+      expect(serviceWithoutDeactivate.getUsers).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  test('handles status toggle when reactivateUser method does not exist', async () => {
+    // Test optional chaining when method is undefined
+    const serviceWithoutReactivate = {
+      getUsers: jest.fn().mockResolvedValue({ data: mockUsers }),
+      deactivateUser: jest.fn()
+      // reactivateUser is missing
+    };
+    serviceFactory.getAdminService.mockReturnValue(serviceWithoutReactivate);
+    
+    renderComponent();
+    
+    await waitFor(() => {
+      expect(screen.getByText('Mike Chen')).toBeInTheDocument();
+    });
+
+    const activateButton = screen.getByText('Activate');
+    fireEvent.click(activateButton);
+
+    await waitFor(() => {
+      // Should reload users even though reactivateUser doesn't exist
+      expect(serviceWithoutReactivate.getUsers).toHaveBeenCalledTimes(2);
+    });
+  });
 });

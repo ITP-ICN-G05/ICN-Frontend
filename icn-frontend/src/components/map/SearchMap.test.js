@@ -1,7 +1,6 @@
-// SearchMap.test.js - Complete test suite with high coverage
+// SearchMap.test.js - Fixed test suite targeting 95%+ coverage
 
-// Create mockMapStub BEFORE the mock so both can share the reference
-// MUST be prefixed with "mock" for Jest to allow it in jest.mock()
+// Create mockMapStub BEFORE the mock
 const mockMapStub = {
   setCenter: jest.fn(),
   setZoom: jest.fn(),
@@ -11,7 +10,7 @@ const mockMapStub = {
   setOptions: jest.fn(),
 };
 
-// Put this mock BEFORE other imports so it takes effect
+// Mock @react-google-maps/api
 jest.mock('@react-google-maps/api', () => {
   const React = require('react');
   const { useEffect } = React;
@@ -28,7 +27,6 @@ jest.mock('@react-google-maps/api', () => {
     );
   };
 
-  // Marker/Circle are no-ops for tests
   const MarkerF = () => null;
   const Circle = () => null;
 
@@ -58,7 +56,7 @@ const mockCompanies = [
 
 const mockOnCompanySelect = jest.fn();
 
-// Minimal Google Maps bits used by the component during onLoad
+// Setup Google Maps mock
 beforeAll(() => {
   global.google = {
     maps: {
@@ -84,6 +82,9 @@ describe('SearchMap', () => {
     mockMapStub.setZoom.mockClear();
     mockMapStub.panTo.mockClear();
     mockMapStub.fitBounds.mockClear();
+    
+    // Ensure Point is properly mocked as a constructor
+    global.google.maps.Point = jest.fn((x, y) => ({ x, y }));
     
     // Default: successful geolocation
     navigator.geolocation = {
@@ -130,7 +131,7 @@ describe('SearchMap', () => {
     });
 
     it('shows location loading banner', () => {
-      navigator.geolocation.getCurrentPosition = jest.fn(); // never calls success or error
+      navigator.geolocation.getCurrentPosition = jest.fn();
       render(<SearchMap companies={mockCompanies} onCompanySelect={mockOnCompanySelect} />);
       expect(screen.getByText('Getting your location...')).toBeInTheDocument();
     });
@@ -142,6 +143,16 @@ describe('SearchMap', () => {
       render(<SearchMap companies={mockCompanies} onCompanySelect={mockOnCompanySelect} />);
       await waitFor(() => {
         expect(screen.getByText(/Location unavailable/)).toBeInTheDocument();
+      });
+    });
+
+    it('handles geolocation error without message', async () => {
+      navigator.geolocation.getCurrentPosition = jest.fn((_, error) =>
+        error({})
+      );
+      render(<SearchMap companies={mockCompanies} onCompanySelect={mockOnCompanySelect} />);
+      await waitFor(() => {
+        expect(screen.getByText(/Unknown error/)).toBeInTheDocument();
       });
     });
 
@@ -197,7 +208,6 @@ describe('SearchMap', () => {
         expect(screen.getByText(/Location unavailable/)).toBeInTheDocument();
       });
       
-      // Mock successful location on retry
       navigator.geolocation.getCurrentPosition = jest.fn((success) =>
         success({
           coords: { latitude: -37.8, longitude: 144.9, accuracy: 10 },
@@ -220,7 +230,6 @@ describe('SearchMap', () => {
         expect(screen.getByText('My Location')).toBeInTheDocument();
       });
       
-      // Map should be panned to user location (in the useEffect after location is obtained)
       expect(mockMapStub.panTo).toHaveBeenCalledWith({
         lat: -37.8136,
         lng: 144.9631,
@@ -479,7 +488,6 @@ describe('SearchMap', () => {
         expect(screen.getByText('My Location')).toBeInTheDocument();
       });
       
-      const panToCallsBefore = mockMapStub.panTo.mock.calls.length;
       mockMapStub.panTo.mockClear();
       
       rerender(
@@ -490,11 +498,45 @@ describe('SearchMap', () => {
         />
       );
       
-      // Wait a bit to ensure effect would have run if it was going to
       await new Promise(resolve => setTimeout(resolve, 50));
       
-      // Should not have been called for invalid company
       expect(mockMapStub.panTo).not.toHaveBeenCalled();
+    });
+
+    it('handles selectedCompany with string coordinates', async () => {
+      const selectedCompany = {
+        id: 1,
+        name: 'Company A',
+        verified: true,
+        latitude: '-37.8136',
+        longitude: '144.9631',
+      };
+      
+      const { rerender } = render(
+        <SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />
+      );
+      
+      await waitFor(() => {
+        expect(screen.getByText('My Location')).toBeInTheDocument();
+      });
+      
+      mockMapStub.panTo.mockClear();
+      mockMapStub.setZoom.mockClear();
+      
+      rerender(
+        <SearchMap 
+          companies={mockCompanies} 
+          selectedCompany={selectedCompany}
+          onCompanySelect={jest.fn()} 
+        />
+      );
+      
+      await waitFor(() => {
+        expect(mockMapStub.panTo).toHaveBeenCalledWith({
+          lat: -37.8136,
+          lng: 144.9631,
+        });
+      });
     });
   });
 
@@ -549,8 +591,259 @@ describe('SearchMap', () => {
         expect(screen.getByText(/Location unavailable/)).toBeInTheDocument();
       });
       
-      // Should still show companies
       expect(screen.queryByText(/Show All \(2\)/)).toBeInTheDocument();
+    });
+
+    it('handles onLoad with 10+ nearby companies (triggers fitBounds)', async () => {
+      const nearbyCompanies = Array.from({ length: 12 }, (_, i) => ({
+        id: i,
+        name: `Nearby Company ${i}`,
+        verified: true,
+        latitude: -37.8136 + (i * 0.001),
+        longitude: 144.9631 + (i * 0.001),
+      }));
+      
+      render(
+        <SearchMap 
+          companies={nearbyCompanies} 
+          onCompanySelect={jest.fn()} 
+        />
+      );
+      
+      await waitFor(() => {
+        expect(screen.getByText('My Location')).toBeInTheDocument();
+      });
+      
+      expect(mockMapStub.fitBounds).toHaveBeenCalled();
+    });
+
+    it('handles onLoad when fitBounds is not available (fallback to centroid)', async () => {
+      const tempFitBounds = mockMapStub.fitBounds;
+      mockMapStub.fitBounds = undefined;
+      
+      const nearbyCompanies = Array.from({ length: 12 }, (_, i) => ({
+        id: i,
+        name: `Nearby Company ${i}`,
+        verified: true,
+        latitude: -37.8136 + (i * 0.001),
+        longitude: 144.9631 + (i * 0.001),
+      }));
+      
+      render(
+        <SearchMap 
+          companies={nearbyCompanies} 
+          onCompanySelect={jest.fn()} 
+        />
+      );
+      
+      await waitFor(() => {
+        expect(screen.getByText('My Location')).toBeInTheDocument();
+      });
+      
+      expect(mockMapStub.setCenter).toHaveBeenCalled();
+      
+      mockMapStub.fitBounds = tempFitBounds;
+    });
+
+    it('handles Show All when fitBounds fails (uses centroid fallback)', async () => {
+      mockMapStub.fitBounds = jest.fn(() => {
+        throw new Error('fitBounds failed');
+      });
+      
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      
+      await waitFor(() => {
+        expect(screen.getByText(/Show All/)).toBeInTheDocument();
+      });
+      
+      const showAllButton = screen.getByText(/Show All \(2\)/);
+      fireEvent.click(showAllButton);
+      
+      expect(mockMapStub.setCenter).toHaveBeenCalled();
+      
+      mockMapStub.fitBounds = jest.fn();
+    });
+
+    it('adjusts zoom when too low after fitBounds (via idle listener)', async () => {
+      let idleCallback;
+      global.google.maps.event.addListener = jest.fn((map, event, callback) => {
+        if (event === 'idle') {
+          idleCallback = callback;
+        }
+        return { remove: jest.fn() };
+      });
+      
+      mockMapStub.getZoom = jest.fn(() => 8);
+      
+      const nearbyCompanies = Array.from({ length: 12 }, (_, i) => ({
+        id: i,
+        name: `Nearby Company ${i}`,
+        verified: true,
+        latitude: -37.8136 + (i * 0.001),
+        longitude: 144.9631 + (i * 0.001),
+      }));
+      
+      render(
+        <SearchMap 
+          companies={nearbyCompanies} 
+          onCompanySelect={jest.fn()} 
+        />
+      );
+      
+      await waitFor(() => {
+        expect(screen.getByText('My Location')).toBeInTheDocument();
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
+      if (idleCallback) {
+        mockMapStub.setZoom.mockClear();
+        idleCallback();
+        expect(mockMapStub.setZoom).toHaveBeenCalledWith(11);
+      }
+      
+      mockMapStub.getZoom = jest.fn(() => 13);
+    });
+
+    it('adjusts zoom when too high after fitBounds (via idle listener)', async () => {
+      let idleCallback;
+      global.google.maps.event.addListener = jest.fn((map, event, callback) => {
+        if (event === 'idle') {
+          idleCallback = callback;
+        }
+        return { remove: jest.fn() };
+      });
+      
+      mockMapStub.getZoom = jest.fn(() => 18);
+      
+      const nearbyCompanies = Array.from({ length: 12 }, (_, i) => ({
+        id: i,
+        name: `Nearby Company ${i}`,
+        verified: true,
+        latitude: -37.8136 + (i * 0.001),
+        longitude: 144.9631 + (i * 0.001),
+      }));
+      
+      render(
+        <SearchMap 
+          companies={nearbyCompanies} 
+          onCompanySelect={jest.fn()} 
+        />
+      );
+      
+      await waitFor(() => {
+        expect(screen.getByText('My Location')).toBeInTheDocument();
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
+      if (idleCallback) {
+        mockMapStub.setZoom.mockClear();
+        idleCallback();
+        expect(mockMapStub.setZoom).toHaveBeenCalledWith(14);
+      }
+      
+      mockMapStub.getZoom = jest.fn(() => 13);
+    });
+
+    it('handles missing google.maps.event during onLoad', async () => {
+      const tempEvent = global.google.maps.event;
+      global.google.maps.event = undefined;
+      
+      const nearbyCompanies = Array.from({ length: 12 }, (_, i) => ({
+        id: i,
+        name: `Nearby Company ${i}`,
+        verified: true,
+        latitude: -37.8136 + (i * 0.001),
+        longitude: 144.9631 + (i * 0.001),
+      }));
+      
+      render(
+        <SearchMap 
+          companies={nearbyCompanies} 
+          onCompanySelect={jest.fn()} 
+        />
+      );
+      
+      await waitFor(() => {
+        expect(screen.getByText('My Location')).toBeInTheDocument();
+      });
+      
+      global.google.maps.event = tempEvent;
+    });
+
+    it('handles when LatLngBounds is not available', async () => {
+      const tempLatLngBounds = global.google.maps.LatLngBounds;
+      global.google.maps.LatLngBounds = undefined;
+      
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('My Location')).toBeInTheDocument();
+      });
+      
+      expect(mockMapStub.setCenter).toHaveBeenCalled();
+      
+      global.google.maps.LatLngBounds = tempLatLngBounds;
+    });
+
+    it('handles when bounds.extend is not a function', async () => {
+      const tempLatLngBounds = global.google.maps.LatLngBounds;
+      global.google.maps.LatLngBounds = function() {
+        this.extend = 'not-a-function';
+      };
+      
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('My Location')).toBeInTheDocument();
+      });
+      
+      expect(mockMapStub.setCenter).toHaveBeenCalled();
+      
+      global.google.maps.LatLngBounds = tempLatLngBounds;
+    });
+
+    it('handles when LatLng constructor throws error', async () => {
+      const tempLatLng = global.google.maps.LatLng;
+      global.google.maps.LatLng = jest.fn(() => {
+        throw new Error('LatLng error');
+      });
+      
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('My Location')).toBeInTheDocument();
+      });
+      
+      global.google.maps.LatLng = tempLatLng;
+    });
+
+    it('handles over 20 companies when no user location', async () => {
+      navigator.geolocation.getCurrentPosition = jest.fn((_, error) =>
+        error({ message: 'Location denied' })
+      );
+      
+      const manyCompanies = Array.from({ length: 25 }, (_, i) => ({
+        id: i,
+        name: `Company ${i}`,
+        verified: true,
+        latitude: -37.8136 + (i * 0.01),
+        longitude: 144.9631 + (i * 0.01),
+      }));
+      
+      render(
+        <SearchMap 
+          companies={manyCompanies} 
+          onCompanySelect={jest.fn()} 
+        />
+      );
+      
+      await waitFor(() => {
+        expect(screen.getByText(/Location unavailable/)).toBeInTheDocument();
+      });
+      
+      expect(mockMapStub.fitBounds).toHaveBeenCalled();
     });
   });
 
@@ -634,6 +927,29 @@ describe('SearchMap', () => {
       
       expect(screen.queryByText(/Show All \(2\)/)).toBeInTheDocument();
     });
+
+    it('handles null companies array', () => {
+      render(<SearchMap companies={null} onCompanySelect={jest.fn()} />);
+      expect(screen.queryByText(/Show All/)).not.toBeInTheDocument();
+    });
+
+    it('handles companies where distanceFromUser is null', async () => {
+      const companies = [
+        {
+          id: 1,
+          name: 'Company A',
+          verified: true,
+          latitude: -37.8136,
+          longitude: 144.9631,
+        },
+      ];
+      
+      render(<SearchMap companies={companies} onCompanySelect={jest.fn()} />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('My Location')).toBeInTheDocument();
+      });
+    });
   });
 
   describe('Console Logging', () => {
@@ -647,6 +963,177 @@ describe('SearchMap', () => {
       );
       
       consoleSpy.mockRestore();
+    });
+
+    it('logs when no companies provided', () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      render(<SearchMap companies={[]} onCompanySelect={jest.fn()} />);
+      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('No companies')
+      );
+      
+      consoleSpy.mockRestore();
+    });
+
+    it('logs valid coordinates count', () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Valid coordinates')
+      );
+      
+      consoleSpy.mockRestore();
+    });
+
+    it('logs map loaded', async () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith(
+          expect.stringContaining('Map loaded')
+        );
+      });
+      
+      consoleSpy.mockRestore();
+    });
+
+    it('logs user location obtained', async () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      
+      // Wait for geolocation to complete
+      await waitFor(() => {
+        expect(screen.getByText('My Location')).toBeInTheDocument();
+      }, { timeout: 2000 });
+      
+      // Check if location log was called
+      const logCalls = consoleSpy.mock.calls.map(call => call[0]);
+      const hasLocationLog = logCalls.some(call => 
+        typeof call === 'string' && call.includes('User location obtained')
+      );
+      
+      expect(hasLocationLog).toBe(true);
+      
+      consoleSpy.mockRestore();
+    });
+
+    it('logs company markers rendering', () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Rendering')
+      );
+      
+      consoleSpy.mockRestore();
+    });
+
+    it('does not log location errors in test environment', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'test';
+      
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      
+      navigator.geolocation.getCurrentPosition = jest.fn((_, error) =>
+        error({ message: 'Location denied' })
+      );
+      
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      
+      await waitFor(() => {
+        expect(screen.getByText(/Location unavailable/)).toBeInTheDocument();
+      });
+      
+      // Should not have console.error for geolocation in test mode
+      const errorCalls = consoleErrorSpy.mock.calls.filter(call => 
+        call[0] && call[0].includes && call[0].includes('Location error')
+      );
+      expect(errorCalls.length).toBe(0);
+      
+      consoleErrorSpy.mockRestore();
+      process.env.NODE_ENV = originalEnv;
+    });
+  });
+
+  describe('Marker Icons', () => {
+    it('creates marker icons when gmaps is available', () => {
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      expect(global.google.maps.Point).toHaveBeenCalled();
+    });
+
+    it('returns null for marker icons when Point constructor is not a function', () => {
+      // Save original Point
+      const tempPoint = global.google.maps.Point;
+      
+      // Set Point to a non-function value
+      global.google.maps.Point = 'not-a-function';
+      
+      // Component should render without crashing
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      
+      // Map should still render
+      expect(screen.getByTestId('map')).toBeInTheDocument();
+      
+      // Restore
+      global.google.maps.Point = tempPoint;
+    });
+  });
+
+  describe('Circle and Marker Rendering Guards', () => {
+    it('renders without circles when google.maps.Circle is not available', async () => {
+      const tempCircle = global.google.maps.Circle;
+      global.google.maps.Circle = undefined;
+      
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('My Location')).toBeInTheDocument();
+      });
+      
+      global.google.maps.Circle = tempCircle;
+    });
+
+    it('renders without markers when google.maps.Marker is not available', () => {
+      const tempMarker = global.google.maps.Marker;
+      global.google.maps.Marker = undefined;
+      
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      
+      expect(screen.getByTestId('map')).toBeInTheDocument();
+      
+      global.google.maps.Marker = tempMarker;
+    });
+  });
+
+  describe('getGMaps Utility', () => {
+    it('handles missing window.google', () => {
+      const tempGoogle = global.google;
+      global.google = undefined;
+      
+      render(<SearchMap companies={mockCompanies} onCompanySelect={jest.fn()} />);
+      expect(screen.getByText('Loading Google Maps...')).toBeInTheDocument();
+      
+      global.google = tempGoogle;
+    });
+  });
+
+  describe('Centroid Utility', () => {
+    it('handles empty companies array gracefully', () => {
+      navigator.geolocation.getCurrentPosition = jest.fn((_, error) =>
+        error({ message: 'Location denied' })
+      );
+      
+      render(<SearchMap companies={[]} onCompanySelect={jest.fn()} />);
+      
+      expect(screen.queryByText(/Show All/)).not.toBeInTheDocument();
     });
   });
 });

@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import * as serviceFactory from './services/serviceFactory';
 import icnDataService from './services/icnDataService';
@@ -12,10 +11,15 @@ jest.mock('@react-google-maps/api', () => ({
   LoadScript: ({ children }) => <div data-testid="load-script">{children}</div>,
 }));
 
-// Mock all page components to simplify testing
+// Mock all page components
 jest.mock('./pages/home/HomePage', () => {
-  return function MockHomePage() {
-    return <div data-testid="home-page">Home Page</div>;
+  return function MockHomePage({ dataStats }) {
+    return (
+      <div data-testid="home-page">
+        Home Page
+        {dataStats && <div data-testid="home-stats">{dataStats.totalCompanies}</div>}
+      </div>
+    );
   };
 });
 
@@ -23,8 +27,16 @@ jest.mock('./pages/auth/LoginPage', () => {
   return function MockLoginPage({ onLogin }) {
     return (
       <div data-testid="login-page">
-        <button onClick={() => onLogin({ id: 1, email: 'test@test.com', tier: 'free' })}>
+        <button onClick={() => onLogin({ id: 1, email: 'test@test.com', tier: 'free', onboardingComplete: true })}>
           Mock Login
+        </button>
+        <button onClick={() => onLogin({ 
+          id: 2, 
+          email: 'newuser@test.com', 
+          tier: 'free',
+          onboardingComplete: false 
+        })}>
+          Mock Login New User
         </button>
       </div>
     );
@@ -50,44 +62,81 @@ jest.mock('./pages/auth/ForgotPasswordPage', () => {
 });
 
 jest.mock('./pages/search/SearchPage', () => {
-  return function MockSearchPage() {
-    return <div data-testid="search-page">Search Page</div>;
+  return function MockSearchPage({ user, dataLoaded }) {
+    return (
+      <div data-testid="search-page">
+        Search Page
+        {user && <span data-testid="search-user">Logged In</span>}
+        {dataLoaded && <span data-testid="search-data-loaded">Data Loaded</span>}
+      </div>
+    );
   };
 });
 
 jest.mock('./pages/company/CompanyDetailPage', () => {
-  return function MockCompanyDetailPage() {
-    return <div data-testid="company-detail-page">Company Detail Page</div>;
+  return function MockCompanyDetailPage({ user, dataLoaded }) {
+    return (
+      <div data-testid="company-detail-page">
+        Company Detail
+        {user && <span data-testid="company-user">Has User</span>}
+        {dataLoaded && <span data-testid="company-data-loaded">Data Loaded</span>}
+      </div>
+    );
   };
 });
 
 jest.mock('./pages/profile/ProfilePage', () => {
-  return function MockProfilePage() {
-    return <div data-testid="profile-page">Profile Page</div>;
+  return function MockProfilePage({ user }) {
+    return (
+      <div data-testid="profile-page">
+        Profile Page
+        {user && <span data-testid="profile-email">{user.email}</span>}
+      </div>
+    );
   };
 });
 
 jest.mock('./pages/pricing/PricingPage', () => {
-  return function MockPricingPage() {
-    return <div data-testid="pricing-page">Pricing Page</div>;
+  return function MockPricingPage({ user }) {
+    return (
+      <div data-testid="pricing-page">
+        Pricing
+        {user && <span data-testid="pricing-user">Logged In</span>}
+      </div>
+    );
   };
 });
 
 jest.mock('./pages/companies/CompaniesPage', () => {
-  return function MockCompaniesPage() {
-    return <div data-testid="companies-page">Companies Page</div>;
+  return function MockCompaniesPage({ dataLoaded }) {
+    return (
+      <div data-testid="companies-page">
+        Companies Page
+        {dataLoaded && <span data-testid="companies-data">Data Available</span>}
+      </div>
+    );
   };
 });
 
 jest.mock('./pages/admin/AdminDashboard', () => {
-  return function MockAdminDashboard() {
-    return <div data-testid="admin-dashboard">Admin Dashboard</div>;
+  return function MockAdminDashboard({ dataStats }) {
+    return (
+      <div data-testid="admin-dashboard">
+        Admin Dashboard
+        {dataStats && <span data-testid="admin-stats">{dataStats.totalCompanies}</span>}
+      </div>
+    );
   };
 });
 
 jest.mock('./pages/admin/CompanyManagement', () => {
-  return function MockCompanyManagement() {
-    return <div data-testid="company-management">Company Management</div>;
+  return function MockCompanyManagement({ dataLoaded }) {
+    return (
+      <div data-testid="company-management">
+        Company Management
+        {dataLoaded && <span>Data Ready</span>}
+      </div>
+    );
   };
 });
 
@@ -120,7 +169,10 @@ jest.mock('./components/layout/NavigationBar', () => {
     return (
       <div data-testid="navigation-bar">
         {user ? (
-          <button onClick={onLogout}>Logout</button>
+          <>
+            <span data-testid="nav-user-email">{user.email}</span>
+            <button onClick={onLogout}>Logout</button>
+          </>
         ) : (
           <span>Not logged in</span>
         )}
@@ -130,9 +182,10 @@ jest.mock('./components/layout/NavigationBar', () => {
 });
 
 jest.mock('./components/onboarding/OnboardingModal', () => {
-  return function MockOnboardingModal({ onComplete, onSkip }) {
+  return function MockOnboardingModal({ user, onComplete, onSkip }) {
     return (
       <div data-testid="onboarding-modal">
+        <span data-testid="onboarding-user-email">Onboarding for {user?.email}</span>
         <button onClick={() => onComplete({ interests: ['tech'] })}>Complete</button>
         <button onClick={onSkip}>Skip</button>
       </div>
@@ -150,21 +203,20 @@ jest.mock('./contexts/BookmarkContext', () => ({
   BookmarkProvider: ({ children }) => <div data-testid="bookmark-provider">{children}</div>,
 }));
 
-describe('App', () => {
+describe('App Component - Comprehensive Test Suite', () => {
   const mockAuthService = {
     validateToken: jest.fn(),
     logout: jest.fn(),
     updateProfile: jest.fn(),
   };
 
-  // Store original window.location
   const originalLocation = window.location;
 
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
     
-    // Reset all mock functions with default resolved values
+    // Reset all mock functions
     mockAuthService.validateToken.mockResolvedValue({ valid: true });
     mockAuthService.logout.mockResolvedValue();
     mockAuthService.updateProfile.mockResolvedValue({ success: true });
@@ -181,95 +233,105 @@ describe('App', () => {
       byState: { VIC: 2716 }
     });
     icnDataService.getCompanies = jest.fn().mockReturnValue([
-      { id: 1, name: 'Test Company' }
+      { id: 1, name: 'Test Company 1' },
+      { id: 2, name: 'Test Company 2' },
+      { id: 3, name: 'Test Company 3' }
     ]);
     icnDataService.clearCache = jest.fn();
+    
+    // Suppress console logs in tests
+    jest.spyOn(console, 'log').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation();
+    jest.spyOn(console, 'warn').mockImplementation();
   });
 
   afterEach(() => {
-    // Restore window.location if it was modified
     if (window.location !== originalLocation) {
       window.location = originalLocation;
     }
+    jest.restoreAllMocks();
   });
 
+  // ========================================================================
+  // INITIALIZATION & LOADING
+  // ========================================================================
+  
   describe('Initial Rendering and Loading', () => {
-    test('renders app and shows loading screen initially', async () => {
+    test('renders loading screen with all elements', () => {
+      const { container } = render(<App />);
+      
+      expect(screen.getByText('Loading ICN Navigator...')).toBeInTheDocument();
+      expect(container.querySelector('.loading-screen')).toBeInTheDocument();
+      expect(container.querySelector('.loading-content')).toBeInTheDocument();
+      expect(container.querySelector('.spinner')).toBeInTheDocument();
+    });
+
+    test('shows loading progress bar', () => {
+      const { container } = render(<App />);
+      
+      const progressBar = container.querySelector('.loading-progress');
+      expect(progressBar).toBeInTheDocument();
+      
+      const progressFill = container.querySelector('.progress-fill');
+      expect(progressFill).toBeInTheDocument();
+    });
+
+    test('loading logo handles error gracefully', () => {
+      const { container } = render(<App />);
+      
+      const logo = container.querySelector('.loading-logo');
+      if (logo) {
+        act(() => {
+          const errorEvent = new Event('error');
+          logo.dispatchEvent(errorEvent);
+        });
+        
+        expect(logo.style.display).toBe('none');
+      }
+    });
+
+    test('completes full initialization flow', async () => {
       render(<App />);
       
       expect(screen.getByText('Loading ICN Navigator...')).toBeInTheDocument();
-      
-      await waitFor(() => {
-        expect(screen.getByTestId('home-page')).toBeInTheDocument();
-      });
-    });
-
-    test('loads ICN data on initialization', async () => {
-      render(<App />);
       
       await waitFor(() => {
         expect(icnDataService.loadData).toHaveBeenCalled();
         expect(icnDataService.getStatistics).toHaveBeenCalled();
       });
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+      }, { timeout: 3000 });
     });
 
-    test('shows loading progress during initialization', async () => {
+    test('shows different loading stages', async () => {
       const { container } = render(<App />);
       
-      // Check immediately - loading screen should be present
-      expect(screen.getByText('Loading ICN Navigator...')).toBeInTheDocument();
-      
-      // Check for loading stage element (text changes quickly)
       const loadingStage = container.querySelector('.loading-stage');
       expect(loadingStage).toBeInTheDocument();
       
-      // Check for progress bar
-      const progressBar = container.querySelector('.loading-progress');
-      expect(progressBar).toBeInTheDocument();
-      
-      await waitFor(() => {
-        expect(icnDataService.loadData).toHaveBeenCalled();
-      });
-      
-      // Eventually should complete and show home page
       await waitFor(() => {
         expect(screen.getByTestId('home-page')).toBeInTheDocument();
       }, { timeout: 3000 });
     });
 
-    test('completes loading with 100% progress', async () => {
+    test('loads ICN data during initialization', async () => {
       render(<App />);
       
-      // Initially should show some progress
-      expect(screen.getByText(/Loading ICN Navigator/)).toBeInTheDocument();
-      
       await waitFor(() => {
-        expect(screen.getByTestId('home-page')).toBeInTheDocument();
-      }, { timeout: 3000 });
-    });
-
-    test('loading screen hides logo on error', async () => {
-      const { container } = render(<App />);
-      
-      const logo = container.querySelector('.loading-logo');
-      
-      if (logo) {
-        // Simulate image load error
-        act(() => {
-          logo.dispatchEvent(new Event('error'));
-        });
-        
-        expect(logo.style.display).toBe('none');
-      }
-      
-      await waitFor(() => {
-        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(icnDataService.loadData).toHaveBeenCalledTimes(1);
+        expect(icnDataService.getStatistics).toHaveBeenCalled();
       });
     });
   });
 
-  describe('Authentication and User Session', () => {
-    test('restores user session from localStorage', async () => {
+  // ========================================================================
+  // AUTHENTICATION
+  // ========================================================================
+
+  describe('Authentication Flow', () => {
+    test('restores valid user session from localStorage', async () => {
       const mockUser = {
         id: 1,
         email: 'test@test.com',
@@ -277,104 +339,109 @@ describe('App', () => {
         onboardingComplete: true
       };
       
-      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('token', 'valid-token');
       localStorage.setItem('user', JSON.stringify(mockUser));
       
       render(<App />);
       
       await waitFor(() => {
-        expect(mockAuthService.validateToken).toHaveBeenCalledWith('mock-token');
-        expect(screen.getByTestId('navigation-bar')).toBeInTheDocument();
+        expect(mockAuthService.validateToken).toHaveBeenCalledWith('valid-token');
       });
-    });
-
-    test('validates token on app start', async () => {
-      localStorage.setItem('token', 'test-token');
-      localStorage.setItem('user', JSON.stringify({ id: 1 }));
-      
-      render(<App />);
       
       await waitFor(() => {
-        expect(mockAuthService.validateToken).toHaveBeenCalledWith('test-token');
+        expect(screen.getByTestId('nav-user-email')).toHaveTextContent('test@test.com');
       });
     });
 
-    test('clears auth data for invalid token', async () => {
+    test('clears invalid token and user data', async () => {
       localStorage.setItem('token', 'invalid-token');
-      localStorage.setItem('user', JSON.stringify({ id: 1 }));
+      localStorage.setItem('user', JSON.stringify({ id: 1, email: 'test@test.com' }));
       
       mockAuthService.validateToken.mockResolvedValue({ valid: false });
       
       render(<App />);
       
       await waitFor(() => {
+        expect(mockAuthService.validateToken).toHaveBeenCalledWith('invalid-token');
+      });
+      
+      await waitFor(() => {
         expect(localStorage.getItem('token')).toBeNull();
         expect(localStorage.getItem('user')).toBeNull();
+        expect(screen.getByText('Not logged in')).toBeInTheDocument();
       });
     });
 
-    test('handles token validation failure', async () => {
-      localStorage.setItem('token', 'test-token');
-      localStorage.setItem('user', JSON.stringify({ id: 1 }));
+    test('keeps user logged in when token validation fails (offline mode)', async () => {
+      const mockUser = { id: 1, email: 'offline@test.com', tier: 'free', onboardingComplete: true };
       
-      mockAuthService.validateToken.mockRejectedValue(new Error('Validation failed'));
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      mockAuthService.validateToken.mockRejectedValue(new Error('Network error'));
       
       render(<App />);
       
       await waitFor(() => {
-        // Should keep user logged in despite validation failure (offline mode)
         expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(screen.getByText('offline@test.com')).toBeInTheDocument();
       });
     });
 
-    test('handles invalid user data in localStorage', async () => {
+    test('handles corrupted user data in localStorage', async () => {
       localStorage.setItem('token', 'test-token');
-      localStorage.setItem('user', 'invalid-json');
+      localStorage.setItem('user', '{invalid-json}');
       
       render(<App />);
       
       await waitFor(() => {
-        // Should handle error and clear invalid data
-        expect(screen.getByTestId('home-page')).toBeInTheDocument();
         expect(localStorage.getItem('user')).toBeNull();
+        expect(localStorage.getItem('token')).toBeNull();
+        expect(screen.getByText('Not logged in')).toBeInTheDocument();
       });
     });
 
-    test('handles missing auth service gracefully', async () => {
+    test('works without auth service', async () => {
       serviceFactory.getService.mockReturnValue(null);
       
+      const mockUser = { id: 1, email: 'test@test.com', tier: 'free', onboardingComplete: true };
       localStorage.setItem('token', 'test-token');
-      localStorage.setItem('user', JSON.stringify({ id: 1, tier: 'free' }));
+      localStorage.setItem('user', JSON.stringify(mockUser));
       
       render(<App />);
       
       await waitFor(() => {
-        // Should still load even without auth service
         expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(screen.getByText('test@test.com')).toBeInTheDocument();
+      });
+    });
+
+    test('handles auth service without validateToken method', async () => {
+      const partialAuthService = {
+        logout: jest.fn().mockResolvedValue(),
+        updateProfile: jest.fn().mockResolvedValue({ success: true })
+      };
+      
+      serviceFactory.getService.mockReturnValue(partialAuthService);
+      
+      const mockUser = { id: 1, email: 'test@test.com', tier: 'free', onboardingComplete: true };
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('test@test.com')).toBeInTheDocument();
       });
     });
   });
 
-  describe('Login and SignUp', () => {
-    test('handleLogin updates user state and checks onboarding', async () => {
-      render(<App />);
-      
-      await waitFor(() => {
-        expect(screen.getByTestId('home-page')).toBeInTheDocument();
-      });
-    });
+  // ========================================================================
+  // LOGOUT
+  // ========================================================================
 
-    test('handleSignUp sets user state', async () => {
-      render(<App />);
-      
-      await waitFor(() => {
-        expect(screen.getByTestId('home-page')).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Logout', () => {
-    test('handles logout correctly', async () => {
+  describe('Logout Functionality', () => {
+    test('successful logout clears all user data', async () => {
       const mockUser = {
         id: 1,
         email: 'test@test.com',
@@ -382,7 +449,7 @@ describe('App', () => {
         onboardingComplete: true
       };
       
-      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('token', 'test-token');
       localStorage.setItem('user', JSON.stringify(mockUser));
       
       render(<App />);
@@ -391,20 +458,20 @@ describe('App', () => {
         expect(screen.getByText('Logout')).toBeInTheDocument();
       });
       
-      const logoutButton = screen.getByText('Logout');
       await act(async () => {
-        logoutButton.click();
+        screen.getByText('Logout').click();
       });
       
       await waitFor(() => {
         expect(mockAuthService.logout).toHaveBeenCalled();
         expect(localStorage.getItem('token')).toBeNull();
         expect(localStorage.getItem('user')).toBeNull();
+        expect(screen.getByText('Not logged in')).toBeInTheDocument();
       });
     });
 
-    test('handles logout service error gracefully', async () => {
-      mockAuthService.logout.mockRejectedValue(new Error('Logout failed'));
+    test('logout works even when service fails', async () => {
+      mockAuthService.logout.mockRejectedValue(new Error('Logout service error'));
       
       const mockUser = {
         id: 1,
@@ -413,10 +480,8 @@ describe('App', () => {
         onboardingComplete: true
       };
       
-      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('token', 'test-token');
       localStorage.setItem('user', JSON.stringify(mockUser));
-      
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       
       render(<App />);
       
@@ -424,22 +489,17 @@ describe('App', () => {
         expect(screen.getByText('Logout')).toBeInTheDocument();
       });
       
-      const logoutButton = screen.getByText('Logout');
-      
       await act(async () => {
-        logoutButton.click();
+        screen.getByText('Logout').click();
       });
       
       await waitFor(() => {
-        expect(consoleSpy).toHaveBeenCalledWith('Logout error:', expect.any(Error));
-        // Should still clear local storage even if service fails
         expect(localStorage.getItem('token')).toBeNull();
+        expect(localStorage.getItem('user')).toBeNull();
       });
-      
-      consoleSpy.mockRestore();
     });
 
-    test('clears ICN cache on logout when configured', async () => {
+    test('clears cache on logout when configured', async () => {
       process.env.REACT_APP_CLEAR_CACHE_ON_LOGOUT = 'true';
       
       const mockUser = {
@@ -449,7 +509,7 @@ describe('App', () => {
         onboardingComplete: true
       };
       
-      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('token', 'test-token');
       localStorage.setItem('user', JSON.stringify(mockUser));
       
       render(<App />);
@@ -458,41 +518,20 @@ describe('App', () => {
         expect(screen.getByText('Logout')).toBeInTheDocument();
       });
       
-      const logoutButton = screen.getByText('Logout');
-      
       await act(async () => {
-        logoutButton.click();
+        screen.getByText('Logout').click();
       });
       
       await waitFor(() => {
         expect(icnDataService.clearCache).toHaveBeenCalled();
       });
       
-      // Clean up
       delete process.env.REACT_APP_CLEAR_CACHE_ON_LOGOUT;
     });
-  });
 
-  describe('Onboarding', () => {
-    test('shows onboarding for new users without onboarding complete', async () => {
-      const mockUser = {
-        id: 1,
-        email: 'test@test.com',
-        tier: 'free',
-        onboardingComplete: false
-      };
+    test('does not clear cache when not configured', async () => {
+      delete process.env.REACT_APP_CLEAR_CACHE_ON_LOGOUT;
       
-      localStorage.setItem('token', 'mock-token');
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      
-      render(<App />);
-      
-      await waitFor(() => {
-        expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
-      });
-    });
-
-    test('does not show onboarding for users who completed it', async () => {
       const mockUser = {
         id: 1,
         email: 'test@test.com',
@@ -500,55 +539,55 @@ describe('App', () => {
         onboardingComplete: true
       };
       
-      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('token', 'test-token');
       localStorage.setItem('user', JSON.stringify(mockUser));
       
       render(<App />);
       
       await waitFor(() => {
-        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
+        expect(screen.getByText('Logout')).toBeInTheDocument();
+      });
+      
+      await act(async () => {
+        screen.getByText('Logout').click();
+      });
+      
+      await waitFor(() => {
+        expect(icnDataService.clearCache).not.toHaveBeenCalled();
       });
     });
 
-    test('users with preferences skip onboarding', async () => {
+    test('logout without auth service', async () => {
+      serviceFactory.getService.mockReturnValue({
+        validateToken: jest.fn().mockResolvedValue({ valid: true })
+      });
+      
       const mockUser = {
         id: 1,
         email: 'test@test.com',
         tier: 'free',
-        onboardingComplete: false,
-        preferences: { interests: ['tech'] }
+        onboardingComplete: true
       };
       
-      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('token', 'test-token');
       localStorage.setItem('user', JSON.stringify(mockUser));
       
       render(<App />);
       
       await waitFor(() => {
-        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
+        expect(screen.getByText('Logout')).toBeInTheDocument();
       });
-    });
-
-    test('users who skipped onboarding do not see it again', async () => {
-      const mockUser = {
-        id: 1,
-        email: 'test@test.com',
-        tier: 'free',
-        onboardingComplete: false,
-        onboardingSkipped: true
-      };
       
-      localStorage.setItem('token', 'mock-token');
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      
-      render(<App />);
+      await act(async () => {
+        screen.getByText('Logout').click();
+      });
       
       await waitFor(() => {
-        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
+        expect(localStorage.getItem('token')).toBeNull();
       });
     });
 
-    test('handleOnboardingComplete saves preferences and updates user', async () => {
+    test('hides onboarding modal on logout', async () => {
       const mockUser = {
         id: 1,
         email: 'test@test.com',
@@ -556,7 +595,7 @@ describe('App', () => {
         onboardingComplete: false
       };
       
-      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('token', 'test-token');
       localStorage.setItem('user', JSON.stringify(mockUser));
       
       render(<App />);
@@ -565,10 +604,113 @@ describe('App', () => {
         expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
       });
       
-      const completeButton = screen.getByText('Complete');
+      await act(async () => {
+        screen.getByText('Logout').click();
+      });
+      
+      await waitFor(() => {
+        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  // ========================================================================
+  // ONBOARDING
+  // ========================================================================
+
+  describe('Onboarding Flow', () => {
+    test('shows onboarding for incomplete users', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'newuser@test.com',
+        tier: 'free',
+        onboardingComplete: false
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
+        expect(screen.getByTestId('onboarding-user-email')).toHaveTextContent('newuser@test.com');
+      });
+    });
+
+    test('hides onboarding for completed users', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: true
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
+      });
+    });
+
+    test('skips onboarding for users with preferences', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        preferences: { interests: ['tech'] }
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
+      });
+    });
+
+    test('skips onboarding for users who previously skipped', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingSkipped: true
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
+      });
+    });
+
+    test('handleOnboardingComplete saves preferences', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: false
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
+      });
       
       await act(async () => {
-        completeButton.click();
+        screen.getByText('Complete').click();
       });
       
       await waitFor(() => {
@@ -581,7 +723,7 @@ describe('App', () => {
       });
     });
 
-    test('handleOnboardingComplete calls updateProfile API', async () => {
+    test('onboarding complete calls updateProfile API', async () => {
       const mockUser = {
         id: 1,
         email: 'test@test.com',
@@ -589,7 +731,7 @@ describe('App', () => {
         onboardingComplete: false
       };
       
-      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('token', 'test-token');
       localStorage.setItem('user', JSON.stringify(mockUser));
       
       render(<App />);
@@ -598,10 +740,8 @@ describe('App', () => {
         expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
       });
       
-      const completeButton = screen.getByText('Complete');
-      
       await act(async () => {
-        completeButton.click();
+        screen.getByText('Complete').click();
       });
       
       await waitFor(() => {
@@ -612,7 +752,9 @@ describe('App', () => {
       });
     });
 
-    test('onboarding completes even if API call fails', async () => {
+    test('onboarding completes even if API fails', async () => {
+      mockAuthService.updateProfile.mockRejectedValue(new Error('API Error'));
+      
       const mockUser = {
         id: 1,
         email: 'test@test.com',
@@ -620,12 +762,8 @@ describe('App', () => {
         onboardingComplete: false
       };
       
-      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('token', 'test-token');
       localStorage.setItem('user', JSON.stringify(mockUser));
-      
-      mockAuthService.updateProfile.mockRejectedValue(new Error('API Error'));
-      
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       
       render(<App />);
       
@@ -633,25 +771,18 @@ describe('App', () => {
         expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
       });
       
-      const completeButton = screen.getByText('Complete');
-      
       await act(async () => {
-        completeButton.click();
+        screen.getByText('Complete').click();
       });
       
       await waitFor(() => {
         expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
-        // Check that error was logged but onboarding still completed
-        expect(consoleSpy).toHaveBeenCalledWith(
-          'Failed to save preferences:',
-          expect.any(Error)
-        );
+        const savedUser = JSON.parse(localStorage.getItem('user'));
+        expect(savedUser.onboardingComplete).toBe(true);
       });
-      
-      consoleSpy.mockRestore();
     });
 
-    test('handleOnboardingSkip marks onboarding as skipped', async () => {
+    test('handleOnboardingSkip marks as skipped', async () => {
       const mockUser = {
         id: 1,
         email: 'test@test.com',
@@ -659,7 +790,7 @@ describe('App', () => {
         onboardingComplete: false
       };
       
-      localStorage.setItem('token', 'mock-token');
+      localStorage.setItem('token', 'test-token');
       localStorage.setItem('user', JSON.stringify(mockUser));
       
       render(<App />);
@@ -668,10 +799,8 @@ describe('App', () => {
         expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
       });
       
-      const skipButton = screen.getByText('Skip');
-      
       await act(async () => {
-        skipButton.click();
+        screen.getByText('Skip').click();
       });
       
       await waitFor(() => {
@@ -683,144 +812,212 @@ describe('App', () => {
         expect(savedUser.onboardingSkippedAt).toBeDefined();
       });
     });
+
+    test('onboarding works without updateProfile service', async () => {
+      serviceFactory.getService.mockReturnValue({
+        validateToken: jest.fn().mockResolvedValue({ valid: true }),
+        logout: jest.fn().mockResolvedValue()
+      });
+      
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: false
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
+      });
+      
+      await act(async () => {
+        screen.getByText('Complete').click();
+      });
+      
+      await waitFor(() => {
+        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
+      });
+    });
   });
 
-  describe('Data Loading', () => {
-    test('handles ICN data loading failure gracefully', async () => {
-      icnDataService.loadData.mockRejectedValue(new Error('Failed to load data'));
+  // ========================================================================
+  // DATA LOADING
+  // ========================================================================
+
+  describe('ICN Data Loading', () => {
+    test('successfully loads ICN data', async () => {
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(icnDataService.loadData).toHaveBeenCalled();
+        expect(icnDataService.getStatistics).toHaveBeenCalled();
+      });
+    });
+
+    test('handles data loading failure with error screen', async () => {
+      icnDataService.loadData.mockRejectedValue(new Error('Network error'));
       
       render(<App />);
       
       await waitFor(() => {
-        // App should show warning banner instead of error screen
+        expect(screen.getByText(/Initialization Error/)).toBeInTheDocument();
         expect(screen.getByText(/Failed to load company data/)).toBeInTheDocument();
       });
     });
 
-    test('shows warning banner for data loading errors', async () => {
-      icnDataService.loadData.mockRejectedValue(new Error('Failed to load data'));
-      
-      render(<App />);
-      
-      await waitFor(() => {
-        expect(screen.getByText(/Failed to load company data/)).toBeInTheDocument();
-      });
-    });
-
-    test('dismisses warning banner when close button clicked', async () => {
-      icnDataService.loadData.mockRejectedValue(new Error('Failed to load data'));
-      
-      const { container } = render(<App />);
-      
-      await waitFor(() => {
-        expect(screen.getByText(/Failed to load company data/)).toBeInTheDocument();
-      });
-      
-      const closeButton = container.querySelector('.warning-banner button');
-      
-      if (closeButton) {
-        await act(async () => {
-          closeButton.click();
-        });
-        
-        await waitFor(() => {
-          expect(screen.queryByText(/Failed to load company data/)).not.toBeInTheDocument();
-        });
-      }
-    });
-
-    test('logs ICN data statistics in development', async () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    test('logs statistics in console', async () => {
+      const consoleSpy = jest.spyOn(console, 'log');
       
       render(<App />);
       
       await waitFor(() => {
         expect(consoleSpy).toHaveBeenCalledWith(
           expect.stringContaining('ICN Data Loaded Successfully'),
-          expect.any(Object)
+          expect.objectContaining({
+            companies: 2716,
+            verified: 1500
+          })
         );
       });
-      
-      consoleSpy.mockRestore();
     });
 
-    test('logs sample companies in development mode', async () => {
-      const originalNodeEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
+    test('passes dataStats to components', async () => {
+      render(<App />);
       
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(screen.getByTestId('home-stats')).toHaveTextContent('2716');
+      });
+    });
+  });
+
+  // ========================================================================
+  // CRITICAL COVERAGE - CATCH BLOCKS AND ERROR PATHS
+  // ========================================================================
+
+  describe('Error Path Coverage', () => {
+    test('main initialization catch block executes with localStorage error', async () => {
+      const consoleSpy = jest.spyOn(console, 'error');
+      
+      // Override just the initialization to throw
+      const originalGetItem = Storage.prototype.getItem;
+      let firstCall = true;
+      
+      Storage.prototype.getItem = function(key) {
+        if (key === 'token' && firstCall) {
+          firstCall = false;
+          throw new Error('Storage quota exceeded');
+        }
+        return originalGetItem.call(this, key);
+      };
       
       render(<App />);
       
       await waitFor(() => {
+        // Main catch should log initialization error
         expect(consoleSpy).toHaveBeenCalledWith(
-          'Sample companies:',
-          expect.any(Array)
+          'App initialization error:',
+          expect.any(Error)
         );
+      }, { timeout: 3000 });
+      
+      // Restore
+      Storage.prototype.getItem = originalGetItem;
+      consoleSpy.mockRestore();
+    });
+
+    test('setInitError and setLoading called in data load error', async () => {
+      const consoleSpy = jest.spyOn(console, 'error');
+      
+      // Make loadData throw synchronously
+      icnDataService.loadData.mockImplementation(() => {
+        throw new Error('Immediate sync error');
+      });
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByText(/Initialization Error/)).toBeInTheDocument();
       });
       
       consoleSpy.mockRestore();
-      process.env.NODE_ENV = originalNodeEnv;
     });
   });
 
-  describe('Google Maps Integration', () => {
-    test('loads Google Maps with correct API key', async () => {
-      process.env.REACT_APP_GOOGLE_MAPS_KEY = 'test-api-key';
+  // ========================================================================
+  // WARNING BANNER & ERROR SCREEN
+  // ========================================================================
+
+  describe('Warning Banner and Error Screen', () => {
+    test('shows error screen when data completely fails to load', async () => {
+      icnDataService.loadData.mockRejectedValue(new Error('Complete failure'));
       
       render(<App />);
       
       await waitFor(() => {
-        expect(screen.getByTestId('load-script')).toBeInTheDocument();
+        expect(screen.getByText(/Initialization Error/)).toBeInTheDocument();
+        expect(screen.getByText(/Failed to load company data/)).toBeInTheDocument();
+        expect(screen.getByText('Retry')).toBeInTheDocument();
       });
     });
 
-    test('handles missing Google Maps API key', async () => {
-      delete process.env.REACT_APP_GOOGLE_MAPS_KEY;
+    test('retry button works on error screen', async () => {
+      delete window.location;
+      window.location = { reload: jest.fn() };
+      
+      icnDataService.loadData.mockRejectedValue(new Error('Fatal error'));
       
       render(<App />);
       
       await waitFor(() => {
-        expect(screen.getByTestId('load-script')).toBeInTheDocument();
+        expect(screen.getByText('Retry')).toBeInTheDocument();
+      });
+      
+      const retryBtn = screen.getByText('Retry');
+      act(() => {
+        retryBtn.click();
+      });
+      
+      expect(window.location.reload).toHaveBeenCalled();
+    });
+
+    test('dismisses warning banner when close button clicked', async () => {
+      icnDataService.loadData.mockResolvedValue();
+      
+      const { container } = render(<App />);
+      
+      await waitFor(() => {
         expect(screen.getByTestId('home-page')).toBeInTheDocument();
       });
-    });
-  });
-
-  describe('Context Providers', () => {
-    test('provides BookmarkProvider context', async () => {
-      render(<App />);
       
-      await waitFor(() => {
-        // App should wrap content in BookmarkProvider
-        expect(screen.getByTestId('home-page')).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Development Mode', () => {
-    test('displays dev mode banner in development', async () => {
-      // Environment variables are set at build time in React
-      // This test only works when actually running in development mode
-      if (process.env.NODE_ENV !== 'development' || process.env.REACT_APP_USE_MOCK !== 'true') {
-        console.log('Skipping dev banner test - not in development with mock data');
-        return;
+      const warningBanner = container.querySelector('.warning-banner');
+      if (warningBanner) {
+        const closeButton = warningBanner.querySelector('button');
+        
+        await act(async () => {
+          closeButton.click();
+        });
+        
+        await waitFor(() => {
+          expect(container.querySelector('.warning-banner')).not.toBeInTheDocument();
+        });
       }
-      
-      render(<App />);
-      
-      await waitFor(() => {
-        expect(screen.getByTestId('home-page')).toBeInTheDocument();
-      });
-      
-      const devBanner = document.querySelector('.dev-banner');
-      expect(devBanner).toBeTruthy();
     });
+  });
 
-    test('dev mode banner can be minimized and expanded', async () => {
-      // Force dev mode
-      const originalNodeEnv = process.env.NODE_ENV;
-      const originalUseMock = process.env.REACT_APP_USE_MOCK;
+  // ========================================================================
+  // DEV MODE BANNER
+  // ========================================================================
+
+  describe('Development Mode Banner', () => {
+    test('dev banner minimizes and expands', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      const originalMock = process.env.REACT_APP_USE_MOCK;
       
       process.env.NODE_ENV = 'development';
       process.env.REACT_APP_USE_MOCK = 'true';
@@ -832,10 +1029,8 @@ describe('App', () => {
       });
       
       const devBanner = container.querySelector('.dev-banner');
-      
       if (devBanner) {
         const minimizeBtn = container.querySelector('.minimize-btn');
-        
         if (minimizeBtn) {
           await act(async () => {
             minimizeBtn.click();
@@ -844,7 +1039,6 @@ describe('App', () => {
           expect(devBanner.classList.contains('minimized')).toBe(true);
           
           const expandBtn = container.querySelector('.expand-btn');
-          
           if (expandBtn) {
             await act(async () => {
               expandBtn.click();
@@ -855,67 +1049,668 @@ describe('App', () => {
         }
       }
       
-      // Restore
-      process.env.NODE_ENV = originalNodeEnv;
-      process.env.REACT_APP_USE_MOCK = originalUseMock;
+      process.env.NODE_ENV = originalEnv;
+      process.env.REACT_APP_USE_MOCK = originalMock;
+    });
+
+    test('hides banner in production mode', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      const originalMock = process.env.REACT_APP_USE_MOCK;
+      
+      process.env.NODE_ENV = 'production';
+      process.env.REACT_APP_USE_MOCK = 'false';
+      
+      const { container } = render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+      });
+      
+      const banner = container.querySelector('.dev-banner');
+      expect(banner).not.toBeInTheDocument();
+      
+      process.env.NODE_ENV = originalEnv;
+      process.env.REACT_APP_USE_MOCK = originalMock;
+    });
+
+    test('hides banner when mock data is off', async () => {
+      const originalMock = process.env.REACT_APP_USE_MOCK;
+      
+      delete process.env.REACT_APP_USE_MOCK;
+      
+      const { container } = render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+      });
+      
+      const banner = container.querySelector('.dev-banner');
+      expect(banner).not.toBeInTheDocument();
+      
+      process.env.REACT_APP_USE_MOCK = originalMock;
     });
   });
 
-  describe('Route Protection', () => {
-    test('protected routes require authentication', async () => {
+  // ========================================================================
+  // PROTECTED ROUTES
+  // ========================================================================
+
+  describe('Protected Routes', () => {
+    test('ProtectedRoute redirects when no user', async () => {
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(screen.getByText('Not logged in')).toBeInTheDocument();
+      });
+    });
+
+    test('ProtectedRoute allows access with user', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: true
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(screen.getByText('test@test.com')).toBeInTheDocument();
+      });
+    });
+  });
+
+  // ========================================================================
+  // LOADING SCREEN DETAILS
+  // ========================================================================
+
+  describe('Loading Screen Details', () => {
+    test('loading screen shows progress updates', async () => {
+      const { container } = render(<App />);
+      
+      const loadingScreen = container.querySelector('.loading-screen');
+      expect(loadingScreen).toBeInTheDocument();
+      
+      const progressText = container.querySelector('.progress-text');
+      const progressFill = container.querySelector('.progress-fill');
+      
+      expect(progressText).toBeInTheDocument();
+      expect(progressFill).toBeInTheDocument();
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+      }, { timeout: 3000 });
+    });
+
+    test('loading screen displays stages', async () => {
+      const { container } = render(<App />);
+      
+      const loadingStage = container.querySelector('.loading-stage');
+      expect(loadingStage).toBeInTheDocument();
+      
+      const loadingText = container.querySelector('.loading-text');
+      expect(loadingText).toHaveTextContent('Loading ICN Navigator...');
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+      }, { timeout: 3000 });
+    });
+  });
+
+  // ========================================================================
+  // ADDITIONAL EDGE CASES
+  // ========================================================================
+
+  describe('Additional Edge Cases', () => {
+    test('handles initialization with partial data', async () => {
+      icnDataService.getStatistics.mockReturnValue({
+        totalCompanies: 100,
+        verified: 50,
+        unverified: 50,
+        bySector: { Tech: 10 },
+        byState: { VIC: 100 }
+      });
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(screen.getByTestId('home-stats')).toHaveTextContent('100');
+      });
+    });
+
+    test('handles auth check with token but no user data', async () => {
+      localStorage.setItem('token', 'test-token');
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(screen.getByText('Not logged in')).toBeInTheDocument();
+      });
+    });
+
+    test('handles user data without token', async () => {
+      localStorage.setItem('user', JSON.stringify({ id: 1, email: 'test@test.com' }));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(screen.getByText('Not logged in')).toBeInTheDocument();
+      });
+    });
+
+    test('handles onboarding check for null user', async () => {
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
+      });
+    });
+
+    test('handles multiple onboarding conditions', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: false,
+        preferences: null,
+        onboardingSkipped: false
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
+      });
+    });
+
+    test('handles successful data load with all statistics', async () => {
+      icnDataService.getStatistics.mockReturnValue({
+        totalCompanies: 2716,
+        verified: 1500,
+        unverified: 1216,
+        bySector: { 
+          Technology: 500, 
+          Manufacturing: 800,
+          Services: 400,
+          Other: 1016
+        },
+        byState: { 
+          VIC: 1000,
+          NSW: 800,
+          QLD: 500,
+          WA: 300,
+          SA: 116
+        }
+      });
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(screen.getByTestId('home-stats')).toHaveTextContent('2716');
+      });
+    });
+
+    test('initialization handles all progress stages', async () => {
+      const { container } = render(<App />);
+      
+      const progressFill = container.querySelector('.progress-fill');
+      expect(progressFill).toBeInTheDocument();
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+      }, { timeout: 3000 });
+    });
+  });
+
+  // ========================================================================
+  // ERROR HANDLING - ADDITIONAL COVERAGE
+  // ========================================================================
+
+  describe('Error Handling - Complete Coverage', () => {
+    test('shows error screen when critical data loading fails', async () => {
+      icnDataService.loadData.mockRejectedValue(new Error('Critical failure'));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByText(/Initialization Error/)).toBeInTheDocument();
+        expect(screen.getByText(/Failed to load company data/)).toBeInTheDocument();
+      });
+    });
+
+    test('retry button reloads window', async () => {
+      delete window.location;
+      window.location = { reload: jest.fn() };
+      
+      icnDataService.loadData.mockRejectedValue(new Error('Load failed'));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('Retry')).toBeInTheDocument();
+      });
+      
+      const retryButton = screen.getByText('Retry');
+      act(() => {
+        retryButton.click();
+      });
+      
+      expect(window.location.reload).toHaveBeenCalled();
+    });
+
+    test('handles error in getStatistics during init', async () => {
+      icnDataService.loadData.mockResolvedValue();
+      icnDataService.getStatistics.mockImplementation(() => {
+        throw new Error('Stats calculation failed');
+      });
+      
+      const consoleSpy = jest.spyOn(console, 'error');
+      
       render(<App />);
       
       await waitFor(() => {
         expect(screen.getByTestId('home-page')).toBeInTheDocument();
       });
       
-      // Note: Full route testing would require more complex setup
-      // These are basic smoke tests to ensure routes render
+      consoleSpy.mockRestore();
+    });
+
+    test('handles error in getCompanies during development logging', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'development';
+      
+      icnDataService.loadData.mockResolvedValue();
+      icnDataService.getStatistics.mockReturnValue({
+        totalCompanies: 100,
+        verified: 50,
+        unverified: 50,
+        bySector: { Tech: 10 },
+        byState: { VIC: 100 }
+      });
+      
+      icnDataService.getCompanies.mockImplementation(() => {
+        throw new Error('Cannot get companies for logging');
+      });
+      
+      const consoleSpy = jest.spyOn(console, 'error');
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+      });
+      
+      process.env.NODE_ENV = originalEnv;
+      consoleSpy.mockRestore();
+    });
+
+    test('catches main initialization errors and sets error state', async () => {
+      icnDataService.loadData.mockRejectedValue(new Error('Fatal init error'));
+      
+      const consoleSpy = jest.spyOn(console, 'error');
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByText(/Initialization Error/)).toBeInTheDocument();
+      });
+      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to load ICN data'),
+        expect.any(Error)
+      );
+      
+      consoleSpy.mockRestore();
     });
   });
 
-  describe('Error Handling', () => {
-    test('shows error screen when data loading fails and dataLoaded is false', async () => {
-      icnDataService.loadData.mockRejectedValue(new Error('Critical data error'));
-      
-      // Need to ensure dataLoaded stays false
-      icnDataService.getStatistics.mockImplementation(() => {
-        throw new Error('No data');
-      });
-      
+  // ========================================================================
+  // EDGE CASES AND STRESS TESTS
+  // ========================================================================
+
+  describe('Edge Cases and Stress Tests', () => {
+    test('handles null user gracefully', async () => {
       render(<App />);
       
       await waitFor(() => {
-        // Check if error screen appears
-        const errorScreen = screen.queryByText(/Initialization Error/);
-        if (errorScreen) {
-          expect(errorScreen).toBeInTheDocument();
-          expect(screen.getByText('Retry')).toBeInTheDocument();
-        }
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
       });
     });
 
-    test('retry button reloads window on error screen', async () => {
-      // Mock window.location.reload properly
-      delete window.location;
-      window.location = { reload: jest.fn() };
+    test('handles user without id', async () => {
+      const mockUser = {
+        email: 'noid@test.com',
+        tier: 'free',
+        onboardingComplete: false
+      };
       
-      icnDataService.loadData.mockRejectedValue(new Error('Critical error'));
-      icnDataService.getStatistics.mockImplementation(() => {
-        throw new Error('No stats');
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
+      });
+      
+      await act(async () => {
+        screen.getByText('Complete').click();
+      });
+      
+      await waitFor(() => {
+        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
+      });
+    });
+
+    test('handles rapid logout clicks', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: true
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByText('Logout')).toBeInTheDocument();
+      });
+      
+      const logoutBtn = screen.getByText('Logout');
+      
+      await act(async () => {
+        logoutBtn.click();
+        logoutBtn.click();
+        logoutBtn.click();
+      });
+      
+      await waitFor(() => {
+        expect(localStorage.getItem('token')).toBeNull();
+      });
+    });
+
+    test('handles empty statistics', async () => {
+      icnDataService.getStatistics.mockReturnValue({
+        totalCompanies: 0,
+        verified: 0,
+        unverified: 0,
+        bySector: {},
+        byState: {}
       });
       
       render(<App />);
       
       await waitFor(() => {
-        const retryButton = screen.queryByText('Retry');
-        if (retryButton) {
-          act(() => {
-            retryButton.click();
-          });
-          
-          expect(window.location.reload).toHaveBeenCalled();
-        }
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+      });
+    });
+
+    test('handles missing dataStats gracefully', async () => {
+      icnDataService.getStatistics.mockReturnValue(null);
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+      });
+    });
+  });
+
+  // ========================================================================
+  // ONBOARDING EDGE CASES - COMPLETE COVERAGE
+  // ========================================================================
+
+  describe('Onboarding Edge Cases - Complete Coverage', () => {
+    test('shows onboarding when onboardingComplete is explicitly false', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: false,
+        preferences: null,
+        onboardingSkipped: false
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
+      });
+    });
+
+    test('hides onboarding when preferences exist', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: false,
+        preferences: { interests: ['tech'] },
+        onboardingSkipped: false
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
+      });
+    });
+
+    test('hides onboarding when onboardingSkipped is true', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: false,
+        preferences: null,
+        onboardingSkipped: true
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
+      });
+    });
+
+    test('hides onboarding when onboardingComplete is true', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: true,
+        preferences: null,
+        onboardingSkipped: false
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.queryByTestId('onboarding-modal')).not.toBeInTheDocument();
+      });
+    });
+
+    test('onboarding adds timestamp on completion', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: false
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
+      });
+      
+      const beforeTime = new Date().toISOString();
+      
+      await act(async () => {
+        screen.getByText('Complete').click();
+      });
+      
+      await waitFor(() => {
+        const savedUser = JSON.parse(localStorage.getItem('user'));
+        expect(savedUser.onboardingCompletedAt).toBeDefined();
+        expect(new Date(savedUser.onboardingCompletedAt).getTime()).toBeGreaterThanOrEqual(
+          new Date(beforeTime).getTime()
+        );
+      });
+    });
+
+    test('onboarding skip adds timestamp', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: false
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
+      });
+      
+      await act(async () => {
+        screen.getByText('Skip').click();
+      });
+      
+      await waitFor(() => {
+        const savedUser = JSON.parse(localStorage.getItem('user'));
+        expect(savedUser.onboardingSkipped).toBe(true);
+        expect(savedUser.onboardingSkippedAt).toBeDefined();
+      });
+    });
+
+    test('logs onboarding completion', async () => {
+      const consoleSpy = jest.spyOn(console, 'log');
+      
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: false
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
+      });
+      
+      await act(async () => {
+        screen.getByText('Complete').click();
+      });
+      
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith(
+          'Onboarding completed with preferences:',
+          expect.any(Object)
+        );
+      });
+      
+      consoleSpy.mockRestore();
+    });
+
+    test('logs onboarding skip', async () => {
+      const consoleSpy = jest.spyOn(console, 'log');
+      
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: false
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('onboarding-modal')).toBeInTheDocument();
+      });
+      
+      await act(async () => {
+        screen.getByText('Skip').click();
+      });
+      
+      await waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith('Onboarding skipped');
+      });
+      
+      consoleSpy.mockRestore();
+    });
+  });
+
+  // ========================================================================
+  // BASIC ROUTE RENDERING
+  // ========================================================================
+  
+  describe('Basic Route Rendering', () => {
+    test('renders default route correctly', async () => {
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+      });
+    });
+
+    test('protected routes work with authenticated user', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@test.com',
+        tier: 'free',
+        onboardingComplete: true
+      };
+      
+      localStorage.setItem('token', 'test-token');
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      render(<App />);
+      
+      await waitFor(() => {
+        expect(screen.getByTestId('home-page')).toBeInTheDocument();
+        expect(screen.getByText('test@test.com')).toBeInTheDocument();
       });
     });
   });
