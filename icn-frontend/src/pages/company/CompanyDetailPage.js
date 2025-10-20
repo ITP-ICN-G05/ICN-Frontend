@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCompanyService, getBookmarkService } from '../../services/serviceFactory';
 import './CompanyDetailPage.css';
@@ -19,6 +19,19 @@ function CompanyDetailPage() {
   const [isNewsExpanded, setIsNewsExpanded] = useState(false);
   const [isProjectsExpanded, setIsProjectsExpanded] = useState(false);
   const [isContactExpanded, setIsContactExpanded] = useState(false);
+  const [expandedCapabilityGroups, setExpandedCapabilityGroups] = useState({});
+  const [abnCopied, setAbnCopied] = useState(false);
+  const [bookmarkEffect, setBookmarkEffect] = useState(false);
+
+  // Copy ABN to clipboard
+  const handleCopyABN = () => {
+    if (company.abn) {
+      navigator.clipboard.writeText(company.abn).then(() => {
+        setAbnCopied(true);
+        setTimeout(() => setAbnCopied(false), 2000);
+      });
+    }
+  };
 
   // User tier management - simulating subscription levels
   // In production, this would come from user's account settings
@@ -118,6 +131,10 @@ function CompanyDetailPage() {
       return;
     }
   
+    // Trigger effect animation
+    setBookmarkEffect(true);
+    setTimeout(() => setBookmarkEffect(false), 600);
+
     try {
       if (bookmarked) {
         await bookmarkService.removeBookmark(company.id);
@@ -214,11 +231,38 @@ function CompanyDetailPage() {
       })) : []);
 
   // Pagination for capabilities
+  // Group capabilities by itemName so that each item can expand to show its children (detailed items)
+  const groupedCapabilities = useMemo(() => {
+    if (!capabilitiesData) return [];
+    const groupMap = new Map();
+    capabilitiesData.forEach((cap) => {
+      const name = (cap && cap.itemName) ? cap.itemName : (typeof cap === 'string' ? cap : 'Item');
+      const detailedName = (cap && cap.detailedItemName) ? cap.detailedItemName : (typeof cap === 'string' ? cap : name);
+      if (!groupMap.has(name)) {
+        groupMap.set(name, {
+          groupName: name,
+          capabilityType: cap && cap.capabilityType,
+          localContentPercentage: cap && cap.localContentPercentage,
+          items: []
+        });
+      }
+      const group = groupMap.get(name);
+      // push all child entries (allow duplicates to reflect counts from data)
+      group.items.push({ name: detailedName });
+    });
+    return Array.from(groupMap.values());
+  }, [capabilitiesData]);
+
   const capabilitiesPerPage = 6;
-  const totalCapabilityPages = capabilitiesData ? 
-    Math.ceil(capabilitiesData.length / capabilitiesPerPage) : 0;
-  const currentCapabilities = capabilitiesData ? 
-    capabilitiesData.slice(capabilityPage * capabilitiesPerPage, (capabilityPage + 1) * capabilitiesPerPage) : [];
+  const totalCapabilityPages = groupedCapabilities ? 
+    Math.ceil(groupedCapabilities.length / capabilitiesPerPage) : 0;
+  const currentCapabilityGroups = groupedCapabilities ? 
+    groupedCapabilities.slice(capabilityPage * capabilitiesPerPage, (capabilityPage + 1) * capabilitiesPerPage) : [];
+  
+  // Track which groups are expanded (for child items)
+  const toggleGroupExpansion = (groupName) => {
+    setExpandedCapabilityGroups(prev => ({...prev, [groupName]: !prev[groupName]}));
+  };
 
   // Pagination for projects
   const projectsPerPage = 3;
@@ -360,7 +404,24 @@ function CompanyDetailPage() {
                       </svg>
                       <span>Company ABN<span className="abn-colon">:</span></span>
                     </div>
-                    <div className="abn-text">{formatABN(company.abn)}</div>
+                    <div className="abn-text-wrapper">
+                      <div className="abn-text" onClick={handleCopyABN}>
+                        {formatABN(company.abn)}
+                      </div>
+                      <button className="abn-copy-btn" onClick={handleCopyABN} title="Copy ABN">
+                        {abnCopied ? (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polyline points="20 6 9 17 4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M5 15H4C3.46957 15 2.96086 14.7893 2.58579 14.4142C2.21071 14.0391 2 13.5304 2 13V4C2 3.46957 2.21071 2.96086 2.58579 2.58579C2.96086 2.21071 3.46957 2 4 2H13C13.5304 2 14.0391 2.21071 14.4142 2.58579C14.7893 2.96086 15 3.46957 15 4V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </button>
+                      {abnCopied && <span className="abn-copy-tooltip">Copied!</span>}
+                    </div>
               </div>
                 )}
 
@@ -460,7 +521,7 @@ function CompanyDetailPage() {
               </div>
 
               {/* Items & Services (Capabilities) - Collapsible */}
-              {capabilitiesData && capabilitiesData.length > 0 && (
+              {groupedCapabilities && groupedCapabilities.length > 0 && (
                 <div className="content-card">
                   <div 
                     className="collapsible-header-capability" 
@@ -477,8 +538,8 @@ function CompanyDetailPage() {
                       <h2>Items & Services</h2>
                       <div className="items-count-badge">
                         {totalCapabilityPages > 1 && isCapabilitiesExpanded 
-                          ? `${Math.min((capabilityPage + 1) * capabilitiesPerPage, capabilitiesData.length)}/${capabilitiesData.length}`
-                          : `${capabilitiesData.length}`
+                          ? `${Math.min((capabilityPage + 1) * capabilitiesPerPage, groupedCapabilities.length)}/${groupedCapabilities.length}`
+                          : `${groupedCapabilities.length}`
                         }
                       </div>
                     </div>
@@ -489,13 +550,16 @@ function CompanyDetailPage() {
 
                   {isCapabilitiesExpanded && (
                     <div className="collapsible-content-capability">
-                      {/* Pagination Controls */}
+                      {/* Pagination Controls - at top */}
                       {totalCapabilityPages > 1 && (
                         <div className="horizontal-pagination-wrapper">
                           <div className="horizontal-pagination-container">
                             <button 
                               className={`separated-nav-button ${capabilityPage === 0 ? 'disabled' : ''}`}
-                              onClick={() => setCapabilityPage(Math.max(0, capabilityPage - 1))}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCapabilityPage(Math.max(0, capabilityPage - 1));
+                              }}
                               disabled={capabilityPage === 0}
                             >
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -508,14 +572,20 @@ function CompanyDetailPage() {
                                 <div
                                   key={index}
                                   className={`compact-page-dot ${index === capabilityPage ? 'active' : ''}`}
-                                  onClick={() => setCapabilityPage(index)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCapabilityPage(index);
+                                  }}
                                 />
                               ))}
                             </div>
                             
                             <button 
                               className={`separated-nav-button ${capabilityPage === totalCapabilityPages - 1 ? 'disabled' : ''}`}
-                              onClick={() => setCapabilityPage(Math.min(totalCapabilityPages - 1, capabilityPage + 1))}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCapabilityPage(Math.min(totalCapabilityPages - 1, capabilityPage + 1));
+                              }}
                               disabled={capabilityPage === totalCapabilityPages - 1}
                             >
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -526,10 +596,10 @@ function CompanyDetailPage() {
                         </div>
                       )}
 
-                      {/* Capability Items */}
+                      {/* Capability Items - Keep original style */}
                       <div className="capabilities-list">
-                        {currentCapabilities.map((capability, index) => (
-                          <div key={`${capability.capabilityId || capability.itemName}-${capabilityPage}-${index}`} className="modern-capability-item">
+                        {currentCapabilityGroups.map((group, index) => (
+                          <div key={`${group.groupName}-${capabilityPage}-${index}`} className="modern-capability-item">
                             <div className="capability-header-content">
                               <div className="capability-icon-wrapper">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -539,9 +609,9 @@ function CompanyDetailPage() {
                                 </svg>
                               </div>
                               <div className="capability-content">
-                                <div className="capability-name">{capability.itemName || capability}</div>
-                                {capability.detailedItemName && capability.detailedItemName !== capability.itemName && (
-                                  <div className="capability-detail">{capability.detailedItemName}</div>
+                                <div className="capability-name">{group.groupName}</div>
+                                {group.items.length > 1 && !expandedCapabilityGroups[group.groupName] && (
+                                  <div className="capability-detail">{group.items[0].name}</div>
                                 )}
                               </div>
                             </div>
@@ -549,18 +619,56 @@ function CompanyDetailPage() {
                             {/* Tags Row */}
                             <div className="capability-tags">
                               {/* Capability Type - Plus tier and above */}
-                              {(currentTier === 'plus' || currentTier === 'premium') && capability.capabilityType && (
+                              {(currentTier === 'plus' || currentTier === 'premium') && group.capabilityType && (
                                 <div className="modern-capability-type-badge">
-                                  {capability.capabilityType}
+                                  {group.capabilityType}
                                 </div>
                               )}
                               {/* Local Content % - Premium tier only */}
-                              {currentTier === 'premium' && capability.localContentPercentage && (
+                              {currentTier === 'premium' && group.localContentPercentage && (
                                 <div className="local-content-badge-capability">
-                                  {capability.localContentPercentage}% Local
+                                  {group.localContentPercentage}% Local
                                 </div>
                               )}
+                              {/* Show expand button if has multiple items */}
+                              {group.items.length > 1 && (
+                                <button 
+                                  className="capability-expand-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleGroupExpansion(group.groupName);
+                                  }}
+                                >
+                                  {expandedCapabilityGroups[group.groupName] ? (
+                                    <>
+                                      <span>Show Less</span>
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <polyline points="18 15 12 9 6 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      </svg>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span>+{group.items.length - 1} more</span>
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <polyline points="6 9 12 15 18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      </svg>
+                                    </>
+                                  )}
+                                </button>
+                              )}
                             </div>
+
+                            {/* Expanded child items */}
+                            {expandedCapabilityGroups[group.groupName] && group.items.length > 1 && (
+                              <div className="capability-children">
+                                {group.items.map((child, idx) => (
+                                  <div key={idx} className="capability-child-item">
+                                    <div className="capability-child-number">{idx + 1}</div>
+                                    <span className="capability-child-name">{child.name}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -571,14 +679,17 @@ function CompanyDetailPage() {
                   {!isCapabilitiesExpanded && (
                     <div className="preview-container">
                       <div className="preview-tags">
-                        {capabilitiesData.slice(0, 3).map((cap, index) => (
+                        {groupedCapabilities.slice(0, 3).map((cap, index) => (
                           <div key={index} className="preview-tag">
-                            {cap.itemName || cap}
+                            {cap.groupName}
                           </div>
                         ))}
-                        {capabilitiesData.length > 3 && (
-                          <div className="more-tag">
-                            +{capabilitiesData.length - 3} more
+                        {groupedCapabilities.length > 3 && (
+                          <div 
+                            className="more-tag" 
+                            onClick={() => setIsCapabilitiesExpanded(true)}
+                          >
+                            +{groupedCapabilities.length - 3} more
                           </div>
                         )}
                       </div>
@@ -848,7 +959,7 @@ function CompanyDetailPage() {
                 <h3>Quick Actions</h3>
                 {/* Bookmark Company */}
                 <button 
-                  className={`sidebar-action-btn bookmark-action ${bookmarked ? 'bookmarked' : ''}`}
+                  className={`sidebar-action-btn bookmark-action ${bookmarked ? 'bookmarked' : ''} ${bookmarkEffect ? 'bookmark-effect' : ''}`}
                   onClick={handleBookmark}
                 >
                   <div className="sidebar-action-icon">
@@ -866,6 +977,9 @@ function CompanyDetailPage() {
                     <div className="sidebar-action-title">{bookmarked ? 'Already Bookmarked' : 'Bookmark'}</div>
                     <div className="sidebar-action-subtitle">{bookmarked ? 'Saved to your list' : 'Save this company'}</div>
                   </div>
+                  {bookmarkEffect && (
+                    <div className="bookmark-ripple"></div>
+                  )}
                 </button>
                 
                 {/* Get Directions */}
