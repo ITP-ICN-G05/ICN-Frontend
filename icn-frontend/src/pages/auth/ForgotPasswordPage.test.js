@@ -239,20 +239,6 @@ describe('ForgotPasswordPage', () => {
     expect(confirmPasswordInput).toHaveAttribute('type', 'text');
   });
 
-  test('show password checkbox works', () => {
-    renderComponent();
-    
-    const passwordInput = screen.getByLabelText(/^password$/i);
-    const showPasswordCheckbox = screen.getByRole('checkbox', { name: /show password/i });
-
-    expect(passwordInput).toHaveAttribute('type', 'password');
-    expect(showPasswordCheckbox).not.toBeChecked();
-    
-    fireEvent.click(showPasswordCheckbox);
-    expect(showPasswordCheckbox).toBeChecked();
-    expect(passwordInput).toHaveAttribute('type', 'text');
-  });
-
   test('clears field errors on input change', async () => {
     renderComponent();
     

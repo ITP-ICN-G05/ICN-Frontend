@@ -3,18 +3,20 @@
 // src/pages/navigation/NavigationPage.test.js
 
 import React from 'react';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import NavigationPage from './NavigationPage';
-import { renderWithProviders, mockCompanies, mockApiResponses } from '../../utils/testUtils';
+import { renderWithProviders } from '../../utils/testUtils';
 import * as serviceFactory from '../../services/serviceFactory';
+import geocodingCacheService from '../../services/geocodingCacheService';
 
 // Mock the service factory and components
 jest.mock('../../services/serviceFactory');
+
 jest.mock('../../services/geocodingCacheService', () => ({
   __esModule: true,
   default: {
-    batchGeocodeWithCache: jest.fn((companies) => Promise.resolve(companies)),
+    batchGeocodeWithCache: jest.fn(),
   },
 }));
 
@@ -22,7 +24,7 @@ jest.mock('../../components/map/SearchMap', () => {
   return function SearchMap({ companies, onCompanySelect }) {
     return (
       <div data-testid="search-map">
-        {companies.map(c => (
+        {companies?.map(c => (
           <button key={c.id} onClick={() => onCompanySelect(c)}>
             {c.name}
           </button>
@@ -60,24 +62,71 @@ describe('NavigationPage', () => {
   let mockCompanyService;
   let mockGeocodingService;
 
+  // Define mock companies directly in test file
+  const mockCompanies = [
+    {
+      id: 1,
+      name: 'Tech Solutions Ltd',
+      address: '123 Test St, Melbourne VIC',
+      type: 'supplier',
+      verified: true,
+      sectors: ['Technology'],
+      capabilities: ['Software'],
+      size: 'Medium',
+      ownership: ['Australian'],
+      distance: 5,
+      lat: -37.8136,
+      lng: 144.9631
+    },
+    {
+      id: 2,
+      name: 'Green Industries',
+      address: '456 Demo Ave, Melbourne VIC',
+      type: 'manufacturer',
+      verified: false,
+      sectors: ['Manufacturing'],
+      capabilities: ['Production'],
+      size: 'Large',
+      ownership: ['International'],
+      distance: 10,
+      lat: -37.8140,
+      lng: 144.9635
+    }
+  ];
+
   const setupMocks = (companies = mockCompanies) => {
+    // Mock company service
     mockCompanyService = {
-      getAll: jest.fn(() => mockApiResponses.success(companies))
+      getAll: jest.fn(() => Promise.resolve({ data: companies }))
     };
     
+    // Mock geocoding service
     mockGeocodingService = {
-      geocodeAddress: jest.fn(() => mockApiResponses.success({
-        lat: -37.8136,
-        lng: 144.9631
+      geocodeAddress: jest.fn(() => Promise.resolve({
+        data: {
+          lat: -37.8136,
+          lng: 144.9631
+        }
       }))
     };
 
+    // Mock geocoding cache to return companies with coordinates
+    geocodingCacheService.batchGeocodeWithCache.mockImplementation(
+      (companiesArray) => Promise.resolve(companiesArray)
+    );
+
+    // Apply mocks to service factory
     serviceFactory.getCompanyService.mockReturnValue(mockCompanyService);
     serviceFactory.getGeocodingService.mockReturnValue(mockGeocodingService);
   };
 
   beforeEach(() => {
+    jest.clearAllMocks();
     setupMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   test('renders navigation page with header', async () => {
@@ -105,17 +154,23 @@ describe('NavigationPage', () => {
   test('displays companies after loading', async () => {
     renderWithProviders(<NavigationPage />);
     
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
-      expect(screen.getByText('Green Industries')).toBeInTheDocument();
+      expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
     });
+
+    // Wait for companies to appear in the map
+    await waitFor(() => {
+      const companyButtons = screen.getAllByRole('button', { name: /Tech Solutions Ltd|Green Industries/i });
+      expect(companyButtons.length).toBeGreaterThan(0);
+    }, { timeout: 3000 });
   });
 
   test('switches between map and list views', async () => {
     renderWithProviders(<NavigationPage />);
     
     await waitFor(() => {
-      expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
+      expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
     });
 
     // Initially map view should be active
@@ -126,15 +181,17 @@ describe('NavigationPage', () => {
     const listBtn = screen.getByText('📋 List View');
     fireEvent.click(listBtn);
     
-    expect(listBtn).toHaveClass('active');
-    expect(mapBtn).not.toHaveClass('active');
+    await waitFor(() => {
+      expect(listBtn).toHaveClass('active');
+      expect(mapBtn).not.toHaveClass('active');
+    });
   });
 
   test('toggles filter panel visibility', async () => {
     renderWithProviders(<NavigationPage />);
     
     await waitFor(() => {
-      expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
+      expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
     });
 
     const filterToggle = screen.getByText('🔧 Filters');
@@ -155,8 +212,14 @@ describe('NavigationPage', () => {
     renderWithProviders(<NavigationPage />);
     
     await waitFor(() => {
-      expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
-      expect(screen.getByText('Green Industries')).toBeInTheDocument();
+      expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
+    });
+
+    // Switch to list view to see company cards
+    fireEvent.click(screen.getByText('📋 List View'));
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId('company-card').length).toBe(2);
     });
 
     // Apply verified filter
@@ -165,6 +228,8 @@ describe('NavigationPage', () => {
 
     // Only verified company should be shown
     await waitFor(() => {
+      const cards = screen.getAllByTestId('company-card');
+      expect(cards.length).toBe(1);
       expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
       expect(screen.queryByText('Green Industries')).not.toBeInTheDocument();
     });
@@ -174,12 +239,19 @@ describe('NavigationPage', () => {
     renderWithProviders(<NavigationPage />);
     
     await waitFor(() => {
-      expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
+      expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
     });
+
+    // Switch to list view
+    fireEvent.click(screen.getByText('📋 List View'));
 
     // Apply filter
     const applyFilterBtn = screen.getByText('Apply Verified Filter');
     fireEvent.click(applyFilterBtn);
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId('company-card').length).toBe(1);
+    });
 
     // Clear filters
     const clearBtn = screen.getByText('Clear Filters');
@@ -187,8 +259,7 @@ describe('NavigationPage', () => {
 
     // Both companies should be visible again
     await waitFor(() => {
-      expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
-      expect(screen.getByText('Green Industries')).toBeInTheDocument();
+      expect(screen.getAllByTestId('company-card').length).toBe(2);
     });
   });
 
@@ -196,16 +267,18 @@ describe('NavigationPage', () => {
     renderWithProviders(<NavigationPage />);
     
     await waitFor(() => {
-      expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
+      expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
     });
 
     // Apply filter
     const applyFilterBtn = screen.getByText('Apply Verified Filter');
     fireEvent.click(applyFilterBtn);
 
-    // Filter count badge should appear
+    // Filter count badge should appear - use within to scope the query
     await waitFor(() => {
-      expect(screen.getByText('1')).toHaveClass('filter-count');
+      const filterButton = screen.getByRole('button', { name: /🔧 Filters/i });
+      const badge = within(filterButton).getByText('1');
+      expect(badge).toHaveClass('filter-count');
     });
   });
 
@@ -213,8 +286,15 @@ describe('NavigationPage', () => {
     renderWithProviders(<NavigationPage />);
     
     await waitFor(() => {
-      expect(screen.getByText(/2.*companies/i)).toBeInTheDocument();
-      expect(screen.getByText(/1.*verified/i)).toBeInTheDocument();
+      expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      // Find the stats display container and check its content
+      const statsContainer = document.querySelector('.stats-display');
+      expect(statsContainer).toBeInTheDocument();
+      expect(statsContainer).toHaveTextContent('2 companies');
+      expect(statsContainer).toHaveTextContent('1 verified');
     });
   });
 
@@ -222,11 +302,11 @@ describe('NavigationPage', () => {
     renderWithProviders(<NavigationPage />);
     
     await waitFor(() => {
-      expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
+      expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
     });
 
     // Click company on map
-    const mapCompanyBtn = screen.getAllByText('Tech Solutions Ltd')[0];
+    const mapCompanyBtn = screen.getAllByRole('button', { name: 'Tech Solutions Ltd' })[0];
     fireEvent.click(mapCompanyBtn);
 
     // Company panel should appear
@@ -239,11 +319,11 @@ describe('NavigationPage', () => {
     renderWithProviders(<NavigationPage />);
     
     await waitFor(() => {
-      expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
+      expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
     });
 
     // Select company
-    const mapCompanyBtn = screen.getAllByText('Tech Solutions Ltd')[0];
+    const mapCompanyBtn = screen.getAllByRole('button', { name: 'Tech Solutions Ltd' })[0];
     fireEvent.click(mapCompanyBtn);
 
     await waitFor(() => {
@@ -259,14 +339,17 @@ describe('NavigationPage', () => {
   });
 
   test('handles API error gracefully', async () => {
-    mockCompanyService.getAll.mockImplementation(() => 
-      mockApiResponses.error('API Error')
-    );
+    mockCompanyService.getAll.mockRejectedValue(new Error('API Error'));
     
     renderWithProviders(<NavigationPage />);
     
     await waitFor(() => {
       expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
+    });
+
+    // Should render page with 0 companies
+    await waitFor(() => {
+      expect(screen.getByText(/0.*companies/i)).toBeInTheDocument();
     });
   });
 
@@ -282,14 +365,18 @@ describe('NavigationPage', () => {
   });
 
   test('navigates to company detail page on list view click', async () => {
-    const { container } = renderWithProviders(<NavigationPage />);
+    renderWithProviders(<NavigationPage />);
     
     await waitFor(() => {
-      expect(screen.getByText('Tech Solutions Ltd')).toBeInTheDocument();
+      expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
     });
 
     // Switch to list view
     fireEvent.click(screen.getByText('📋 List View'));
+
+    await waitFor(() => {
+      expect(screen.getAllByTestId('company-card').length).toBeGreaterThan(0);
+    });
 
     // Click on company card
     const companyCard = screen.getAllByTestId('company-card')[0];
@@ -298,9 +385,13 @@ describe('NavigationPage', () => {
     // Router navigation is handled by the test environment
   });
 
-  test('displays correct initial view mode', () => {
+  test('displays correct initial view mode', async () => {
     renderWithProviders(<NavigationPage />);
     
+    await waitFor(() => {
+      expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
+    });
+
     const mapBtn = screen.getByText('🗺️ Map View');
     expect(mapBtn).toHaveClass('active');
   });
@@ -309,10 +400,31 @@ describe('NavigationPage', () => {
     renderWithProviders(<NavigationPage />);
     
     await waitFor(() => {
+      expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
+    });
+
+    // Switch to list view to count cards
+    fireEvent.click(screen.getByText('📋 List View'));
+
+    await waitFor(() => {
       expect(screen.getAllByTestId('company-card').length).toBe(2);
     });
 
     // Distance filter is handled through FilterPanel component
     // This test verifies the component renders with distance-filtered data
+  });
+
+  test('handles empty company list', async () => {
+    setupMocks([]);
+    
+    renderWithProviders(<NavigationPage />);
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Loading Companies...')).not.toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/0.*companies/i)).toBeInTheDocument();
+    });
   });
 });

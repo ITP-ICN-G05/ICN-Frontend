@@ -174,7 +174,7 @@ describe('NavigationBar', () => {
       const avatar = screen.getByTitle(/Logged in as/);
       fireEvent.click(avatar);
       
-      expect(screen.getByText('🔧 Admin Dashboard')).toBeInTheDocument();
+      expect(screen.getByText('⚙️ Admin Dashboard')).toBeInTheDocument();
     });
 
     it('does not show admin link for regular users', () => {
@@ -182,7 +182,7 @@ describe('NavigationBar', () => {
       const avatar = screen.getByTitle(/Logged in as/);
       fireEvent.click(avatar);
       
-      expect(screen.queryByText('🔧 Admin Dashboard')).not.toBeInTheDocument();
+      expect(screen.queryByText('⚙️ Admin Dashboard')).not.toBeInTheDocument();
     });
 
     it('navigates to profile page', () => {
