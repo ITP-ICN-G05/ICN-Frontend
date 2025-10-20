@@ -22,12 +22,28 @@ export const BookmarkProvider = ({ children }) => {
   }, []);
 
   const loadBookmarks = async () => {
-    const user = JSON.parse(localStorage.getItem('user'));
+    // Parse and validate user from localStorage
+    let user;
+    try {
+      const userJson = localStorage.getItem('user');
+      if (!userJson) {
+        setBookmarks([]);
+        return;
+      }
+      user = JSON.parse(userJson);
+    } catch (err) {
+      console.error('Error parsing user from localStorage:', err);
+      setError(err.message);
+      setBookmarks([]);
+      return;
+    }
+
     if (!user) {
       setBookmarks([]);
       return;
     }
     
+    // Fetch bookmarks from service
     setLoading(true);
     setError(null);
     try {
