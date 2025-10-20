@@ -13,7 +13,7 @@ function CompanyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [bookmarked, setBookmarked] = useState(false);
   const [projectPage, setProjectPage] = useState(0);
-  const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
+  const [isSummaryExpanded, setIsSummaryExpanded] = useState(true);
   const [isCapabilitiesExpanded, setIsCapabilitiesExpanded] = useState(false);
   const [capabilityPage, setCapabilityPage] = useState(0);
   const [isNewsExpanded, setIsNewsExpanded] = useState(false);
@@ -358,7 +358,7 @@ function CompanyDetailPage() {
                         <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         <polyline points="14 2 14 8 20 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
-                      Company ABN
+                      <span>Company ABN<span className="abn-colon">:</span></span>
                     </div>
                     <div className="abn-text">{formatABN(company.abn)}</div>
               </div>
@@ -367,27 +367,28 @@ function CompanyDetailPage() {
                 {/* Company Summary with Expand/Collapse - Plus tier and above */}
                 {(currentTier === 'plus' || currentTier === 'premium') && company.description && (
                   <div className="collapsible-section summary-section">
-                    <div className="collapsible-header" onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}>
-                      <div className="section-title-row">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <polyline points="14 2 14 8 20 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <polyline points="10 9 9 9 8 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        <span className="section-title-text">Company Summary</span>
-                      </div>
+                    <div className="summary-header">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <polyline points={isSummaryExpanded ? "18 15 12 9 6 15" : "6 9 12 15 18 9"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <polyline points="14 2 14 8 20 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <polyline points="10 9 9 9 8 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
-                      </div>
+                      <span className="summary-title">Company Summary</span>
+                    </div>
                     {isSummaryExpanded && (
-                      <div className="collapsible-content">
-                        <p style={{ lineHeight: '1.6', color: 'var(--black-80)', textAlign: 'left' }}>{company.description}</p>
+                      <div className="summary-content">
+                        <p>{company.description}</p>
                       </div>
                     )}
-                      </div>
+                    <div className="summary-toggle" onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}>
+                      <span className="summary-toggle-text">{isSummaryExpanded ? 'Show Less' : 'Show More'}</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <polyline points={isSummaryExpanded ? "18 15 12 9 6 15" : "6 9 12 15 18 9"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </div>
                 )}
 
                 {/* Diversity Markers - Premium tier */}
@@ -421,8 +422,8 @@ function CompanyDetailPage() {
                   <div className="overview-section">
                     <div className="section-title-row">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M12 6L14.5 9L18 9.5L15 12.5L15.5 16L12 14.5L8.5 16L9 12.5L6 9.5L9.5 9L12 6Z" fill="currentColor"/>
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                       <span className="section-title-text">Certifications & Badges</span>
                     </div>
@@ -430,8 +431,7 @@ function CompanyDetailPage() {
                       {company.certifications.map((cert, index) => (
                         <div key={index} className="certification-chip-inline">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M12 6L14.5 9L18 9.5L15 12.5L15.5 16L12 14.5L8.5 16L9 12.5L6 9.5L9.5 9L12 6Z" fill="currentColor"/>
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
                           </svg>
                           <span className="certification-chip-text">{cert}</span>
                         </div>
@@ -467,6 +467,13 @@ function CompanyDetailPage() {
                     onClick={() => setIsCapabilitiesExpanded(!isCapabilitiesExpanded)}
                   >
                     <div className="capability-title-row">
+                      <span className="capability-title-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M21 16V8C20.9996 7.64927 20.9071 7.30481 20.7315 7.00116C20.556 6.69751 20.3037 6.44536 20 6.27L13 2.27C12.696 2.09446 12.3511 2.00205 12 2.00205C11.6489 2.00205 11.304 2.09446 11 2.27L4 6.27C3.69626 6.44536 3.44398 6.69751 3.26846 7.00116C3.09294 7.30481 3.00036 7.64927 3 8V16C3.00036 16.3507 3.09294 16.6952 3.26846 16.9988C3.44398 17.3025 3.69626 17.5546 4 17.73L11 21.73C11.304 21.9055 11.6489 21.9979 12 21.9979C12.3511 21.9979 12.696 21.9055 13 21.73L20 17.73C20.3037 17.5546 20.556 17.3025 20.7315 16.9988C20.9071 16.6952 20.9996 16.3507 21 16Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <line x1="12" y1="22.08" x2="12" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </span>
                       <h2>Items & Services</h2>
                       <div className="items-count-badge">
                         {totalCapabilityPages > 1 && isCapabilitiesExpanded 
@@ -618,23 +625,25 @@ function CompanyDetailPage() {
                   className="collapsible-header-news" 
                   onClick={() => setIsNewsExpanded(!isNewsExpanded)}
                 >
-                  <div className="news-header-left">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M19 20H5C4.46957 20 3.96086 19.7893 3.58579 19.4142C3.21071 19.0391 3 18.5304 3 18V6C3 5.46957 3.21071 4.96086 3.58579 4.58579C3.96086 4.21071 4.46957 4 5 4H9L11 7H19C19.5304 7 20.0391 7.21071 20.4142 7.58579C20.7893 7.96086 21 8.46957 21 9V18C21 18.5304 20.7893 19.0391 20.4142 19.4142C20.0391 19.7893 19.5304 20 19 20Z" stroke="var(--primary-orange)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <line x1="7" y1="12" x2="17" y2="12" stroke="var(--primary-orange)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <line x1="7" y1="16" x2="14" y2="16" stroke="var(--primary-orange)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    <div className="news-header-text">
-                      <h2>Industry News & Trends</h2>
-                      <p className="news-subtitle">
-                        ICN Victoria research and insights for {company.sectors?.[0] || 'your industry'}
-                      </p>
-                    </div>
+                  <div className="news-title-row">
+                    <span className="section-title-icon" aria-hidden="true">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 20H5C4.46957 20 3.96086 19.7893 3.58579 19.4142C3.21071 19.0391 3 18.5304 3 18V6C3 5.46957 3.21071 4.96086 3.58579 4.58579C3.96086 4.21071 4.46957 4 5 4H9L11 7H19C19.5304 7 20.0391 7.21071 20.4142 7.58579C20.7893 7.96086 21 8.46957 21 9V18C21 18.5304 20.7893 19.0391 20.4142 19.4142C20.0391 19.7893 19.5304 20 19 20Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <line x1="7" y1="16" x2="14" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </span>
+                    <h2>Industry News & Trends</h2>
                   </div>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <polyline points={isNewsExpanded ? "18 15 12 9 6 15" : "6 9 12 15 18 9"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
+                {!isNewsExpanded && (
+                  <p className="section-description">
+                    ICN Victoria research and insights for {company.sectors?.[0] || 'your industry'}
+                  </p>
+                )}
 
                 {isNewsExpanded && (
                   <div className="collapsible-content-news">
@@ -661,22 +670,24 @@ function CompanyDetailPage() {
                     className="collapsible-header-projects" 
                     onClick={() => setIsProjectsExpanded(!isProjectsExpanded)}
                   >
-                    <div className="projects-header-left">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" stroke="var(--primary-orange)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M16 21V5C16 4.46957 15.7893 3.96086 15.4142 3.58579C15.0391 3.21071 14.5304 3 14 3H10C9.46957 3 8.96086 3.21071 8.58579 3.58579C8.21071 3.96086 8 4.46957 8 5V21" stroke="var(--primary-orange)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      <div className="projects-header-text">
-                        <h2>Past Projects</h2>
-                        <p className="projects-subtitle">
-                          View {company.pastProjects.length} completed projects and outcomes
-                        </p>
-                      </div>
+                    <div className="projects-title-row">
+                      <span className="section-title-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="2" y="7" width="20" height="14" rx="2" ry="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M16 21V5C16 4.46957 15.7893 3.96086 15.4142 3.58579C15.0391 3.21071 14.5304 3 14 3H10C9.46957 3 8.96086 3.21071 8.58579 3.58579C8.21071 3.96086 8 4.46957 8 5V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </span>
+                      <h2>Past Projects</h2>
                     </div>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <polyline points={isProjectsExpanded ? "18 15 12 9 6 15" : "6 9 12 15 18 9"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
+                  {!isProjectsExpanded && (
+                    <p className="section-description">
+                      View {company.pastProjects.length} completed projects and outcomes
+                    </p>
+                  )}
 
                   {isProjectsExpanded && (
                     <div className="collapsible-content-projects">
@@ -759,134 +770,79 @@ function CompanyDetailPage() {
                 </div>
               )}
 
-              {/* Contact Details - Collapsible */}
-                  <div className="content-card">
-                <div 
-                  className="collapsible-header-contact" 
-                  onClick={() => setIsContactExpanded(!isContactExpanded)}
-                >
-                  <div className="contact-title-row">
-                    <h2>Contact Details</h2>
-                  </div>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <polyline points={isContactExpanded ? "18 15 12 9 6 15" : "6 9 12 15 18 9"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-
-                {isContactExpanded && (
-                  <div className="collapsible-content-contact">
-                    {/* Website */}
-                    <div 
-                      className="contact-row" 
-                      onClick={isValidData(company.website) ? handleWebsite : handleICNContact}
-                    >
-                      <div className={`contact-icon ${!isValidData(company.website) ? 'disabled' : ''}`}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <line x1="2" y1="12" x2="22" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      <div className="contact-content">
-                        <div className="contact-label">Website</div>
-                        <div className={`contact-value ${!isValidData(company.website) ? 'placeholder' : ''}`}>
-                          {getDisplayValue(company.website, 'Visit ICN Portal')}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Phone */}
-                    <div 
-                      className="contact-row" 
-                      onClick={isValidData(company.phone) ? handleCall : handleICNContact}
-                    >
-                      <div className={`contact-icon ${!isValidData(company.phone) ? 'disabled' : ''}`}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7293C21.7209 20.9845 21.5573 21.2136 21.3521 21.4019C21.1469 21.5901 20.9046 21.7335 20.6407 21.8227C20.3769 21.9119 20.0974 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77382 17.3147 6.72533 15.2662 5.18999 12.85C3.49997 10.2412 2.44824 7.27099 2.11999 4.18C2.095 3.90347 2.12787 3.62476 2.21649 3.36162C2.30512 3.09849 2.44756 2.85669 2.63476 2.65162C2.82196 2.44655 3.0498 2.28271 3.30379 2.17052C3.55777 2.05833 3.83233 2.00026 4.10999 2H7.10999C7.5953 1.99522 8.06579 2.16708 8.43376 2.48353C8.80173 2.79999 9.04207 3.23945 9.10999 3.72C9.23662 4.68007 9.47144 5.62273 9.80999 6.53C9.94454 6.88792 9.97366 7.27691 9.8939 7.65088C9.81415 8.02485 9.62886 8.36811 9.35999 8.64L8.08999 9.91C9.51355 12.4135 11.5864 14.4864 14.09 15.91L15.36 14.64C15.6319 14.3711 15.9751 14.1858 16.3491 14.1061C16.7231 14.0263 17.1121 14.0555 17.47 14.19C18.3773 14.5286 19.3199 14.7634 20.28 14.89C20.7658 14.9585 21.2094 15.2032 21.5265 15.5775C21.8437 15.9518 22.0122 16.4296 22 16.92Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      <div className="contact-content">
-                        <div className="contact-label">Phone</div>
-                        <div className={`contact-value ${!isValidData(company.phone) ? 'placeholder' : ''}`}>
-                          {getDisplayValue(company.phone, 'Contact via ICN Portal')}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Email */}
-                    <div 
-                      className="contact-row" 
-                      onClick={isValidData(company.email) ? handleEmail : handleICNContact}
-                    >
-                      <div className={`contact-icon ${!isValidData(company.email) ? 'disabled' : ''}`}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      <div className="contact-content">
-                        <div className="contact-label">Email</div>
-                        <div className={`contact-value ${!isValidData(company.email) ? 'placeholder' : ''}`}>
-                          {getDisplayValue(company.email, 'Contact via ICN Portal')}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Business Metrics - Premium tier only */}
-              {currentTier === 'premium' && (company.annualRevenue || company.employeeCount || company.localContent) && (
-                <div className="content-card">
-                  <h2>Business Metrics</h2>
-                  <div className="metrics-container">
-                    {company.annualRevenue && (
-                      <div className="metric-card">
-                        <div className="metric-icon-container">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <polyline points="17 6 23 6 23 12" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </div>
-                        <div className="metric-label">Annual Revenue</div>
-                        <div className="metric-value">
-                          ${(company.annualRevenue / 1000000).toFixed(1)}M
-                        </div>
-                      </div>
-                    )}
-                    {company.employeeCount && (
-                      <div className="metric-card">
-                        <div className="metric-icon-container">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="var(--primary-orange)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <circle cx="9" cy="7" r="4" stroke="var(--primary-orange)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="var(--primary-orange)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="var(--primary-orange)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </div>
-                        <div className="metric-label">Team Size</div>
-                        <div className="metric-value">{company.employeeCount}</div>
-                      </div>
-                    )}
-                    {company.localContent && (
-                      <div className="metric-card">
-                        <div className="metric-icon-container">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <circle cx="12" cy="10" r="3" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </div>
-                        <div className="metric-label">Local Content</div>
-                        <div className="metric-value">{company.localContent}%</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Sidebar */}
             <aside className="sidebar">
+              {/* Contact Details Sidebar Card */}
+              <div className="sidebar-card contact-sidebar-card">
+                <div className="contact-sidebar-header">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 10V21H3V3H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M21 3L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <h3>Contact Details</h3>
+                </div>
+                <div className="contact-sidebar-content">
+                  {/* Website */}
+                  <div 
+                    className="contact-sidebar-item" 
+                    onClick={isValidData(company.website) ? handleWebsite : handleICNContact}
+                  >
+                    <div className={`contact-sidebar-icon ${!isValidData(company.website) ? 'disabled' : ''}`}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <line x1="2" y1="12" x2="22" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <div className="contact-sidebar-content-text">
+                      <div className="contact-sidebar-label">Website</div>
+                      <div className={`contact-sidebar-value ${!isValidData(company.website) ? 'placeholder' : ''}`}>
+                        {getDisplayValue(company.website, 'Visit ICN Portal')}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Phone */}
+                  <div 
+                    className="contact-sidebar-item" 
+                    onClick={isValidData(company.phone) ? handleCall : handleICNContact}
+                  >
+                    <div className={`contact-sidebar-icon ${!isValidData(company.phone) ? 'disabled' : ''}`}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7293C21.7209 20.9845 21.5573 21.2136 21.3521 21.4019C21.1469 21.5901 20.9046 21.7335 20.6407 21.8227C20.3769 21.9119 20.0974 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77382 17.3147 6.72533 15.2662 5.18999 12.85C3.49997 10.2412 2.44824 7.27099 2.11999 4.18C2.095 3.90347 2.12787 3.62476 2.21649 3.36162C2.30512 3.09849 2.44756 2.85669 2.63476 2.65162C2.82196 2.44655 3.0498 2.28271 3.30379 2.17052C3.55777 2.05833 3.83233 2.00026 4.10999 2H7.10999C7.5953 1.99522 8.06579 2.16708 8.43376 2.48353C8.80173 2.79999 9.04207 3.23945 9.10999 3.72C9.23662 4.68007 9.47144 5.62273 9.80999 6.53C9.94454 6.88792 9.97366 7.27691 9.8939 7.65088C9.81415 8.02485 9.62886 8.36811 9.35999 8.64L8.08999 9.91C9.51355 12.4135 11.5864 14.4864 14.09 15.91L15.36 14.64C15.6319 14.3711 15.9751 14.1858 16.3491 14.1061C16.7231 14.0263 17.1121 14.0555 17.47 14.19C18.3773 14.5286 19.3199 14.7634 20.28 14.89C20.7658 14.9585 21.2094 15.2032 21.5265 15.5775C21.8437 15.9518 22.0122 16.4296 22 16.92Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <div className="contact-sidebar-content-text">
+                      <div className="contact-sidebar-label">Phone</div>
+                      <div className={`contact-sidebar-value ${!isValidData(company.phone) ? 'placeholder' : ''}`}>
+                        {getDisplayValue(company.phone, 'Contact via ICN Portal')}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Email */}
+                  <div 
+                    className="contact-sidebar-item" 
+                    onClick={isValidData(company.email) ? handleEmail : handleICNContact}
+                  >
+                    <div className={`contact-sidebar-icon ${!isValidData(company.email) ? 'disabled' : ''}`}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <div className="contact-sidebar-content-text">
+                      <div className="contact-sidebar-label">Email</div>
+                      <div className={`contact-sidebar-value ${!isValidData(company.email) ? 'placeholder' : ''}`}>
+                        {getDisplayValue(company.email, 'Contact via ICN Portal')}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Quick Actions Card */}
               <div className="sidebar-card">
                 <h3>Quick Actions</h3>
@@ -907,7 +863,7 @@ function CompanyDetailPage() {
                     )}
                   </div>
                   <div className="sidebar-action-content">
-                    <div className="sidebar-action-title">{bookmarked ? 'Bookmarked' : 'Bookmark'}</div>
+                    <div className="sidebar-action-title">{bookmarked ? 'Already Bookmarked' : 'Bookmark'}</div>
                     <div className="sidebar-action-subtitle">{bookmarked ? 'Saved to your list' : 'Save this company'}</div>
                   </div>
                 </button>
@@ -1004,6 +960,69 @@ function CompanyDetailPage() {
                 </div>
                 </button>
               </div>
+
+              {/* Business Metrics Sidebar Card - Premium tier only */}
+              {currentTier === 'premium' && (company.annualRevenue || company.employeeCount || company.localContent) && (
+                <div className="sidebar-card metrics-sidebar-card">
+                  <div className="metrics-sidebar-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 3v18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <rect x="6" y="13" width="3" height="5" rx="1" stroke="currentColor" strokeWidth="2"/>
+                      <rect x="11" y="9" width="3" height="9" rx="1" stroke="currentColor" strokeWidth="2"/>
+                      <rect x="16" y="6" width="3" height="12" rx="1" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                    <h3>Business Metrics</h3>
+                  </div>
+                  <div className="metrics-sidebar-content">
+                    {company.annualRevenue && (
+                      <div className="metric-sidebar-item">
+                        <div className="metric-sidebar-icon success">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <polyline points="17 6 23 6 23 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                        <div className="metric-sidebar-content-text">
+                          <div className="metric-sidebar-label">Annual Revenue</div>
+                          <div className="metric-sidebar-value">
+                            ${(company.annualRevenue / 1000000).toFixed(1)}M
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {company.employeeCount && (
+                      <div className="metric-sidebar-item">
+                        <div className="metric-sidebar-icon blue">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                        <div className="metric-sidebar-content-text">
+                          <div className="metric-sidebar-label">Team Size</div>
+                          <div className="metric-sidebar-value">{company.employeeCount}</div>
+                        </div>
+                      </div>
+                    )}
+                    {company.localContent && (
+                      <div className="metric-sidebar-item">
+                        <div className="metric-sidebar-icon success">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                        <div className="metric-sidebar-content-text">
+                          <div className="metric-sidebar-label">Local Content</div>
+                          <div className="metric-sidebar-value">{company.localContent}%</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </aside>
           </div>
         </div>
