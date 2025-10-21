@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCompanyService, getExportService } from '../../services/serviceFactory';
+import { getCompanyService, getExportService, getBookmarkService } from '../../services/serviceFactory';
 import './CompaniesPage.css';
 
 function CompaniesPage() {
   const navigate = useNavigate();
   const companyService = getCompanyService(); 
-  const exportService = getExportService(); 
+  const exportService = getExportService();
+  const bookmarkService = getBookmarkService(); 
   const [user, setUser] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [filteredCompanies, setFilteredCompanies] = useState([]);
@@ -107,6 +108,7 @@ function CompaniesPage() {
     const userData = JSON.parse(localStorage.getItem('user'));
     setUser(userData);
     loadCompanies();
+    loadBookmarks();
   }, []);
 
   useEffect(() => {
@@ -221,15 +223,64 @@ function CompaniesPage() {
   };
 
   // 切换收藏状态
-  const toggleBookmark = (companyId, e) => {
-    e.stopPropagation(); // 防止触发卡片点击
-    setBookmarkedCompanies(prev => {
-      if (prev.includes(companyId)) {
-        return prev.filter(id => id !== companyId);
+  const toggleBookmark = async (companyId, e) => {
+    e.stopPropagation(); // Prevent card click
+    
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+  
+    try {
+      const isCurrentlyBookmarked = bookmarkedCompanies.includes(companyId);
+      
+      if (isCurrentlyBookmarked) {
+        // Remove bookmark
+        await bookmarkService.removeBookmark(companyId);
+        setBookmarkedCompanies(prev => prev.filter(id => id !== companyId));
       } else {
-        return [...prev, companyId];
+        // Add bookmark
+        await bookmarkService.addBookmark(companyId);
+        setBookmarkedCompanies(prev => [...prev, companyId]);
       }
-    });
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+      
+      // Fallback to localStorage method
+      const bookmarks = JSON.parse(localStorage.getItem('bookmarkedCompanies') || '[]');
+      let newBookmarks;
+      
+      if (bookmarkedCompanies.includes(companyId)) {
+        newBookmarks = bookmarks.filter(id => id !== companyId);
+        setBookmarkedCompanies(prev => prev.filter(id => id !== companyId));
+      } else {
+        newBookmarks = [...bookmarks, companyId];
+        setBookmarkedCompanies(prev => [...prev, companyId]);
+      }
+      
+      localStorage.setItem('bookmarkedCompanies', JSON.stringify(newBookmarks));
+      
+      if (error.message) {
+        alert(error.message);
+      }
+    }
+  };
+
+  const loadBookmarks = async () => {
+    try {
+      const response = await bookmarkService.getUserBookmarks();
+      const data = response.data || response;
+      if (Array.isArray(data)) {
+        const bookmarkIds = data.map(b => b.id || b.companyId);
+        setBookmarkedCompanies(bookmarkIds);
+      }
+    } catch (error) {
+      console.error('Error loading bookmarks:', error);
+      // Fallback to localStorage
+      const bookmarks = JSON.parse(localStorage.getItem('bookmarkedCompanies') || '[]');
+      setBookmarkedCompanies(bookmarks);
+    }
   };
 
   // 格式化验证日期
