@@ -3,27 +3,6 @@
     background: #FAFAFA;
   }
   
-  /* Header */
-  .nav-header {
-    background: linear-gradient(135deg, #003366 0%, #1a4d80 100%);
-    color: white;
-    padding: 60px 20px;
-    text-align: center;
-  }
-  
-  .nav-header h1 {
-    font-size: 3rem;
-    margin-bottom: 12px;
-    font-weight: 700;
-  }
-  
-  .header-subtitle {
-    font-size: 1.25rem;
-    opacity: 0.9;
-    max-width: 600px;
-    margin: 0 auto;
-  }
-  
   /* Controls Section */
   .controls-section {
     background: white;
@@ -118,9 +97,10 @@
   
   /* Main Content */
   .main-content {
-    padding: 24px 20px;
-    min-height: 600px;
+    padding: 0;
+    min-height: 0;
   }
+  .main-content.fullscreen { padding: 0; }
   
   .content-layout {
     display: flex;
@@ -142,11 +122,537 @@
   /* Map Container */
   .map-container {
     position: relative;
-    height: 700px;
+    height: calc(100vh - 70px);
     background: white;
-    border-radius: 12px;
+    border-radius: 0;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: none;
+  }
+  .map-container.fullscreen { height: calc(100vh - 70px); }
+
+  .map-stage { height: 100%; }
+  .view-content.fullscreen { height: 100%; }
+
+  /* Floating controls removed */
+  .map-controls { display: none; }
+
+  /* Left overlay: filters + company list */
+  .left-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 520px;
+    height: 100%;
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-left: none;
+    border-radius: 0 12px 12px 0;
+    z-index: 25;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: 32px 20px; /* 基于圆形按钮的位置 (left: 8px + width/2, top: 20px) */
+    /* Hide scrollbar for Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  /* Hide scrollbar for Webkit browsers (Chrome, Safari) */
+  .left-overlay::-webkit-scrollbar {
+    display: none;
+  }
+
+  .left-overlay.collapsed { 
+    width: 0; 
+    opacity: 0; 
+    transform: scale(0);
+    pointer-events: none;
+  }
+
+  .overlay-toggle {
+    display: none; /* 隐藏外部切换按钮 */
+  }
+
+  .overlay-inner { display: flex; flex-direction: column; height: 100%; }
+  .overlay-header {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #F1F1F1;
+  }
+  .overlay-title { font-weight: 700; color: #1B3E6F; }
+  .overlay-actions { display: flex; gap: 8px; align-items: center; }
+  .filter-chip {
+    background: transparent;
+    color: #6B7280;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .filter-chip:hover {
+    background: #F3F4F6;
+    color: #374151;
+  }
+
+  .collapse-btn {
+    position: absolute;
+    top: 50%;
+    right: -12px;
+    width: 12px;
+    height: 150px;
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: #6B7280;
+    z-index: 26;
+    transform: translateY(-50%);
+  }
+
+  .collapse-btn:hover {
+    background: #F9FAFB;
+    border-color: #D1D5DB;
+    color: #374151;
+  }
+
+  .collapse-btn:active {
+    background: #F3F4F6;
+    color: #111827;
+  }
+
+  /* 搜索区域 */
+  .overlay-search {
+    padding: 12px 16px;
+    border-bottom: 1px solid #F1F1F1;
+  }
+
+  .overlay-search .sidebar-search {
+    position: relative;
+    width: 100%;
+  }
+
+  .overlay-search .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #1B3E6F;
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  .overlay-search .sidebar-search-input {
+    width: 100%;
+    padding: 10px 36px 10px 36px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    background: #FAFBFC;
+    transition: all 0.2s;
+  }
+
+  .overlay-search .sidebar-search-input::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+  }
+
+  .overlay-search .sidebar-search-input:focus {
+    border-color: #F6CA8B;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 2px rgba(246, 202, 139, 0.2);
+  }
+
+  .overlay-search .search-clear {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.4);
+    transition: color 0.2s;
+    padding: 2px;
+  }
+
+  .overlay-search .search-clear:hover {
+    color: #1B3E6F;
+  }
+  .overlay-pagination { padding: 10px 12px; border-bottom: 1px solid #F1F1F1; }
+  .pagination-main { display: flex; align-items: center; gap: 10px; }
+  .page-nav-btn { min-width: 32px; height: 32px; border-radius: 8px; border: 1px solid #E5E5E5; background: #fff; cursor: pointer; color: #1B3E6F; font-weight: 700; }
+  .page-nav-btn:disabled { opacity: 0.35; cursor: default; }
+  .page-numbers { display: flex; gap: 4px; }
+  .page-num { min-width: 32px; height: 32px; border-radius: 8px; border: 1px solid #E5E5E5; background: #fff; cursor: pointer; color: #1B3E6F; }
+  .page-num.active { background: #F6CA8B; border-color: #F6CA8B; color: #1B3E6F; font-weight: 700; }
+  .page-ellipsis { padding: 0 6px; color: rgba(0,0,0,0.3); }
+  .overlay-list { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 12px; 
+    display: grid; 
+    gap: 12px; 
+    /* Hide scrollbar for Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  /* Hide scrollbar for Webkit browsers (Chrome, Safari) */
+  .overlay-list::-webkit-scrollbar {
+    display: none;
+  }
+  .overlay-list-item { cursor: pointer; }
+
+  /* 无结果状态 */
+  .overlay-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    color: #666;
+  }
+
+  .overlay-empty p {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+  }
+
+  .no-results-hint {
+    font-size: 12px !important;
+    color: #999 !important;
+    margin: 0 !important;
+  }
+
+  /* Sidebar company cards inherited from CompaniesPage look */
+  .overlay-list .company-card {
+    background: #FFFFFF;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    box-shadow: none;
+  }
+
+  .overlay-list .company-card:hover {
+    border-color: #F6CA8B;
+    box-shadow: 0 0 0 1px #F6CA8B, 0 4px 16px rgba(246, 202, 139, 0.15);
+    transform: translateY(-1px);
+  }
+
+  .overlay-list .card-header-section { display: flex; align-items: center; margin-bottom: 8px; }
+  .overlay-list .company-avatar-circle { width: 40px; height: 40px; border-radius: 20px; background: #E0E0E0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 10px; }
+  .overlay-list .avatar-letter { font-size: 16px; font-weight: 700; color: #111111; }
+  .overlay-list .company-info-section { flex: 1; min-width: 0; padding-right: 18px; }
+  .overlay-list .company-name-text { font-size: 16px; font-weight: 600; color: #111111; margin: 0 0 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+  .overlay-list .company-location { font-size: 13px; color: #808080; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+
+  .overlay-list .badges-section { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+  .overlay-list .verified-badge-new { display: flex; align-items: center; gap: 4px; background: #E8F5E8; color: #B6D289; padding: 4px 8px; border-radius: 16px; font-size: 11px; font-weight: 600; }
+  .overlay-list .type-badge { padding: 4px 8px; border-radius: 16px; font-size: 11px; font-weight: 500; color: #111111; }
+  .overlay-list .employees-badge { display: flex; align-items: center; gap: 4px; background: #F3F4F6; color: #6B7280; padding: 4px 8px; border-radius: 16px; font-size: 11px; font-weight: 600; }
+  .overlay-list .distance-badge { display: flex; align-items: center; gap: 4px; background: #E3F2FD; color: #1976D2; padding: 4px 8px; border-radius: 16px; font-size: 11px; font-weight: 600; }
+
+  .overlay-list .capabilities-section { display: flex; gap: 6px; flex-wrap: nowrap; align-items: center; margin-bottom: 6px; overflow-x: auto; scrollbar-width: none; }
+  .overlay-list .capabilities-section::-webkit-scrollbar { display: none; }
+  .overlay-list .capability-chip { background: #FEECD2; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; color: #111111; white-space: nowrap; flex-shrink: 0; max-width: 120px; }
+  .overlay-list .capability-chip span { display: block; overflow: hidden; text-overflow: ellipsis; }
+  .overlay-list .more-chip { background: rgba(128, 128, 128, 0.15); padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; color: #666666; white-space: nowrap; flex-shrink: 0; }
+
+  .overlay-list .sectors-section { display: flex; gap: 6px; flex-wrap: nowrap; align-items: center; overflow-x: auto; scrollbar-width: none; }
+  .overlay-list .sectors-section::-webkit-scrollbar { display: none; }
+  .overlay-list .sector-chip-new { background: #FEECD2; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; color: #111111; white-space: nowrap; flex-shrink: 0; max-width: 120px; }
+  .overlay-list .sector-chip-new span { display: block; overflow: hidden; text-overflow: ellipsis; }
+  .overlay-list .more-sectors-chip { background: rgba(128, 128, 128, 0.15); padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; color: #666666; white-space: nowrap; flex-shrink: 0; }
+
+  .overlay-list .additional-info { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(0, 0, 0, 0.05); }
+  .overlay-list .info-item { font-size: 12px; color: rgba(0, 0, 0, 0.55); line-height: 1.4; }
+  .overlay-list .website-link { margin-top: 2px; }
+  .overlay-list .website-link a { color: #666666; text-decoration: none; font-weight: 500; font-size: 13px; transition: all 0.25s ease; display: inline-flex; align-items: center; gap: 5px; line-height: 1.5; padding: 2px 0; }
+  .overlay-list .website-link a:hover { color: #000000; transform: translateX(3px); }
+  .overlay-list .card-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: rgba(0, 0, 0, 0.2); transition: all 0.25s ease; }
+  .overlay-list .company-card:hover .card-arrow { color: #F6CA8B; transform: translateY(-50%) translateX(3px); }
+
+  /* 收藏按钮样式 */
+  .overlay-list .bookmark-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: rgba(0, 0, 0, 0.3);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+  }
+
+  .overlay-list .bookmark-button:hover {
+    color: #F6CA8B;
+    transform: scale(1.15);
+  }
+
+  .overlay-list .bookmark-button:active {
+    animation: bookmarkClick 0.5s ease-out;
+  }
+
+  @keyframes bookmarkClick {
+    0% { transform: scale(0.8); }
+    30% { transform: scale(1.3) rotate(10deg); }
+    50% { transform: scale(1.1) rotate(-5deg); }
+    70% { transform: scale(1.2) rotate(3deg); }
+    100% { transform: scale(1); }
+  }
+
+  .overlay-list .bookmark-button svg {
+    display: block;
+    transition: fill 0.3s ease;
+  }
+
+  .overlay-list .bookmark-button svg[fill="currentColor"] {
+    animation: bookmarkFill 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes bookmarkFill {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* 过滤面板 - 轻量化覆盖在地图上 */
+  .filter-sidebar {
+    position: absolute;
+    top: 0;
+    left: 520px; /* 紧贴侧栏边缘 */
+    width: 320px;
+    max-height: calc(100vh - 70px);
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-left: none; /* 移除左边框，与侧栏无缝连接 */
+    border-radius: 0 12px 12px 0;
+    z-index: 20;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    transform-origin: -32px 20px; /* 基于圆形按钮的位置 */
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    overflow: hidden;
+  }
+
+  .filter-sidebar.opening {
+    animation: expandFromButton 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+
+  .filter-sidebar.closing {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  @keyframes expandFromButton {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInFromLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .filter-sidebar-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #F1F1F1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #FFFFFF;
+  }
+
+  .filter-sidebar-header h3 {
+    margin: 0;
+    color: #111827;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .filter-sidebar-close {
+    width: 28px;
+    height: 28px;
+    background: #F3F4F6;
+    border: 1px solid #E5E7EB;
+    font-size: 16px;
+    color: #6B7280;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+
+  .filter-sidebar-close:hover {
+    background: #E5E7EB;
+    color: #374151;
+    border-color: #D1D5DB;
+  }
+
+  .filter-sidebar-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+    /* Hide scrollbar for Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  /* Hide scrollbar for Webkit browsers (Chrome, Safari) */
+  .filter-sidebar-content::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #F1F1F1;
+    background: #FAFAFA;
+  }
+
+  .apply-filters-btn {
+    width: 100%;
+    background: #1B3E6F;
+    color: #FFFFFF;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .apply-filters-btn:hover {
+    background: #0F2A4F;
+    transform: translateY(-1px);
+  }
+
+  .apply-filters-btn:active {
+    transform: translateY(0);
+  }
+
+  /* 过滤面板内容样式优化 */
+  .filter-sidebar-content .filter-section {
+    margin-bottom: 16px;
+  }
+
+  .filter-sidebar-content .filter-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .filter-sidebar-content .filter-section h4 {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1B3E6F;
+    margin: 0 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .filter-sidebar-content .filter-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+
+  .filter-sidebar-content .filter-option:last-child {
+    margin-bottom: 0;
+  }
+
+  .filter-sidebar-content input[type="checkbox"],
+  .filter-sidebar-content input[type="radio"] {
+    margin-right: 8px;
+    transform: scale(0.9);
+  }
+
+  .filter-sidebar-content label {
+    cursor: pointer;
+    color: #333;
+    font-weight: 500;
+  }
+
+  .filter-sidebar-content .slider-container {
+    margin: 8px 0;
+  }
+
+  .filter-sidebar-content .slider-value {
+    font-size: 12px;
+    color: #666;
+    text-align: right;
+    margin-top: 4px;
+  }
+
+  /* 折叠后的圆形按钮 */
+  .collapsed-ball {
+    position: absolute;
+    top: 20px;
+    left: 8px;
+    width: 48px;
+    height: 48px;
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    z-index: 30;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #6B7280;
+  }
+
+  .collapsed-ball:hover {
+    background: #F9FAFB;
+    border-color: #D1D5DB;
+    color: #374151;
+    transform: scale(1.02);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  .collapsed-ball:active {
+    background: #F3F4F6;
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .collapsed-ball svg {
+    transition: all 0.2s ease;
   }
   
   /* Company Info Panel */
@@ -196,88 +702,29 @@
   }
   
   .panel-content {
-    padding: 24px;
+    padding: 0; /* 移除padding，让卡牌自己控制间距 */
   }
   
-  .panel-content h3 {
-    color: #003366;
-    margin-bottom: 8px;
-    padding-right: 32px;
+  /* 确保地图上的公司卡牌样式与侧栏一致 */
+  .panel-content .company-card {
+    margin: 0; /* 移除卡牌的margin */
+    border-radius: 12px; /* 与面板保持一致 */
+    box-shadow: none; /* 移除卡牌的阴影，使用面板的阴影 */
+    cursor: pointer; /* 保持点击效果 */
   }
   
-  .verified-badge {
-    display: inline-block;
-    background: #B6D289;
-    color: white;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-  
-  .company-type {
-    color: #F99F1C;
-    font-weight: 600;
-    margin-bottom: 8px;
-  }
-  
+  /* 移除旧的样式，因为现在使用侧栏卡牌 */
+  .panel-content h3,
+  .verified-badge,
+  .company-type,
   .company-address,
-  .company-distance {
-    color: #666;
-    font-size: 0.875rem;
-    margin-bottom: 8px;
-  }
-  
-  .company-tags {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-  }
-  
-  .tag {
-    background: #FEECD2;
-    color: #333;
-    padding: 4px 12px;
-    border-radius: 16px;
-    font-size: 0.813rem;
-  }
-  
-  .panel-actions {
-    display: flex;
-    gap: 12px;
-  }
-  
+  .company-distance,
+  .company-tags,
+  .tag,
+  .panel-actions,
   .btn-primary,
   .btn-secondary {
-    flex: 1;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    border: none;
-  }
-  
-  .btn-primary {
-    background: #F99F1C;
-    color: white;
-  }
-  
-  .btn-primary:hover {
-    background: #FAB249;
-  }
-  
-  .btn-secondary {
-    background: white;
-    color: #F99F1C;
-    border: 1px solid #F99F1C;
-  }
-  
-  .btn-secondary:hover {
-    background: #FEECD2;
+    display: none; /* 隐藏旧样式，使用新的卡牌设计 */
   }
   
   /* List Container */
@@ -333,40 +780,28 @@
   .no-results p {
     margin-bottom: 24px;
   }
-  
-  /* Info Section */
-  .info-section {
-    padding: 60px 20px;
-    background: white;
-    border-top: 1px solid #E5E5E5;
-  }
-  
-  .info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 32px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
-  .info-card {
+
+  /* 地图无结果状态 */
+  .no-results-map {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
     text-align: center;
-    padding: 24px;
-  }
-  
-  .info-icon {
-    font-size: 3rem;
-    margin-bottom: 16px;
-  }
-  
-  .info-card h3 {
-    color: #003366;
-    margin-bottom: 12px;
-  }
-  
-  .info-card p {
     color: #666;
-    line-height: 1.6;
+    padding: 40px 20px;
+  }
+
+  .no-results-map p {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+  }
+
+  .no-results-map .no-results-hint {
+    font-size: 14px;
+    color: #999;
+    margin: 0;
   }
   
   /* Container */
@@ -378,20 +813,26 @@
   
   /* Responsive */
   @media (max-width: 1200px) {
-    .content-layout {
-      flex-direction: column;
+    .left-overlay { 
+      width: 400px; 
+      border-radius: 0 8px 8px 0;
     }
-    
+    .left-overlay.collapsed { transform: translateX(-372px); }
+    .filter-sidebar { left: 400px; width: 280px; border-left: none; }
+  }
+
+  @media (max-width: 768px) {
     .filter-sidebar {
-      width: 100%;
+      left: 20px;
+      right: 20px;
+      width: auto;
+      top: 50%;
+      transform: translateY(-50%);
+      max-height: 80vh;
     }
   }
   
   @media (max-width: 768px) {
-    .nav-header h1 {
-      font-size: 2rem;
-    }
-    
     .controls-wrapper {
       justify-content: center;
     }
@@ -415,10 +856,6 @@
     }
     
     .companies-grid {
-      grid-template-columns: 1fr;
-    }
-    
-    .info-grid {
       grid-template-columns: 1fr;
     }
   }

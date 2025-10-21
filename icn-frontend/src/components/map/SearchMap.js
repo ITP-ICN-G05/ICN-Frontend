@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { GoogleMap, Circle, MarkerF } from '@react-google-maps/api';
+import { GoogleMap, Circle, MarkerF, OverlayView } from '@react-google-maps/api';
+import { useNavigate } from 'react-router-dom';
 import './SearchMap.css';
 
 // Map configuration
-const containerStyle = { width: '100%', height: '600px' };
 const fallbackCenter = { lat: -37.8136, lng: 144.9631 };
 const mapOptions = {
   disableDefaultUI: false,
@@ -12,7 +12,7 @@ const mapOptions = {
   scaleControl: true,
   streetViewControl: false,
   rotateControl: false,
-  fullscreenControl: true,
+  fullscreenControl: false,
   mapId: process.env.REACT_APP_GOOGLE_MAP_ID || 'YOUR_MAP_ID',
 };
 
@@ -36,8 +36,7 @@ const centroid = (pts) => {
   return { lat: sum.lat / pts.length, lng: sum.lng / pts.length };
 };
 
-// Utility: safely fit bounds if LatLngBounds + extend are available;
-// returns true if we fit bounds, false if we fell back.
+// Utility: safely fit bounds if LatLngBounds + extend are available
 const makeSafeFitBounds = (gmaps) => (map, points) => {
   try {
     if (!gmaps?.LatLngBounds || typeof gmaps.LatLng !== 'function') return false;
@@ -51,7 +50,159 @@ const makeSafeFitBounds = (gmaps) => (map, points) => {
   }
 };
 
-function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
+// 自定义InfoWindow组件 - 使用OverlayView完全自己实现
+const CustomInfoWindow = ({ position, company, onClose }) => {
+  const navigate = useNavigate();
+  
+  const getCompanyTypeColor = (type) => {
+    const colors = {
+      'Manufacturing': '#3B82F6',
+      'Technology': '#8B5CF6',
+      'Healthcare': '#10B981',
+      'Finance': '#F59E0B',
+      'Education': '#EF4444',
+      'Retail': '#EC4899',
+      'Construction': '#6B7280',
+      'Other': '#9CA3AF'
+    };
+    return colors[type] || '#9CA3AF';
+  };
+
+  const getLocationDisplay = (company) => {
+    if (company.address) return company.address;
+    if (company.suburb && company.state) return `${company.suburb}, ${company.state}`;
+    if (company.suburb) return company.suburb;
+    if (company.state) return company.state;
+    return 'Location not specified';
+  };
+
+  const handleCardClick = () => {
+    navigate(`/company/${company.id}`);
+  };
+
+  return (
+    <OverlayView
+      position={position}
+      mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+    >
+      <div className="custom-info-window">
+        {/* 关闭按钮 */}
+        <button 
+          className="custom-close-button" 
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        {/* 卡片内容 */}
+        <div className="company-info-card">
+          <div className="card-header-section">
+            <div className="company-avatar-circle">
+              <span className="avatar-letter">{(company.name || '?').charAt(0).toUpperCase()}</span>
+            </div>
+            <div className="company-info-section">
+              <h3 className="company-name-text">{company.name}</h3>
+              <p className="company-location">{getLocationDisplay(company)}</p>
+            </div>
+          </div>
+
+          <div className="badges-section">
+            {company.verified && (
+              <div className="verified-badge-new">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                <span>Verified</span>
+              </div>
+            )}
+            {company.type && (
+              <div className="type-badge">
+                {company.type}
+              </div>
+            )}
+            {(company.employees || company.employeeCount) && (
+              <div className="employees-badge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>{company.employees || company.employeeCount}</span>
+              </div>
+            )}
+
+            {company.distanceFromUser !== undefined && (
+              <div className="distance-badge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span>{company.distanceFromUser.toFixed(1)} km</span>
+              </div>
+            )}
+          </div>
+
+          {(() => {
+            const caps = company.icnCapabilities || company.capabilities;
+            if (!caps || caps.length === 0) return null;
+            return (
+              <div className="capabilities-section">
+                {caps.slice(0, 2).map((cap, index) => (
+                  <span key={index} className="capability-chip">
+                    {typeof cap === 'object' ? (cap.itemName || cap.name || cap) : cap}
+                  </span>
+                ))}
+                {caps.length > 2 && (
+                  <span className="capability-chip more">
+                    +{caps.length - 2} more
+                  </span>
+                )}
+              </div>
+            );
+          })()}
+
+          {(() => {
+            const sectors = company.sectors || company.industry;
+            if (!sectors || sectors.length === 0) return null;
+            return (
+              <div className="sectors-section">
+                {sectors.slice(0, 2).map((sector, index) => (
+                  <span key={index} className="sector-chip">
+                    {typeof sector === 'object' ? (sector.itemName || sector.name || sector) : sector}
+                  </span>
+                ))}
+                {sectors.length > 2 && (
+                  <span className="sector-chip more">
+                    +{sectors.length - 2} more
+                  </span>
+                )}
+              </div>
+            );
+          })()}
+
+          <div className="company-footer">
+            <button className="view-details-btn" onClick={handleCardClick}>
+              View Details
+            </button>
+          </div>
+        </div>
+
+        {/* CSS创建的小尾巴 */}
+        <div className="custom-tail"></div>
+      </div>
+    </OverlayView>
+  );
+};
+
+function SearchMap({ companies = [], selectedCompany, onCompanySelect, height = 'calc(100vh - 70px)', center, zoom }) {
   const gmaps = getGMaps();
   const safeFitBounds = useMemo(() => makeSafeFitBounds(gmaps), [gmaps]);
 
@@ -61,22 +212,35 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
   const [locationError, setLocationError] = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const [userZoomLevel] = useState(13);
+  const [activeInfoWindow, setActiveInfoWindow] = useState(null);
 
   // Marker icons
   const markerIcons = useMemo(() => {
     if (!gmaps || typeof gmaps.Point !== 'function') return null;
-    const createMarkerIcon = (color) => ({
-      path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z',
-      fillColor: color,
-      fillOpacity: 1,
-      strokeColor: '#ffffff',
-      strokeWeight: 2,
-      scale: 1.5,
+    
+    const createPinIcon = (fillColor, strokeColor) => ({
+      path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
+      fillColor: fillColor,
+      fillOpacity: 0.8,
+      strokeColor: strokeColor,
+      strokeWeight: 1.5,
+      scale: 1.4,
       anchor: new gmaps.Point(12, 24),
     });
+
+    const createPremiumPinIcon = (fillColor, strokeColor) => ({
+      path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
+      fillColor: fillColor,
+      fillOpacity: 0.8,
+      strokeColor: strokeColor,
+      strokeWeight: 1.8,
+      scale: 1.6,
+      anchor: new gmaps.Point(12, 24),
+    });
+
     return {
-      verified: createMarkerIcon('#34A853'),
-      unverified: createMarkerIcon('#EA4335'),
+      verified: createPremiumPinIcon('#1B3E6F', '#FFFFFF'),
+      unverified: createPinIcon('#6B7280', '#FFFFFF'),
     };
   }, [gmaps]);
 
@@ -164,7 +328,7 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
     );
   }, [map, userZoomLevel]);
 
-  // Center on selectedCompany when provided
+  // Center on selectedCompany when provided and show popup
   useEffect(() => {
     if (!selectedCompany || !map || !hasValidCoords(selectedCompany)) return;
     const pos = {
@@ -173,6 +337,8 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
     };
     map.panTo?.(pos);
     map.setZoom?.(15);
+    // 显示该公司的弹窗
+    setActiveInfoWindow(selectedCompany.id);
   }, [selectedCompany, map]);
 
   const onLoad = useCallback(
@@ -191,7 +357,6 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
           );
           if (nearby.length) {
             setTimeout(() => {
-              // Prefer bounds; fall back to centroid
               const points = [
                 userLocation,
                 ...nearby.slice(0, 10).map((c) => c.position),
@@ -217,7 +382,6 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
           }
         }
       } else if (companiesWithCoordinates.length > 0) {
-        // No user loc; fit to all companies (safe)
         const points = companiesWithCoordinates.slice(0, 20).map((c) => c.position);
         const ok = safeFitBounds(m, points);
         if (!ok) {
@@ -228,7 +392,6 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
           }
         }
       } else {
-        // Fallback center
         m.setCenter?.(mapCenter);
         m.setZoom?.(11);
       }
@@ -237,8 +400,6 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
   );
 
   const onUnmount = useCallback(() => setMap(null), []);
-
-  const handleMarkerClick = (company) => onCompanySelect?.(company);
 
   const handleRetryLocation = () => {
     setIsLoadingLocation(true);
@@ -286,7 +447,35 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
     }
   };
 
-  // If Google Maps isn't loaded, render a placeholder container + message
+  const handleFullscreen = useCallback(() => {
+    const mapContainer = document.querySelector('.map-container');
+    if (!mapContainer) return;
+
+    if (!document.fullscreenElement) {
+      mapContainer.requestFullscreen().catch(err => {
+        console.log('Error attempting to enable fullscreen:', err);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }, []);
+
+  // InfoWindow处理函数
+  const handleMarkerClick = useCallback((company) => {
+    setActiveInfoWindow(company.id);
+    onCompanySelect?.(company);
+  }, [onCompanySelect]);
+
+  const handleInfoWindowClose = useCallback(() => {
+    setActiveInfoWindow(null);
+  }, []);
+
+  const getMarkerIcon = (isVerified) => {
+    if (!markerIcons) return undefined;
+    return isVerified ? markerIcons.verified : markerIcons.unverified;
+  };
+
+  // If Google Maps isn't loaded
   if (!gmaps) {
     return (
       <div
@@ -307,13 +496,8 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
     );
   }
 
-  const getMarkerIcon = (isVerified) => {
-    if (!markerIcons) return undefined;
-    return isVerified ? markerIcons.verified : markerIcons.unverified;
-  };
-
-  const canRenderCircle = !!gmaps.Circle; // guards for tests
-  const canRenderMarker = !!gmaps.Marker; // guards for tests
+  const canRenderCircle = !!gmaps.Circle;
+  const canRenderMarker = !!gmaps.Marker;
 
   return (
     <div style={{ position: 'relative' }}>
@@ -370,8 +554,8 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
       <div
         style={{
           position: 'absolute',
-          top: '60px',
-          left: '10px',
+          top: '10px',
+          right: '10px',
           zIndex: 1000,
           display: 'flex',
           flexDirection: 'column',
@@ -382,23 +566,32 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
           <button
             onClick={handleCenterOnUser}
             style={{
+              width: '40px',
+              height: '40px',
               background: 'white',
-              border: '2px solid #4285F4',
-              padding: '8px 16px',
-              borderRadius: 4,
+              border: '1px solid #E5E7EB',
+              borderRadius: '8px',
               cursor: 'pointer',
-              fontSize: 13,
-              fontWeight: 'bold',
-              color: '#4285F4',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
+              justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              transition: 'all 0.2s ease',
             }}
             title="Center on my location"
+            onMouseEnter={(e) => {
+              e.target.style.background = '#F9FAFB';
+              e.target.style.borderColor = '#D1D5DB';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'white';
+              e.target.style.borderColor = '#E5E7EB';
+            }}
           >
-            <span style={{ fontSize: 16 }}>📍</span>
-            My Location
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4285F4" strokeWidth="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
           </button>
         )}
 
@@ -406,27 +599,71 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
           <button
             onClick={handleShowAllCompanies}
             style={{
+              width: '40px',
+              height: '40px',
               background: 'white',
-              border: '1px solid #666',
-              padding: '8px 16px',
-              borderRadius: 4,
+              border: '1px solid #E5E7EB',
+              borderRadius: '8px',
               cursor: 'pointer',
-              fontSize: 13,
-              fontWeight: 'bold',
-              color: '#666',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              transition: 'all 0.2s ease',
             }}
-            title="Show all companies"
+            title={`Show all ${companiesWithCoordinates.length} companies`}
+            onMouseEnter={(e) => {
+              e.target.style.background = '#F9FAFB';
+              e.target.style.borderColor = '#D1D5DB';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'white';
+              e.target.style.borderColor = '#E5E7EB';
+            }}
           >
-            Show All ({companiesWithCoordinates.length})
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+              <circle cx="11" cy="11" r="3"/>
+            </svg>
           </button>
         )}
+
+        <button
+          onClick={handleFullscreen}
+          style={{
+            width: '40px',
+            height: '40px',
+            background: 'white',
+            border: '1px solid #E5E7EB',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            transition: 'all 0.2s ease',
+          }}
+          title="Toggle fullscreen"
+          onMouseEnter={(e) => {
+            e.target.style.background = '#F9FAFB';
+            e.target.style.borderColor = '#D1D5DB';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'white';
+            e.target.style.borderColor = '#E5E7EB';
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+          </svg>
+        </button>
       </div>
 
       <GoogleMap
-        mapContainerStyle={containerStyle}
-        defaultCenter={mapCenter}
-        defaultZoom={userZoomLevel}
+        mapContainerStyle={{ width: '100%', height }}
+        center={center || mapCenter}
+        zoom={zoom || userZoomLevel}
         onLoad={onLoad}
         onUnmount={() => setMap(null)}
         options={mapOptions}
@@ -465,14 +702,22 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect }) {
           companiesWithCoordinates.map((company) => {
             const isVerified = company.verified || company.verificationStatus === 'verified';
             return (
-              <MarkerF
-                key={company.id}
-                position={company.position}
-                onClick={() => onCompanySelect?.(company)}
-                title={company.name}
-                icon={getMarkerIcon(isVerified)}
-                zIndex={isVerified ? 200 : 100}
-              />
+              <React.Fragment key={company.id}>
+                <MarkerF
+                  position={company.position}
+                  onClick={() => handleMarkerClick(company)}
+                  title={company.name}
+                  icon={getMarkerIcon(isVerified)}
+                  zIndex={isVerified ? 200 : 100}
+                />
+                {activeInfoWindow === company.id && (
+                  <CustomInfoWindow
+                    position={company.position}
+                    company={company}
+                    onClose={handleInfoWindowClose}
+                  />
+                )}
+              </React.Fragment>
             );
           })}
       </GoogleMap>
