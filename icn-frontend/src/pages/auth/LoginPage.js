@@ -90,7 +90,8 @@ function LoginPage({ onLogin }) {
         name: isAdmin ? 'ICN Admin' : 'John Smith',
         email: formData.email,
         tier: isAdmin ? 'premium' : 'free',
-        role: isAdmin ? 'admin' : 'user' // Add role field
+        role: isAdmin ? 'admin' : 'user', // Add role field
+        isNewUser: false // Mark as existing user to prevent onboarding
       };
       
       localStorage.setItem('token', 'mock-jwt-token');

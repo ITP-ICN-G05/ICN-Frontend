@@ -26,9 +26,36 @@ function OnboardingModal({ user, onComplete, onSkip }) {
       title: 'Welcome! How will you use ICN Navigator?',
       type: 'single',
       options: [
-        { value: 'buyer', label: '🛒 Finding suppliers', icon: '🛒' },
-        { value: 'supplier', label: '📦 Listing my company', icon: '📦' },
-        { value: 'both', label: '🔄 Both', icon: '🔄' }
+        { 
+          value: 'buyer', 
+          label: 'Finding suppliers', 
+          icon: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+          )
+        },
+        { 
+          value: 'supplier', 
+          label: 'Listing my company', 
+          icon: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.27,6.96 12,12.01 20.73,6.96"/>
+              <line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+          )
+        },
+        { 
+          value: 'both', 
+          label: 'Both', 
+          icon: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
+          )
+        }
       ]
     },
     {
@@ -51,10 +78,49 @@ function OnboardingModal({ user, onComplete, onSkip }) {
       title: 'Preferred company size?',
       type: 'single',
       options: [
-        { value: 'small', label: '👥 Small (1-99)', icon: '👥' },
-        { value: 'medium', label: '🏢 Medium (100-499)', icon: '🏢' },
-        { value: 'large', label: '🏙️ Large (500+)', icon: '🏙️' },
-        { value: 'any', label: '✨ Any size', icon: '✨' }
+        { 
+          value: 'small', 
+          label: 'Small (1-99)', 
+          icon: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          )
+        },
+        { 
+          value: 'medium', 
+          label: 'Medium (100-499)', 
+          icon: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9,22 9,12 15,12 15,22"/>
+            </svg>
+          )
+        },
+        { 
+          value: 'large', 
+          label: 'Large (500+)', 
+          icon: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 21h18"/>
+              <path d="M5 21V7l8-4v18"/>
+              <path d="M19 21V11l-6-4"/>
+            </svg>
+          )
+        },
+        { 
+          value: 'any', 
+          label: 'Any size', 
+          icon: (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          )
+        }
       ]
     },
     {
@@ -182,7 +248,7 @@ function OnboardingModal({ user, onComplete, onSkip }) {
           }}>
             <div className="progress-fill" style={{
               height: '100%',
-              background: '#F99F1C',
+              background: '#F6CA8B',
               transition: 'width 0.3s ease',
               borderRadius: '2px',
               width: `${progress}%`
@@ -227,7 +293,7 @@ function OnboardingModal({ user, onComplete, onSkip }) {
                   onClick={() => handleSingleSelect(option.value)}
                   style={{
                     background: preferences[currentQuestion.id] === option.value ? '#FEECD2' : 'white',
-                    border: `2px solid ${preferences[currentQuestion.id] === option.value ? '#F99F1C' : '#E5E5E5'}`,
+                    border: `2px solid ${preferences[currentQuestion.id] === option.value ? '#F6CA8B' : '#E5E5E5'}`,
                     borderRadius: '12px',
                     padding: '24px 16px',
                     cursor: 'pointer',
@@ -258,8 +324,8 @@ function OnboardingModal({ user, onComplete, onSkip }) {
                     onClick={() => !isDisabled && handleMultipleSelect(option.value)}
                     disabled={isDisabled}
                     style={{
-                      background: isSelected ? '#F99F1C' : 'white',
-                      border: `2px solid ${isSelected ? '#F99F1C' : '#E5E5E5'}`,
+                      background: isSelected ? '#F6CA8B' : 'white',
+                      border: `2px solid ${isSelected ? '#F6CA8B' : '#E5E5E5'}`,
                       borderRadius: '24px',
                       padding: '12px 20px',
                       cursor: isDisabled ? 'not-allowed' : 'pointer',
@@ -282,7 +348,7 @@ function OnboardingModal({ user, onComplete, onSkip }) {
                       justifyContent: 'center',
                       fontSize: '12px',
                       fontWeight: 'bold',
-                      color: isSelected ? '#F99F1C' : '#666'
+                      color: isSelected ? '#F6CA8B' : '#666'
                     }}>
                       {isSelected ? '✓' : '+'}
                     </span>
@@ -297,7 +363,7 @@ function OnboardingModal({ user, onComplete, onSkip }) {
           {currentQuestion.type === 'slider' && (
             <div style={{ padding: '32px 24px' }}>
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <span style={{ fontSize: '48px', fontWeight: 'bold', color: '#F99F1C' }}>
+                <span style={{ fontSize: '48px', fontWeight: 'bold', color: '#1B3E6F' }}>
                   {preferences[currentQuestion.id] || currentQuestion.min}
                 </span>
                 <span style={{ fontSize: '24px', color: '#666', marginLeft: '8px' }}>
@@ -351,7 +417,7 @@ function OnboardingModal({ user, onComplete, onSkip }) {
             disabled={!isCurrentAnswered()}
             style={{
               padding: '12px 32px',
-              background: isCurrentAnswered() ? '#F99F1C' : '#ccc',
+              background: isCurrentAnswered() ? '#F6CA8B' : '#ccc',
               border: 'none',
               borderRadius: '8px',
               color: 'white',
@@ -373,7 +439,7 @@ function OnboardingModal({ user, onComplete, onSkip }) {
                 width: index === currentStep ? '24px' : '8px',
                 height: '8px',
                 borderRadius: index === currentStep ? '4px' : '50%',
-                background: index === currentStep ? '#F99F1C' : index < currentStep ? '#B6D289' : '#E5E5E5',
+                background: index === currentStep ? '#F6CA8B' : index < currentStep ? '#B6D289' : '#E5E5E5',
                 transition: 'all 0.3s ease'
               }}
             />
