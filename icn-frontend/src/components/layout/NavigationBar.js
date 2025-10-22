@@ -27,7 +27,9 @@ function NavigationBar({ user, onLogout }) {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      // Navigate to navigation page with search query instead of search page
+      navigate(`/navigation?q=${encodeURIComponent(searchQuery)}`);
+      setSearchQuery(''); // Clear search input after navigating
     }
   };
 

@@ -1,6 +1,6 @@
 // NavigationPage.js - Updated with all filter features and tier restrictions
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import FilterPanel from '../../components/search/FilterPanel';
 import { getCompanyService, getGeocodingService } from '../../services/serviceFactory';
 import geocodingCacheService from '../../services/geocodingCacheService';
@@ -10,6 +10,7 @@ import './NavigationPage.css';
 
 function NavigationPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const companyService = getCompanyService();
   const geocodingService = getGeocodingService();
   const { hasAccess } = useTierAccess();
@@ -64,9 +65,22 @@ function NavigationPage() {
   const [mapCenter, setMapCenter] = useState({ lat: -37.8136, lng: 144.9631 });
   const [mapZoom, setMapZoom] = useState(10);
 
+  // Load companies first
   useEffect(() => {
     loadCompanies();
   }, []);
+
+  // Read search query from URL parameters after component mounts
+  useEffect(() => {
+    const query = searchParams.get('q');
+    if (query) {
+      setSearchTerm(decodeURIComponent(query));
+      // Optionally remove the query parameter from URL after reading
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('q');
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   
   const loadCompanies = async () => {
     try {
@@ -137,12 +151,29 @@ function NavigationPage() {
   const applyFilters = () => {
     let filtered = [...companies];
     
-    // Search filter
+    // Search filter - search across multiple fields
     if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const searchTrimmed = searchTerm.trim();
+      
       filtered = filtered.filter(company =>
-        company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (company.description && company.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        company.type.toLowerCase().includes(searchTerm.toLowerCase())
+        company.name.toLowerCase().includes(searchLower) ||
+        (company.description && company.description.toLowerCase().includes(searchLower)) ||
+        company.type.toLowerCase().includes(searchLower) ||
+        (company.sectors && company.sectors.some(sector => 
+          sector.toLowerCase().includes(searchLower)
+        )) ||
+        (company.capabilities && company.capabilities.some(cap => 
+          cap.toLowerCase().includes(searchLower)
+        )) ||
+        (company.billingAddress && (
+          (company.billingAddress.city && company.billingAddress.city.toLowerCase().includes(searchLower)) ||
+          (company.billingAddress.state && company.billingAddress.state.toLowerCase().includes(searchLower)) ||
+          (company.billingAddress.suburb && company.billingAddress.suburb.toLowerCase().includes(searchLower)) ||
+          (company.billingAddress.postcode && company.billingAddress.postcode.toString().includes(searchTrimmed))
+        )) ||
+        // Also check for postcode in top-level fields (in case it's stored differently)
+        (company.postcode && company.postcode.toString().includes(searchTrimmed))
       );
     }
     
