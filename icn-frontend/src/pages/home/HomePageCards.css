@@ -1,0 +1,542 @@
+/* 强制样式覆盖 - 必须在最前面 */
+.homepage-company-name-text {
+  position: absolute !important;
+  top: 250px !important;
+  left: 200px !important;
+  z-index: 999 !important;
+}
+
+.homepage-company-location {
+  position: absolute !important;
+  top: 290px !important;
+  left: 200px !important;
+  z-index: 999 !important;
+}
+
+/* 主页卡牌专用样式 - 避免影响其他页面 */
+
+/* 轮播容器 */
+.homepage-carousel-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+  margin: 0 auto;
+  max-width: 1000px;
+  width: 100%;
+}
+
+.homepage-carousel-slide {
+  display: flex;
+  transition: transform 0.4s ease-in-out;
+  transform: translateX(0);
+  width: 100%;
+}
+
+/* 主页专用卡牌样式 */
+.homepage-company-card {
+  min-width: 100%;
+  width: 100%;
+  background: white !important;
+  border-radius: 24px 24px 0 0;
+  box-shadow: none;
+  overflow: visible;
+  transition: all 0.4s ease-in-out;
+  position: relative;
+  border: none;
+  padding: 0 0 40px 0;
+  height: 550px !important; /* 强制设置卡牌高度 */
+  flex-shrink: 0;
+}
+
+.homepage-company-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 240px;
+  background: 
+    url('../../assets/use_image/background.jpg');
+  background-size: 100% auto !important;
+  background-position: 25% 50% !important;
+  background-repeat: no-repeat;
+  z-index: 1;
+  border-radius: 24px 24px 0 0;
+}
+
+.homepage-company-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* 卡牌头部区域 */
+.homepage-card-header-section {
+  position: relative !important;
+  z-index: 2 !important;
+  padding: 0 40px !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 20px !important;
+  margin-bottom: 0 !important;
+  padding-top: 40px !important;
+  min-height: 160px !important;
+}
+
+/* 主页专用头像样式 */
+.homepage-company-card .homepage-company-avatar-circle,
+.homepage-card-header-section .homepage-company-avatar-circle {
+  width: 140px !important;
+  height: 140px !important;
+  border-radius: 70px !important;
+  background: linear-gradient(135deg, #223D6F 0%, rgba(34, 61, 111, 0.7) 100%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  margin-top: -100px !important; /* 让头像一半在横幅上，一半在信息部分 */
+  border: none !important;
+  box-shadow: none !important;
+  position: absolute !important;
+  top: 260px !important;
+  left: 40px !important;
+  z-index: 2 !important;
+  overflow: hidden !important;
+  transition: all 0.3s ease !important;
+  animation: homepageAvatarFadeIn 0.5s ease-out backwards 0.2s;
+}
+
+.homepage-company-card:hover .homepage-company-avatar-circle {
+  transform: scale(1.05) !important;
+}
+
+.homepage-avatar-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 70px !important;
+  animation: homepageAvatarReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative !important;
+  z-index: 3 !important;
+}
+
+.homepage-avatar-text {
+  font-size: 48px !important;
+  font-weight: 700 !important;
+  color: white !important;
+  letter-spacing: -1px !important;
+}
+
+@keyframes homepageAvatarFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes homepageAvatarReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.8) rotate(-5deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* 公司信息区域 */
+.homepage-company-info-section {
+  flex: 1 !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  padding-top: 80px !important;
+}
+
+/* 主页专用公司名称样式 */
+.homepage-company-card .homepage-company-name-text,
+.homepage-company-info-section .homepage-company-name-text,
+.homepage-card-header-section .homepage-company-name-text {
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  color: #111111 !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.5px !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  position: absolute !important;
+  top: 250px !important;
+  left: 200px !important;
+  z-index: 3 !important;
+}
+
+.homepage-company-card .homepage-company-location,
+.homepage-company-info-section .homepage-company-location,
+.homepage-card-header-section .homepage-company-location {
+  font-size: 16px !important;
+  color: #808080 !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+  font-weight: 500 !important;
+  position: absolute !important;
+  top: 340px !important;
+  left: 200px !important;
+  z-index: 3 !important;
+}
+
+/* 内容区域 */
+.homepage-company-card-content {
+  padding: 20px 20px 20px 20px !important;
+  background: white !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  height: calc(100% - 160px) !important; /* 减去背景图片的高度 */
+  position: relative !important;
+  z-index: 5 !important;
+  margin-top: 160px !important; /* 确保内容在背景图片下方 */
+}
+
+/* 徽章区域 */
+.homepage-badges-section {
+  display: flex !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+  margin-bottom: 15px !important;
+  margin-top: 0px !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+.homepage-verified-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #E8F5E8 0%, #D4F1D4 100%);
+  color: #2D5A2D;
+  padding: 10px 20px;
+  border-radius: 28px;
+  font-size: 16px;
+  font-weight: 600;
+  border: 1px solid rgba(45, 90, 45, 0.1);
+  box-shadow: 0 2px 4px rgba(45, 90, 45, 0.1);
+}
+
+.homepage-verified-badge svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.homepage-type-badge {
+  padding: 10px 20px;
+  border-radius: 28px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #8B4513;
+  background: linear-gradient(135deg, #FEECD2 0%, #F5D5A3 100%);
+  border: 1px solid rgba(139, 69, 19, 0.1);
+  box-shadow: 0 2px 4px rgba(139, 69, 19, 0.1);
+}
+
+.homepage-employees-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #F3F4F6;
+  color: #6B7280;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.homepage-distance-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #E3F2FD;
+  color: #1976D2;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 能力标签 */
+.homepage-capabilities-section {
+  display: flex !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+  margin-bottom: 20px !important;
+  overflow: hidden !important;
+  flex: none !important;
+  align-items: flex-start !important;
+}
+
+.homepage-capability-chip {
+  background: #FEECD2;
+  color: #8B4513;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.homepage-capability-chip.more {
+  background: #E5E7EB;
+  color: #6B7280;
+}
+
+/* 底部区域 */
+.homepage-company-footer {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin-top: 20px !important;
+  padding-top: 0 !important;
+  border-top: none !important;
+  position: relative !important;
+  bottom: 0 !important;
+}
+
+.homepage-view-details-btn {
+  background: linear-gradient(135deg, #F6CA8B 0%, #E5B87A 100%);
+  color: #1B3E6F;
+  border: none;
+  padding: 20px 70px;
+  border-radius: 24px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: homepageButtonPulse 2s ease-in-out infinite;
+  box-shadow: 0 6px 16px rgba(246, 202, 139, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.homepage-view-details-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+
+.homepage-view-details-btn:hover::before {
+  left: 100%;
+}
+
+/* 按钮脉冲动画 */
+@keyframes homepageButtonPulse {
+  0% {
+    box-shadow: 0 6px 16px rgba(246, 202, 139, 0.2);
+  }
+  50% {
+    box-shadow: 0 6px 20px rgba(246, 202, 139, 0.4);
+  }
+  100% {
+    box-shadow: 0 6px 16px rgba(246, 202, 139, 0.2);
+  }
+}
+
+.homepage-view-details-btn:hover {
+  animation: none;
+  background: linear-gradient(135deg, #E5B87A 0%, #D4A574 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(246, 202, 139, 0.5);
+}
+
+/* 轮播控制按钮 */
+.homepage-carousel-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 30px;
+  position: relative;
+  z-index: 3;
+  background: rgba(34, 61, 111, 0.05);
+  padding: 8px 16px;
+  border-radius: 20px;
+  max-width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.homepage-carousel-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  background: transparent !important;
+  border: 1px solid rgba(34, 61, 111, 0.3);
+  color: #223D6F;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.homepage-carousel-btn:hover:not(:disabled) {
+  background: #223D6F;
+  color: white;
+  transform: scale(1.1);
+  border-color: #223D6F;
+}
+
+.homepage-carousel-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.homepage-carousel-btn:disabled:hover {
+  background: transparent !important;
+  color: #223D6F;
+  transform: none;
+  border-color: rgba(34, 61, 111, 0.3);
+}
+
+/* 轻量化指示器样式 */
+.homepage-page-dots-container {
+  display: flex;
+  gap: 8px;
+}
+
+.homepage-compact-page-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(34, 61, 111, 0.3);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.homepage-compact-page-dot:hover {
+  background: rgba(34, 61, 111, 0.6);
+  transform: scale(1.2);
+}
+
+.homepage-compact-page-dot.active {
+  width: 24px;
+  background: #223D6F;
+  box-shadow: 0 2px 4px rgba(34, 61, 111, 0.3);
+}
+
+
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .homepage-carousel-container {
+    max-width: 100%;
+    margin: 0 20px;
+  }
+  
+  
+  .homepage-company-avatar-circle {
+    width: 120px !important;
+    height: 120px !important;
+    border-radius: 60px !important;
+    margin-top: -100px !important;
+  }
+  
+  .homepage-avatar-text {
+    font-size: 40px !important;
+  }
+  
+  .homepage-company-name-text {
+    font-size: 28px !important;
+  }
+  
+  .homepage-company-location {
+    font-size: 14px;
+  }
+  
+  .homepage-badges-section {
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  
+  .homepage-verified-badge,
+  .homepage-type-badge {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+  
+  .homepage-employees-badge,
+  .homepage-distance-badge {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  
+  .homepage-capabilities-section {
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  
+  .homepage-capability-chip {
+    padding: 6px 12px;
+    font-size: 13px;
+    max-width: 150px;
+  }
+  
+  .homepage-view-details-btn {
+    padding: 14px 52px;
+    font-size: 16px;
+  }
+  
+  .homepage-carousel-controls {
+    margin-top: 30px;
+    gap: 15px;
+  }
+  
+  .homepage-carousel-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+  
+  .homepage-compact-page-dot {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .homepage-compact-page-dot.active {
+    width: 20px;
+  }
+}
+
+/* 强制覆盖样式 - 最高优先级 */
+.homepage-carousel-container .homepage-company-card .homepage-card-header-section .homepage-company-info-section h3.homepage-company-name-text {
+  position: absolute !important;
+  top: 250px !important;
+  left: 200px !important;
+  z-index: 999 !important;
+}
+
+.homepage-carousel-container .homepage-company-card .homepage-card-header-section .homepage-company-info-section .homepage-company-location {
+  position: absolute !important;
+  top: 290px !important;
+  left: 200px !important;
+  z-index: 999 !important;
+}
