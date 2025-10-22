@@ -1,8 +1,5 @@
 .filter-panel {
-    background: var(--white);
-    border-radius: 12px;
-    border: 1px solid var(--black-20);
-    padding: 24px;
+    padding: 0;
   }
   
   .filter-header {
@@ -40,11 +37,41 @@
   .filter-group h4 {
     font-size: 0.9375rem;
     font-weight: 600;
-    color: var(--black-80);
+    color: #374151;
     margin-bottom: 12px;
     display: flex;
     align-items: center;
     gap: 8px;
+    letter-spacing: 0.025em;
+  }
+
+  .filter-group-header {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    color: #374151;
+    letter-spacing: 0.025em;
+  }
+
+  .filter-group-header:hover {
+    color: #1F2937;
+    transform: translateX(2px);
+  }
+
+  .collapse-icon {
+    font-size: 0.75rem;
+    color: #9CA3AF;
+    transition: all 0.2s ease;
+    margin-left: auto;
+  }
+
+  .filter-group-header:hover .collapse-icon {
+    color: #6B7280;
+    transform: scale(1.1);
   }
   
   .premium-badge {
@@ -81,8 +108,9 @@
   
   .distance-value {
     font-size: 0.875rem;
-    color: var(--black-80);
+    color: #374151;
     font-weight: 600;
+    letter-spacing: 0.025em;
   }
   
   .checkbox-list,
@@ -99,12 +127,17 @@
     gap: 8px;
     cursor: pointer;
     font-size: 0.875rem;
-    color: var(--black-80);
+    color: #4B5563;
+    transition: all 0.2s ease;
+    padding: 4px 0;
+    border-radius: 4px;
   }
   
   .checkbox-item:hover,
   .radio-item:hover {
-    color: var(--primary-orange);
+    color: #1F2937;
+    background: #F9FAFB;
+    transform: translateX(2px);
   }
   
   .checkbox-item input[type="checkbox"],
