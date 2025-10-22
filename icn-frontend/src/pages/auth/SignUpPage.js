@@ -90,7 +90,8 @@ function SignUpPage({ onSignUp }) {
         name: formData.name,
         email: formData.email,
         tier: 'free',
-        onboardingComplete: false // ADD THIS
+        onboardingComplete: false, // ADD THIS
+        isNewUser: true // Mark as new user to trigger onboarding
       };
       
       localStorage.setItem('token', 'mock-jwt-token');

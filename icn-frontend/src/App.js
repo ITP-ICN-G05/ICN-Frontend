@@ -151,9 +151,10 @@ function App() {
               if (validation.valid) {
                 setUser(parsedUser);
                 
-                // Check if onboarding is needed
+                // Check if onboarding is needed (only for new users, not existing login users)
                 if (parsedUser && !parsedUser.onboardingComplete && 
-                    !parsedUser.preferences && !parsedUser.onboardingSkipped) {
+                    !parsedUser.preferences && !parsedUser.onboardingSkipped && 
+                    parsedUser.isNewUser === true) {
                   setShowOnboarding(true);
                 }
               } else {
@@ -169,9 +170,10 @@ function App() {
           } else {
             setUser(parsedUser);
             
-            // Check onboarding
+            // Check onboarding (only for new users, not existing login users)
             if (parsedUser && !parsedUser.onboardingComplete && 
-                !parsedUser.preferences && !parsedUser.onboardingSkipped) {
+                !parsedUser.preferences && !parsedUser.onboardingSkipped && 
+                parsedUser.isNewUser === true) {
               setShowOnboarding(true);
             }
           }
@@ -237,9 +239,10 @@ function App() {
   const handleLogin = async (userData) => {
     setUser(userData);
     
-    // Check if new user needs onboarding after login
+    // Check if new user needs onboarding after login (only for new users)
     if (userData && !userData.onboardingComplete && 
-        !userData.preferences && !userData.onboardingSkipped) {
+        !userData.preferences && !userData.onboardingSkipped && 
+        userData.isNewUser === true) {
       setShowOnboarding(true);
     }
     
