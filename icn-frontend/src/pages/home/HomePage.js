@@ -158,7 +158,7 @@ function HomePage() {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      navigate(`/navigation?q=${encodeURIComponent(searchQuery)}`);
     }
   };
 
