@@ -19,21 +19,21 @@ function PricingPage() {
   const plans = [
     {
       id: 'free',
-      name: 'Free',
+      name: 'Basic/Free',
       price: { monthly: 0, yearly: 0 },
       description: 'Perfect for getting started',
       features: [
-        'Basic search functionality',
-        'View up to 5 companies per month',
-        'Standard filters (sectors, location)',
-        'Basic export (name and contact only)',
-        'Email support'
+        'Company name & address access',
+        'Items and sector information',
+        'Website/contact details',
+        'Basic export (CSV/PDF)',
+        'News tab access'
       ],
       limitations: [
-        'Limited company information',
-        'No advanced filters',
-        'No saved searches',
-        'No API access'
+        'No ABN and company summary',
+        'No capability types filtering',
+        'No ICN chat support',
+        'No revenue & employee data'
       ],
       recommended: false,
       current: user?.tier === 'free'
@@ -41,45 +41,44 @@ function PricingPage() {
     {
       id: 'plus',
       name: 'Plus',
-      price: { monthly: 49, yearly: 490 },
+      price: { monthly: 9.99, yearly: 99.99 },
       description: 'For regular users and small businesses',
       features: [
-        'Everything in Free, plus:',
-        'Unlimited company views',
-        'Advanced search filters',
-        'Company size and certification filters',
-        'Saved searches (up to 10)',
-        'Export to Excel/PDF',
+        'Everything in Basic, plus:',
+        'ABN and company summary',
+        'Capability types filtering',
         'ICN chat support',
-        'Gateway links access'
+        'Limited export capabilities',
+        'Gateway links access',
+        'Company size filters',
+        'Basic certifications info'
       ],
       limitations: [
-        'No demographic filters',
-        'Limited export fields',
-        'No API access'
+        'No revenue & employee count',
+        'No diversity markers & full export'
       ],
-      recommended: true,
+      recommended: false,
       current: user?.tier === 'plus'
     },
     {
       id: 'premium',
       name: 'Premium',
-      price: { monthly: 149, yearly: 1490 },
+      price: { monthly: 19.99, yearly: 199.99 },
       description: 'For power users and enterprises',
       features: [
         'Everything in Plus, plus:',
-        'Demographic filters (Female/FN-owned)',
-        'Revenue and employee data',
+        'Revenue & employee count data',
+        'Diversity markers (Female/FN-owned)',
+        'Advanced certifications',
         'Full export capabilities',
-        'Unlimited saved searches',
-        'API access (1000 calls/month)',
-        'Custom integrations',
+        'Local content percentage',
+        'Demographic filters',
         'Priority support',
-        'Local content percentage data',
-        'Compliance toolkit access'
+        'Advanced analytics access',
+        'Enterprise API access (coming)'
       ],
       limitations: [],
-      recommended: false,
+      recommended: true,
       current: user?.tier === 'premium'
     }
   ];
@@ -142,8 +141,15 @@ function PricingPage() {
       const monthlyCost = plan.price.monthly * 12;
       const yearlyCost = plan.price.yearly;
       const savings = monthlyCost - yearlyCost;
-      const percentage = Math.round((savings / monthlyCost) * 100);
-      return { amount: savings, percentage };
+      return savings;
+    }
+    return null;
+  };
+
+  const getSavingsText = (planId) => {
+    if (billingCycle === 'yearly') {
+      if (planId === 'plus') return 'Save $19.89/year';
+      if (planId === 'premium') return 'Save $39.89/year';
     }
     return null;
   };
@@ -170,7 +176,7 @@ function PricingPage() {
               onClick={() => setBillingCycle('yearly')}
             >
               Yearly
-              <span className="save-badge">Save up to 17%</span>
+              <span className="save-badge">Save up to 20%</span>
             </button>
           </div>
         </div>
@@ -182,6 +188,7 @@ function PricingPage() {
           <div className="pricing-cards">
             {plans.map(plan => {
               const savings = calculateSavings(plan);
+              const savingsText = getSavingsText(plan.id);
               const price = plan.price[billingCycle];
               const isCurrentPlan = user?.tier === plan.id;
               
@@ -204,15 +211,19 @@ function PricingPage() {
                   
                   <div className="plan-price">
                     <span className="currency">$</span>
-                    <span className="amount">{billingCycle === 'yearly' ? Math.round(price/12) : price}</span>
+                    <span className="amount">
+                      {billingCycle === 'yearly' && price > 0 
+                        ? (price / 12).toFixed(2) 
+                        : price}
+                    </span>
                     <span className="period">/month</span>
                   </div>
                   
                   {billingCycle === 'yearly' && price > 0 && (
                     <p className="billing-info">
                       Billed ${price} yearly
-                      {savings && (
-                        <span className="savings"> (Save ${savings.amount})</span>
+                      {savingsText && (
+                        <span className="savings"> ({savingsText})</span>
                       )}
                     </p>
                   )}
@@ -268,59 +279,107 @@ function PricingPage() {
               <thead>
                 <tr>
                   <th>Feature</th>
-                  <th>Free</th>
-                  <th className="highlighted">Plus</th>
-                  <th>Premium</th>
+                  <th>Basic/Free</th>
+                  <th>Plus</th>
+                  <th className="highlighted">Premium</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>Company Views per Month</td>
-                  <td>5</td>
-                  <td className="highlighted">Unlimited</td>
-                  <td>Unlimited</td>
-                </tr>
-                <tr>
-                  <td>Basic Search & Filters</td>
+                  <td>Company name & address access</td>
+                  <td>✓</td>
                   <td>✓</td>
                   <td className="highlighted">✓</td>
-                  <td>✓</td>
                 </tr>
                 <tr>
-                  <td>Advanced Filters</td>
+                  <td>Items and sector information</td>
+                  <td>✓</td>
+                  <td>✓</td>
+                  <td className="highlighted">✓</td>
+                </tr>
+                <tr>
+                  <td>Website/contact details</td>
+                  <td>✓</td>
+                  <td>✓</td>
+                  <td className="highlighted">✓</td>
+                </tr>
+                <tr>
+                  <td>Basic export (CSV/PDF)</td>
+                  <td>✓</td>
+                  <td>✓</td>
+                  <td className="highlighted">✓</td>
+                </tr>
+                <tr>
+                  <td>News tab access</td>
+                  <td>✓</td>
+                  <td>✓</td>
+                  <td className="highlighted">✓</td>
+                </tr>
+                <tr>
+                  <td>ABN and company summary</td>
+                  <td>-</td>
+                  <td>✓</td>
+                  <td className="highlighted">✓</td>
+                </tr>
+                <tr>
+                  <td>Capability types filtering</td>
+                  <td>-</td>
+                  <td>✓</td>
+                  <td className="highlighted">✓</td>
+                </tr>
+                <tr>
+                  <td>ICN chat support</td>
+                  <td>-</td>
+                  <td>✓</td>
+                  <td className="highlighted">✓</td>
+                </tr>
+                <tr>
+                  <td>Gateway links access</td>
+                  <td>-</td>
+                  <td>✓</td>
+                  <td className="highlighted">✓</td>
+                </tr>
+                <tr>
+                  <td>Company size filters</td>
+                  <td>-</td>
+                  <td>✓</td>
+                  <td className="highlighted">✓</td>
+                </tr>
+                <tr>
+                  <td>Revenue & employee data</td>
+                  <td>-</td>
                   <td>-</td>
                   <td className="highlighted">✓</td>
-                  <td>✓</td>
                 </tr>
                 <tr>
-                  <td>Demographic Filters</td>
+                  <td>Diversity markers (Female/FN-owned)</td>
                   <td>-</td>
-                  <td className="highlighted">-</td>
-                  <td>✓</td>
-                </tr>
-                <tr>
-                  <td>Saved Searches</td>
                   <td>-</td>
-                  <td className="highlighted">10</td>
-                  <td>Unlimited</td>
+                  <td className="highlighted">✓</td>
                 </tr>
                 <tr>
-                  <td>Export Capabilities</td>
-                  <td>Basic</td>
-                  <td className="highlighted">Standard</td>
-                  <td>Full</td>
-                </tr>
-                <tr>
-                  <td>API Access</td>
+                  <td>Full export capabilities</td>
                   <td>-</td>
-                  <td className="highlighted">-</td>
-                  <td>1000 calls/month</td>
+                  <td>-</td>
+                  <td className="highlighted">✓</td>
+                </tr>
+                <tr>
+                  <td>Local content percentage</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td className="highlighted">✓</td>
+                </tr>
+                <tr>
+                  <td>Advanced analytics access</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td className="highlighted">✓</td>
                 </tr>
                 <tr>
                   <td>Support</td>
                   <td>Email</td>
-                  <td className="highlighted">Chat + Email</td>
-                  <td>Priority</td>
+                  <td>Chat + Email</td>
+                  <td className="highlighted">Priority</td>
                 </tr>
               </tbody>
             </table>
