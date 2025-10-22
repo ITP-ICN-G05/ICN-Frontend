@@ -103,6 +103,55 @@ class MockSubscriptionService {
     
     return { data: subscription };
   }
+
+  async updateSubscription({ plan, billingCycle, paymentMethod }) {
+    await this.delay(1000);
+    
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.id) {
+      throw new Error('User not authenticated');
+    }
+    
+    // Validate payment method (basic validation)
+    if (!paymentMethod.cardNumber || !paymentMethod.expiryDate || !paymentMethod.cvv || !paymentMethod.name) {
+      throw new Error('Invalid payment details');
+    }
+    
+    // Find the plan
+    const planObj = Object.values(SUBSCRIPTION_PLANS).find(p => p.id === plan || p.tier === plan);
+    if (!planObj) {
+      throw new Error('Invalid subscription plan');
+    }
+    
+    // Create subscription
+    const subscription = {
+      id: 'sub_' + Date.now(),
+      userId: user.id,
+      tier: planObj.tier,
+      planId: planObj.id,
+      status: 'active',
+      startDate: new Date().toISOString(),
+      currentPeriodEnd: this.getNextBillingDate(billingCycle),
+      billingPeriod: billingCycle,
+      amount: billingCycle === 'monthly' ? planObj.monthlyPrice : planObj.yearlyPrice,
+      currency: 'AUD',
+      autoRenew: true,
+      paymentMethod: {
+        last4: paymentMethod.cardNumber.slice(-4),
+        expiryDate: paymentMethod.expiryDate
+      },
+      features: getTierFeatures(planObj.tier),
+      limits: getTierLimits(planObj.tier)
+    };
+    
+    this.activeSubscriptions.set(user.id, subscription);
+    
+    // Update user tier in localStorage
+    user.tier = planObj.tier;
+    localStorage.setItem('user', JSON.stringify(user));
+    
+    return { data: subscription };
+  }
   
   async cancelSubscription() {
     await this.delay(600);
