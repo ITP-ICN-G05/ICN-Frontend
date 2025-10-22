@@ -1,15 +1,18 @@
+// NavigationPage.js - Updated with all filter features and tier restrictions
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FilterPanel from '../../components/search/FilterPanel';
 import { getCompanyService, getGeocodingService } from '../../services/serviceFactory';
 import geocodingCacheService from '../../services/geocodingCacheService';
 import SearchMap from '../../components/map/SearchMap';
+import { useTierAccess } from '../../hooks/useTierAccess';
 import './NavigationPage.css';
 
 function NavigationPage() {
   const navigate = useNavigate();
   const companyService = getCompanyService();
   const geocodingService = getGeocodingService();
+  const { hasAccess } = useTierAccess();
   
   const [companies, setCompanies] = useState([]);
   const [filteredCompanies, setFilteredCompanies] = useState([]);
@@ -24,25 +27,41 @@ function NavigationPage() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
   
-  // 折叠状态管理 - 默认全部折叠
+  // Enhanced filter state with all tier features
   const [collapsedSections, setCollapsedSections] = useState({
     sectors: true,
     capabilities: true,
     size: true,
-    ownership: true
+    ownership: true,
+    certifications: true,
+    financial: true
   });
   
   const [filters, setFilters] = useState({
+    // Basic filters (all tiers)
     sectors: [],
     capabilities: [],
     distance: 50,
+    verified: false,
+    companyTypes: [],
+    state: '',
+    
+    // Plus tier filters
     size: '',
+    certifications: [],
+    
+    // Premium tier filters
     ownership: [],
-    verified: false
+    socialEnterprise: false,
+    australianDisability: false,
+    revenue: { min: 0, max: 10000000 },
+    employeeCount: { min: 0, max: 1000 },
+    localContentPercentage: 0
   });
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [bookmarkedCompanies, setBookmarkedCompanies] = useState([]);
-  const [mapCenter, setMapCenter] = useState({ lat: -37.8136, lng: 144.9631 }); // 默认墨尔本
+  const [mapCenter, setMapCenter] = useState({ lat: -37.8136, lng: 144.9631 });
   const [mapZoom, setMapZoom] = useState(10);
 
   useEffect(() => {
@@ -52,11 +71,10 @@ function NavigationPage() {
   const loadCompanies = async () => {
     try {
       setLoading(true);
-      const response = await companyService.getAll({ limit: 100 });
+      const response = await companyService.getAll({ limit: 10000 });
       const data = response.data || response;
       
       if (Array.isArray(data) && data.length > 0) {
-        // Map ICN data structure
         const mappedCompanies = data.map((company) => ({
           ...company,
           sectors: company.keySectors || company.sectors || [],
@@ -66,10 +84,15 @@ function NavigationPage() {
           size: company.companySize || company.employees || 'Unknown',
           employees: company.employees || 'Unknown',
           ownership: company.ownership || [],
+          certifications: company.certifications || [],
+          revenue: company.revenue,
+          employeeCount: company.employeeCount,
+          localContentPercentage: company.localContentPercentage,
+          socialEnterprise: company.socialEnterprise,
+          australianDisabilityEnterprise: company.australianDisabilityEnterprise,
           distance: company.distance || (2 + Math.random() * 20),
         }));
         
-        // Geocode with cache
         const companiesWithPositions = await geocodingCacheService.batchGeocodeWithCache(
           mappedCompanies,
           geocodingService
@@ -89,29 +112,26 @@ function NavigationPage() {
     applyFilters();
   }, [filters, companies, searchTerm]);
 
-  // 当侧栏折叠时自动关闭筛选面板
   useEffect(() => {
     if (isPanelCollapsed) {
       closeFilterPanel();
     }
   }, [isPanelCollapsed]);
 
-  // 打开筛选面板的动画函数
   const openFilterPanel = () => {
     setShowFilterPanel(true);
     setFilterPanelOpening(true);
     setTimeout(() => {
       setFilterPanelOpening(false);
-    }, 300); // 等待动画完成后移除opening类
+    }, 300);
   };
 
-  // 关闭筛选面板的动画函数
   const closeFilterPanel = () => {
     setFilterPanelClosing(true);
     setTimeout(() => {
       setShowFilterPanel(false);
       setFilterPanelClosing(false);
-    }, 300); // 与CSS动画时间一致
+    }, 300);
   };
 
   const applyFilters = () => {
@@ -126,6 +146,7 @@ function NavigationPage() {
       );
     }
     
+    // Basic filters (all tiers)
     if (filters.sectors.length > 0) {
       filtered = filtered.filter(company =>
         company.sectors.some(sector => filters.sectors.includes(sector))
@@ -140,22 +161,86 @@ function NavigationPage() {
     
     filtered = filtered.filter(company => company.distance <= filters.distance);
     
-    if (filters.size) {
-      filtered = filtered.filter(company => company.size === filters.size);
-    }
-    
-    if (filters.ownership.length > 0) {
-      filtered = filtered.filter(company =>
-        filters.ownership.some(own => (company.ownership || []).includes(own))
-      );
-    }
-    
     if (filters.verified) {
       filtered = filtered.filter(company => company.verified);
     }
     
+    if (filters.companyTypes.length > 0) {
+      filtered = filtered.filter(company =>
+        filters.companyTypes.includes(company.type)
+      );
+    }
+    
+    if (filters.state && filters.state !== 'All') {
+      filtered = filtered.filter(company => 
+        company.billingAddress?.state === filters.state || 
+        company.state === filters.state
+      );
+    }
+    
+    // Plus tier filters - only apply if user has access
+    if (hasAccess('ADVANCED_FILTERS')) {
+      if (filters.size && filters.size !== 'All') {
+        filtered = filtered.filter(company => company.size === filters.size);
+      }
+      
+      if (filters.certifications.length > 0) {
+        filtered = filtered.filter(company =>
+          filters.certifications.some(cert => 
+            (company.certifications || []).includes(cert)
+          )
+        );
+      }
+    }
+    
+    // Premium tier filters - only apply if user has access
+    if (hasAccess('DEMOGRAPHIC_FILTERS')) {
+      if (filters.ownership.length > 0) {
+        filtered = filtered.filter(company =>
+          filters.ownership.some(own => (company.ownership || []).includes(own))
+        );
+      }
+      
+      if (filters.socialEnterprise) {
+        filtered = filtered.filter(company => company.socialEnterprise === true);
+      }
+      
+      if (filters.australianDisability) {
+        filtered = filtered.filter(company => 
+          company.australianDisabilityEnterprise === true
+        );
+      }
+    }
+    
+    if (hasAccess('COMPANY_REVENUE')) {
+      // Revenue filter
+      if (filters.revenue.min > 0 || filters.revenue.max < 10000000) {
+        filtered = filtered.filter(company => 
+          company.revenue !== undefined &&
+          company.revenue >= filters.revenue.min &&
+          company.revenue <= filters.revenue.max
+        );
+      }
+      
+      // Employee count filter
+      if (filters.employeeCount.min > 0 || filters.employeeCount.max < 1000) {
+        filtered = filtered.filter(company =>
+          company.employeeCount !== undefined &&
+          company.employeeCount >= filters.employeeCount.min &&
+          company.employeeCount <= filters.employeeCount.max
+        );
+      }
+      
+      // Local content percentage filter
+      if (filters.localContentPercentage > 0) {
+        filtered = filtered.filter(company =>
+          company.localContentPercentage !== undefined &&
+          company.localContentPercentage >= filters.localContentPercentage
+        );
+      }
+    }
+    
     setFilteredCompanies(filtered);
-    // reset pagination when filters change
     setPage(1);
   };
 
@@ -168,14 +253,21 @@ function NavigationPage() {
       sectors: [],
       capabilities: [],
       distance: 50,
+      verified: false,
+      companyTypes: [],
+      state: '',
       size: '',
+      certifications: [],
       ownership: [],
-      verified: false
+      socialEnterprise: false,
+      australianDisability: false,
+      revenue: { min: 0, max: 10000000 },
+      employeeCount: { min: 0, max: 1000 },
+      localContentPercentage: 0
     });
     setSearchTerm('');
   };
 
-  // 切换分类折叠状态
   const toggleSection = (sectionName) => {
     setCollapsedSections(prev => ({
       ...prev,
@@ -187,7 +279,7 @@ function NavigationPage() {
     setSelectedCompany(company);
   };
 
-  // Pagination derived values and helpers (aligned with CompaniesPage)
+  // Pagination helpers
   const totalPages = Math.max(1, Math.ceil(filteredCompanies.length / pageSize));
   const startIndex = (page - 1) * pageSize;
   const endIndex = startIndex + pageSize;
@@ -223,9 +315,8 @@ function NavigationPage() {
     return pages;
   };
 
-  // 切换收藏状态
   const toggleBookmark = (companyId, e) => {
-    e.stopPropagation(); // 防止触发卡片点击
+    e.stopPropagation();
     setBookmarkedCompanies(prev => {
       if (prev.includes(companyId)) {
         return prev.filter(id => id !== companyId);
@@ -235,7 +326,6 @@ function NavigationPage() {
     });
   };
 
-  // Helpers to align sidebar cards with CompaniesPage style
   const getCompanyTypeColor = (type) => {
     const colors = {
       'Supplier': '#E3F2FD',
@@ -258,16 +348,12 @@ function NavigationPage() {
   };
 
   const handleSidebarCardClick = (company) => {
-    // 跳转到地图上的地理位置并打开弹窗
     if (company.latitude && company.longitude) {
-      // 设置地图中心到公司位置
       setMapCenter({
         lat: parseFloat(company.latitude),
         lng: parseFloat(company.longitude)
       });
-      // 设置缩放级别
       setMapZoom(15);
-      // 选择该公司以打开弹窗
       setSelectedCompany(company);
     }
   };
@@ -281,7 +367,6 @@ function NavigationPage() {
         className="company-card"
         onClick={() => handleSidebarCardClick(company)}
       >
-        {/* 收藏按钮 */}
         <button 
           className="bookmark-button"
           onClick={(e) => toggleBookmark(company.id, e)}
@@ -332,7 +417,6 @@ function NavigationPage() {
             </div>
           )}
 
-          {/* 距离信息 */}
           {company.distance && (
             <div className="distance-badge">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -413,8 +497,6 @@ function NavigationPage() {
     );
   };
 
-  // No floating controls; counts no longer displayed outside panel
-
   if (loading) {
     return (
       <div className="navigation-page">
@@ -436,23 +518,10 @@ function NavigationPage() {
 
   return (
     <div className="navigation-page">
-      {/* Fullscreen Map Content */}
       <section className="main-content fullscreen">
         <div className="map-container fullscreen">
-          {/* No floating controls; list+filters are inside the left overlay */}
-
-          {/* Left Overlay: Filters + Company List */}
           {showLeftPanel && (
             <aside className={`left-overlay ${isPanelCollapsed ? 'collapsed' : ''}`}>
-              <button 
-                className="overlay-toggle"
-                onClick={() => setIsPanelCollapsed(v => !v)}
-                aria-label="Toggle panel"
-                title={isPanelCollapsed ? 'Expand' : 'Collapse'}
-              >
-                {isPanelCollapsed ? '»' : '«'}
-              </button>
-
               {!isPanelCollapsed && (
                 <div className="overlay-inner">
                   <div className="overlay-header">
@@ -485,7 +554,6 @@ function NavigationPage() {
                     </div>
                   </div>
                   
-                  {/* Search Section */}
                   <div className="overlay-search">
                     <div className="sidebar-search">
                       <svg className="search-icon" width="18" height="18" viewBox="0 0 20 20" fill="none">
@@ -561,7 +629,6 @@ function NavigationPage() {
             </aside>
           )}
 
-          {/* 折叠后的球状按钮 */}
           {showLeftPanel && isPanelCollapsed && (
             <button 
               className="collapsed-ball"
@@ -575,7 +642,6 @@ function NavigationPage() {
             </button>
           )}
 
-          {/* 过滤面板 - 在侧栏旁边展开 */}
           {showFilterPanel && (
               <aside className={`filter-sidebar ${filterPanelClosing ? 'closing' : ''} ${filterPanelOpening ? 'opening' : ''}`}>
               <div className="filter-sidebar-header">
@@ -612,7 +678,6 @@ function NavigationPage() {
               </aside>
             )}
 
-          {/* Map stage always visible; collapse the left overlay for fullscreen */}
           <main className="view-content fullscreen">
             <div className="map-stage">
                   {filteredCompanies.length > 0 ? (
@@ -625,8 +690,6 @@ function NavigationPage() {
                         zoom={mapZoom}
                         height={'calc(100vh - 0px)'}
                       />
-                      
-                      {/* InfoWindow现在由SearchMap组件内部处理，不需要额外的面板 */}
                     </>
                   ) : (
                     <div className="no-results-map">
@@ -636,11 +699,8 @@ function NavigationPage() {
                   )}
                 </div>
             </main>
-
-          {/* Deprecated filter overlay removed in favor of left-overlay */}
         </div>
       </section>
-
     </div>
   );
 }
