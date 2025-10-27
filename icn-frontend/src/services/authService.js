@@ -14,10 +14,10 @@ class AuthService {
     const response = await api.post(`/user?email=${encodeURIComponent(email)}&password=${encodeURIComponent(hashedPassword)}`);
     
     if (response.data) {
-      // 添加email字段到用户数据中，因为后端响应中没有包含email
+      // Add email field to user data since backend response doesn't include email
       const userData = {
         ...response.data,
-        email: email  // 添加email字段
+        email: email  // Add email field
       };
       
       localStorage.setItem('token', 'session-' + Date.now());
@@ -59,7 +59,7 @@ class AuthService {
     // You might need to use PUT /user instead
     const hashedPassword = this.hashPassword(newPassword);
     
-    // 根据dev分支的UpdateUserRequest构建正确的数据格式
+    // Build correct data format according to dev branch UpdateUserRequest
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     
     const resetData = {
@@ -81,7 +81,7 @@ class AuthService {
       ? this.hashPassword(userData.password)
       : localStorage.getItem('user_password_hash');
     
-    // 根据dev分支的UpdateUserRequest构建正确的数据格式
+    // Build correct data format according to dev branch UpdateUserRequest
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     
     const updateData = {

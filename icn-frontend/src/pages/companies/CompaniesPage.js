@@ -17,8 +17,8 @@ function CompaniesPage() {
   const [selectedCapability, setSelectedCapability] = useState('all');
   const [viewMode, setViewMode] = useState('grid'); // grid or list
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(12); // 每页显示12个公司
-  const [bookmarkedCompanies, setBookmarkedCompanies] = useState([]); // 收藏的公司列表
+  const [itemsPerPage] = useState(12); // Display 12 companies per page
+  const [bookmarkedCompanies, setBookmarkedCompanies] = useState([]); // Bookmarked companies list
 
   // Mock data - ICN Victoria managed companies
   const mockCompanies = [
@@ -113,7 +113,7 @@ function CompaniesPage() {
 
   useEffect(() => {
     filterCompanies();
-    setCurrentPage(1); // 重置到第一页当筛选条件改变时
+    setCurrentPage(1); // Reset to first page when filter conditions change
   }, [searchTerm, selectedSector, selectedCapability, companies]);
 
   const loadCompanies = async () => {
@@ -123,7 +123,7 @@ function CompaniesPage() {
       sectors: selectedSector !== 'all' ? [selectedSector] : undefined,
       capabilities: selectedCapability !== 'all' ? [selectedCapability] : undefined,
       search: searchTerm || undefined,
-      limit: 999999  // 移除限制，加载所有数据
+      limit: 999999  // Remove limit, load all data
     });
     
     const data = response.data || response;
@@ -217,7 +217,7 @@ function CompaniesPage() {
     return access.includes(field);
   };
 
-  // 切换收藏状态
+  // Toggle bookmark status
   const toggleBookmark = async (companyId, e) => {
     e.stopPropagation(); // Prevent card click
     
@@ -278,7 +278,7 @@ function CompaniesPage() {
     }
   };
 
-  // 格式化验证日期
+  // Format verification date
   const formatVerificationDate = (date) => {
     if (!date) return '';
     try {
@@ -293,7 +293,7 @@ function CompaniesPage() {
     }
   };
 
-  // 获取公司类型颜色
+  // Get company type color
   const getCompanyTypeColor = (type) => {
     const colors = {
       'Supplier': '#E3F2FD',
@@ -304,7 +304,7 @@ function CompaniesPage() {
     return colors[type] || '#FEECD2';
   };
 
-  // 获取地址显示
+  // Get address display
   const getLocationDisplay = (company) => {
     if (company.address) {
       const parts = company.address.split(',');
@@ -326,18 +326,18 @@ function CompaniesPage() {
         className="company-card"
         onClick={() => navigate(`/company/${company.id}`)}
       >
-        {/* 收藏按钮 - 借鉴移动端 */}
+        {/* Bookmark button - inspired by mobile */}
         <button 
           className="bookmark-button"
           onClick={(e) => toggleBookmark(company.id, e)}
-          title={isBookmarked ? '取消收藏' : '收藏'}
+          title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill={isBookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
           </svg>
         </button>
 
-        {/* 头部：头像 + 名称 + 地址 */}
+        {/* Header: avatar + name + address */}
         <div className="card-header-section">
           <div className="company-avatar-circle">
             <span className="avatar-letter">{company.name.charAt(0).toUpperCase()}</span>
@@ -363,7 +363,7 @@ function CompaniesPage() {
             </div>
           )}
           
-          {/* 公司类型徽章 */}
+          {/* Company type badge */}
           {company.type && (
             <div 
               className="type-badge"
@@ -373,7 +373,7 @@ function CompaniesPage() {
             </div>
           )}
 
-          {/* 员工数徽章 - 显著位置 - 支持多种字段名 */}
+          {/* Employee count badge - prominent position - supports multiple field names */}
           {(company.employees || company.employeeCount) && (
             <div className="employees-badge">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -387,9 +387,9 @@ function CompaniesPage() {
           )}
         </div>
         
-        {/* Capabilities标签 - 所有用户可见 - 支持多种字段名 */}
+        {/* Capabilities tags - visible to all users - supports multiple field names */}
         {(() => {
-          // 支持 icnCapabilities 或 capabilities
+          // Supports icnCapabilities or capabilities
           const caps = company.icnCapabilities || company.capabilities;
           if (!caps || caps.length === 0) return null;
           
@@ -409,9 +409,9 @@ function CompaniesPage() {
           );
         })()}
 
-        {/* Sectors标签 - 所有用户可见 - 支持多种字段名 */}
+        {/* Sectors tags - visible to all users - supports multiple field names */}
         {(() => {
-          // 支持 keySectors 或 sectors
+          // Supports keySectors or sectors
           const sects = company.keySectors || company.sectors;
           if (!sects || sects.length === 0) return null;
           
@@ -431,7 +431,7 @@ function CompaniesPage() {
           );
         })()}
 
-        {/* 额外信息栏 */}
+        {/* Additional information section */}
         {(company.abn || company.website || company.size) && (
           <div className="additional-info">
             {company.abn && (
@@ -459,7 +459,7 @@ function CompaniesPage() {
           </div>
         )}
         
-        {/* Premium信息 */}
+        {/* Premium information */}
         {userTier === 'premium' && (
           <>
             {(company.ownership || []).length > 0 && (
@@ -478,7 +478,7 @@ function CompaniesPage() {
           </>
         )}
 
-        {/* 右箭头指示 */}
+        {/* Right arrow indicator */}
         <div className="card-arrow">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="9 18 15 12 9 6"/>
@@ -488,18 +488,18 @@ function CompaniesPage() {
     );
   };
 
-  // 支持多种验证字段名
+  // Supports multiple verification field names
   const verifiedCount = companies.filter(c => 
     c.verified || c.verificationStatus === 'verified' || c.isVerified
   ).length;
 
-  // 分页逻辑
+  // Pagination logic
   const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentCompanies = filteredCompanies.slice(startIndex, endIndex);
 
-  // 分页处理函数
+  // Pagination handler functions
   const goToPage = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -517,7 +517,7 @@ function CompaniesPage() {
     }
   };
 
-  // 页码输入跳转
+  // Page number input jump
   const handlePageInputChange = (e) => {
     const value = e.target.value;
     if (value === '') return;
@@ -534,7 +534,7 @@ function CompaniesPage() {
     }
   };
 
-  // 生成页码数组
+  // Generate page number array
   const getPageNumbers = () => {
     const pages = [];
     const maxPagesToShow = 5;

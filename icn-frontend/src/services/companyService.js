@@ -6,7 +6,7 @@ class CompanyService {
   async searchCompanies(params = {}) {
     const queryParams = new URLSearchParams();
     
-    // 地理参数变为可选
+    // Geographic parameters become optional
     if (params.startLatitude !== undefined) {
       queryParams.append('startLatitude', params.startLatitude);
     }
@@ -37,10 +37,10 @@ class CompanyService {
   }
 
   // GET /organisation/specific - searchOrganisationDetail
-  // 由于 /organisation/specific 端点有问题，使用 /organisation/general 来获取公司详情
+  // Due to issues with /organisation/specific endpoint, use /organisation/general to get company details
   async getById(organisationId) {
     try {
-      // 首先尝试使用 /organisation/specific 端点
+      // First try using /organisation/specific endpoint
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const userId = user.id || 'guest';
       
@@ -49,20 +49,20 @@ class CompanyService {
     } catch (error) {
       console.warn('Specific endpoint failed, falling back to general search:', error.message);
       
-      // 回退方案：使用 /organisation/general 端点搜索特定ID
-      // 优化：先尝试小批量搜索，避免加载所有数据
+      // Fallback: Use /organisation/general endpoint to search for specific ID
+      // Optimization: Try small batch search first to avoid loading all data
       try {
         let searchResponse;
         let found = false;
         
-        // 分批搜索，每次100个，最多搜索10次
+        // Batch search, 100 at a time, maximum 10 searches
         for (let skip = 0; skip < 1000 && !found; skip += 100) {
           searchResponse = await this.searchCompanies({
             skip: skip,
             limit: 100
           });
           
-          // 检查是否找到匹配的公司
+          // Check if matching company is found
           const company = searchResponse.find(org => {
             if (org.id === organisationId || org._id === organisationId || org.organisationId === organisationId) {
               return true;
@@ -79,32 +79,32 @@ class CompanyService {
           
           if (company) {
             found = true;
-            searchResponse = [company]; // 只保留找到的公司
+            searchResponse = [company]; // Keep only the found company
             break;
           }
           
-          // 如果返回的数据少于100个，说明已经到末尾了
+          // If returned data is less than 100, we've reached the end
           if (searchResponse.length < 100) {
             break;
           }
         }
         
-        // 如果找到了公司，处理数据
+        // If company is found, process data
         if (found && searchResponse && searchResponse.length > 0) {
-          const company = searchResponse[0]; // 我们已经确保只有一个公司
-          // 获取正确的公司ID
+          const company = searchResponse[0]; // We've ensured there's only one company
+          // Get correct company ID
           let correctId = company.id || company._id;
-          // 如果公司ID为空，尝试从items中获取
+          // If company ID is empty, try to get from items
           if (!correctId || correctId.trim() === '') {
             if (company.items && Array.isArray(company.items) && company.items.length > 0) {
-              correctId = company.items[0].id; // 使用第一个item的ID
+              correctId = company.items[0].id; // Use first item's ID
             }
           }
           
-          // 从items中提取更多信息
+          // Extract more information from items
           const items = company.items || [];
           
-          // 去重：基于detailedItemName和itemName去重
+          // Deduplication: based on detailedItemName and itemName
           const uniqueItems = items.reduce((acc, item) => {
             const key = `${item.detailedItemName || item.itemName}_${item.sectorName}`;
             if (!acc.has(key)) {
@@ -121,7 +121,7 @@ class CompanyService {
             itemName: item.itemName,
             detailedItemName: item.detailedItemName,
             sector: item.sectorName,
-            capabilityType: item.capabilityType || 'Service', // 默认值
+            capabilityType: item.capabilityType || 'Service', // Default value
             validationDate: item.validationDate,
             itemId: item.itemId,
             detailedItemId: item.detailedItemId,
@@ -130,7 +130,7 @@ class CompanyService {
           
           const sectors = [...new Set(uniqueItemsArray.map(item => item.sectorName).filter(Boolean))];
           
-          // 处理地址信息，将"#N/A"转换为null
+          // Process address information, convert "#N/A" to null
           const cleanAddress = (value) => {
             if (!value || value === '#N/A' || value.trim() === '') {
               return null;
@@ -138,7 +138,7 @@ class CompanyService {
             return value;
           };
           
-          // 组合完整地址
+          // Combine full address
           const street = cleanAddress(company.street);
           const city = cleanAddress(company.city);
           const state = cleanAddress(company.state);
@@ -147,11 +147,11 @@ class CompanyService {
           const addressParts = [street, city, state, zip].filter(Boolean);
           const fullAddress = addressParts.length > 0 ? addressParts.join(', ') : null;
           
-          // 转换为前端期望的格式，包含更多字段
+          // Convert to frontend expected format with more fields
           return {
             id: correctId || organisationId,
             name: company.name,
-            address: fullAddress, // 添加完整地址字段
+            address: fullAddress, // Add complete address field
             street: street,
             city: city,
             state: state,
@@ -160,13 +160,13 @@ class CompanyService {
             latitude: company.latitude || 0,
             items: items,
             
-            // 从items中提取的额外信息
+            // Additional information extracted from items
             capabilities: capabilities,
             icnCapabilities: capabilities,
             keySectors: sectors,
             sectors: sectors,
             
-            // 只使用后端API返回的真实数据，不添加模拟数据
+            // Only use real data from backend API, don't add mock data
             verificationStatus: null,
             companyType: null,
             employees: null,
@@ -178,10 +178,10 @@ class CompanyService {
             website: null,
             yearEstablished: null,
             
-            // 只使用后端数据，不添加模拟项目
+            // Only use backend data, don't add mock projects
             pastProjects: [],
             
-            // 基于实际能力生成产品和服务
+            // Generate products and services based on actual capabilities
             products: capabilities.filter(cap => 
               cap.name.toLowerCase().includes('manufacturing') || 
               cap.name.toLowerCase().includes('production') ||
@@ -197,7 +197,7 @@ class CompanyService {
               cap.name.toLowerCase().includes('installation')
             ).map(cap => cap.name),
             
-            // 只使用后端数据
+            // Only use backend data
             certifications: [],
             diversityMarkers: [],
             documents: [],
@@ -229,27 +229,27 @@ class CompanyService {
   // Helper method for compatibility
   async getAll(params = {}) {
     const rawData = await this.searchCompanies({
-      // 移除地理过滤参数，获取所有公司
+      // Remove geographic filtering parameters, get all companies
       skip: params.skip || 0,    // Always provide skip
-      limit: params.limit || 999999  // 移除限制，加载所有数据
+      limit: params.limit || 999999  // Remove limit, load all data
     });
     
-    // 对每个公司进行数据转换，并过滤掉无效的公司
+    // Transform data for each company and filter out invalid companies
     return rawData.map(company => this.transformCompanyData(company)).filter(company => company !== null);
   }
   
-  // 数据转换方法
+  // Data transformation method
   transformCompanyData(company) {
-    // 只使用 company.id 字段，不要从items中获取ID
+    // Only use company.id field, don't get ID from items
     const correctId = company.id;
     
-    // 如果ID为空，跳过这个公司
+    // If ID is empty, skip this company
     if (!correctId || correctId.trim() === '') {
       console.warn('Skipping company with no valid ID:', company.name);
       return null;
     }
     
-    // 处理地址信息
+    // Process address information
     const cleanAddress = (value) => {
       if (!value || value === '#N/A' || value.trim() === '') {
         return null;
@@ -265,7 +265,7 @@ class CompanyService {
     const addressParts = [street, city, state, zip].filter(Boolean);
     const fullAddress = addressParts.length > 0 ? addressParts.join(', ') : null;
     
-    // 处理items和capabilities
+    // Process items and capabilities
     const items = company.items || [];
     const uniqueItems = items.reduce((acc, item) => {
       const key = `${item.detailedItemName || item.itemName}_${item.sectorName}`;

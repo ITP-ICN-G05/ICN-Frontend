@@ -98,11 +98,11 @@ function NavigationPage() {
   const loadCompanies = async () => {
     try {
       setLoading(true);
-      // 直接使用companyService.getAll()的返回值，它已经包含了transformCompanyData的修复
+      // Directly use companyService.getAll() return value, which already includes transformCompanyData fix
       const data = await companyService.getAll({ limit: 3000 });
       
       if (Array.isArray(data) && data.length > 0) {
-        // 只添加前端需要的额外字段，不重新映射ID
+        // Only add frontend-required extra fields, don't remap IDs
         const mappedCompanies = data.map((company) => ({
           ...company,
           // Fix backend's "lontitude" typo

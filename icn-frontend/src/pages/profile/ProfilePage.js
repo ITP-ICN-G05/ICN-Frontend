@@ -32,17 +32,17 @@ function ProfilePage() {
     initializePage();
   }, []);
 
-  // 添加页面焦点监听，当用户返回Profile页面时自动刷新收藏列表
+  // Add page focus listeners to automatically refresh bookmark list when user returns to Profile page
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        // 页面变为可见时刷新收藏列表
+        // Refresh bookmark list when page becomes visible
         loadBookmarks();
       }
     };
 
     const handleFocus = () => {
-      // 窗口获得焦点时刷新收藏列表
+      // Refresh bookmark list when window gains focus
       loadBookmarks();
     };
 
@@ -67,22 +67,22 @@ function ProfilePage() {
 
   const loadBookmarks = async () => {
     try {
-      // 修复：直接从后端获取最新的用户数据，而不是依赖localStorage
+      // Fix: Get latest user data directly from backend instead of relying on localStorage
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const hashedPassword = localStorage.getItem('user_password_hash');
       
       if (!user.email || !hashedPassword) {
-        console.log('用户未登录或缺少认证信息');
+        console.log('User not logged in or missing authentication info');
         setBookmarkedCompanies([]);
         return;
       }
       
-      // 直接从后端获取最新的用户数据
+      // Get latest user data directly from backend
       const loginResponse = await api.post(`/user?email=${encodeURIComponent(user.email)}&password=${encodeURIComponent(hashedPassword)}`);
       const latestUserData = loginResponse.data;
       
       if (latestUserData && latestUserData.organisationCards) {
-        // 使用最新的用户数据获取收藏
+        // Use latest user data to get bookmarks
         const organisationIds = latestUserData.organisationCards
           .map(card => card.id)
           .filter(id => id && id.trim() !== '');
@@ -148,11 +148,11 @@ function ProfilePage() {
   const removeBookmark = async (id) => { 
     try { 
       await bookmarkService.removeBookmark(id); 
-      // 删除成功后重新加载收藏列表
+      // Reload bookmark list after successful deletion
       await loadBookmarks();
     } catch (error) {
       console.error('Error removing bookmark:', error);
-      // 即使API调用失败，也从本地状态中移除
+      // Remove from local state even if API call fails
       setBookmarkedCompanies(bookmarkedCompanies.filter(c => c.id !== id)); 
     }
   };
