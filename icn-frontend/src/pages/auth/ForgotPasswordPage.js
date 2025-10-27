@@ -135,20 +135,23 @@ function ForgotPasswordPage() {
     setLoading(true);
     
     try {
-      // Note: Your backend doesn't have a resetPassword endpoint documented
-      // You may need to implement this or use PUT /user endpoint
-      
-      // For now, update user with new password
-      await authService.updateProfile({
-        email: formData.email,
-        password: formData.newPassword
-      });
+      // Use resetPassword method which handles verification code validation
+      await authService.resetPassword(
+        formData.email, 
+        formData.verificationCode, 
+        formData.newPassword
+      );
       
       navigate('/login', { 
         state: { message: 'Password reset successfully. Please log in with your new password.' }
       });
     } catch (error) {
-      setErrors({ submit: 'Password reset failed. Please try again.' });
+      console.error('Password reset error:', error);
+      setErrors({ 
+        submit: error.response?.data?.error || 
+                 error.message || 
+                 'Password reset failed. Please check your verification code.' 
+      });
     } finally {
       setLoading(false);
     }

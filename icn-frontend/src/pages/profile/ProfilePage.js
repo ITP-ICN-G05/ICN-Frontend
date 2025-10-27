@@ -142,8 +142,71 @@ function ProfilePage() {
   };
 
   const handleEditProfile = () => setEditMode(true);
-  const handleSaveProfile = () => { localStorage.setItem('user', JSON.stringify({ ...user, ...formData })); setUser({ ...user, ...formData }); setEditMode(false); };
-  const handleCancelEdit = () => { setFormData({ name: user.name || '', email: user.email || '', company: user.company || '', phone: user.phone || '', location: user.location || 'Melbourne, VIC', industry: user.industry || '' }); setEditMode(false); };
+  const handleSaveProfile = async () => {
+    try {
+      // Get current user data and password hash
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const hashedPassword = localStorage.getItem('user_password_hash');
+      
+      if (!hashedPassword) {
+        alert('Authentication required. Please log in again.');
+        navigate('/login');
+        return;
+      }
+      
+      // Prepare update data for backend API
+      const updateData = {
+        id: currentUser.id,
+        email: currentUser.email, // Keep original email, don't allow changes
+        name: formData.name, // Only update name
+        password: hashedPassword, // Current password for authentication
+        organisationIds: currentUser.organisationIds || [],
+        premium: currentUser.premium || 0,
+        subscribeDueDate: currentUser.subscribeDueDate || ''
+      };
+      
+      console.log('📤 Updating profile via backend API...');
+      
+      // Call backend API to update user information
+      const response = await api.put('/user', updateData);
+      
+      if (response.status === 200) {
+        console.log('✅ Profile updated successfully!');
+        
+        // Update local storage with new data
+        const updatedUser = { ...currentUser, name: formData.name };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+        setEditMode(false);
+        
+        // Show success message
+        alert('Profile updated successfully!');
+      } else {
+        throw new Error('Update failed');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      
+      if (error.response?.status === 400) {
+        alert('Invalid data. Please check your information and try again.');
+      } else if (error.response?.status === 404) {
+        alert('Update failed. Please try again or contact support.');
+      } else {
+        alert('Failed to update profile. Please try again.');
+      }
+    }
+  };
+  const handleCancelEdit = () => { 
+    setFormData({ 
+      name: user.name || '', 
+      email: user.email || '', 
+      company: user.company || '', 
+      phone: user.phone || '', 
+      location: user.location || 'Melbourne, VIC', 
+      industry: user.industry || '' 
+    }); 
+    setEditMode(false); 
+  };
   const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
   const removeBookmark = async (id) => { 
     try { 
@@ -311,12 +374,6 @@ function ProfilePage() {
                           <p className="profile-user-role">{user.role} at {user.company}</p>
                         )}
                       </div>
-                      <button className="edit-icon-button" onClick={handleEditProfile} title="Edit Profile">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                        </svg>
-                      </button>
                     </div>
                     <p className="profile-user-email">{user.email}</p>
                     <div className="profile-user-meta">
@@ -383,24 +440,118 @@ function ProfilePage() {
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                       </svg>
-                      Edit Profile
+                      Edit Name
                     </button>
                   )}
                   </div>
                 <div className="profile-section-content">
                   <div className="profile-form-grid">
-                    {['name', 'email', 'company', 'phone', 'location'].map(field => (
-                      <div key={field} className="profile-form-group">
-                        <label className="profile-form-label">{field.charAt(0).toUpperCase() + field.slice(1)}</label>
-                        <input type={field === 'email' ? 'email' : 'text'} name={field} className="profile-form-input" value={formData[field]} onChange={handleInputChange} disabled={!editMode} />
-                  </div>
-                    ))}
+                    {/* Name field - editable */}
+                    <div className="profile-form-group">
+                      <label className="profile-form-label">Name</label>
+                      <input 
+                        type="text" 
+                        name="name" 
+                        className="profile-form-input" 
+                        value={formData.name} 
+                        onChange={handleInputChange} 
+                        disabled={!editMode}
+                        placeholder="Enter your name"
+                      />
+                    </div>
+                    
+                    {/* Email field - locked/read-only */}
+                    <div className="profile-form-group">
+                      <label className="profile-form-label">Email</label>
+                      <input 
+                        type="email" 
+                        name="email" 
+                        className="profile-form-input" 
+                        value={formData.email} 
+                        disabled={true}
+                        style={{ 
+                          backgroundColor: '#f5f5f5', 
+                          color: '#666',
+                          cursor: 'not-allowed'
+                        }}
+                        title="Email cannot be changed"
+                      />
+                      <small style={{ color: '#666', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                        Email cannot be changed for security reasons
+                      </small>
+                    </div>
+                    
+                    {/* Other fields - display only, not editable */}
+                    <div className="profile-form-group">
+                      <label className="profile-form-label">Company</label>
+                      <input 
+                        type="text" 
+                        name="company" 
+                        className="profile-form-input" 
+                        value={formData.company || 'Not set'} 
+                        disabled={true}
+                        style={{ 
+                          backgroundColor: '#f5f5f5', 
+                          color: '#666',
+                          cursor: 'not-allowed'
+                        }}
+                        title="Company information is not editable"
+                      />
+                    </div>
+                    
+                    <div className="profile-form-group">
+                      <label className="profile-form-label">Phone</label>
+                      <input 
+                        type="text" 
+                        name="phone" 
+                        className="profile-form-input" 
+                        value={formData.phone || 'Not set'} 
+                        disabled={true}
+                        style={{ 
+                          backgroundColor: '#f5f5f5', 
+                          color: '#666',
+                          cursor: 'not-allowed'
+                        }}
+                        title="Phone information is not editable"
+                      />
+                    </div>
+                    
+                    <div className="profile-form-group">
+                      <label className="profile-form-label">Location</label>
+                      <input 
+                        type="text" 
+                        name="location" 
+                        className="profile-form-input" 
+                        value={formData.location || 'Not set'} 
+                        disabled={true}
+                        style={{ 
+                          backgroundColor: '#f5f5f5', 
+                          color: '#666',
+                          cursor: 'not-allowed'
+                        }}
+                        title="Location information is not editable"
+                      />
+                    </div>
+                    
                     <div className="profile-form-group">
                       <label className="profile-form-label">Industry</label>
-                      <select name="industry" className="profile-form-input" value={formData.industry} onChange={handleInputChange} disabled={!editMode}>
-                      <option value="">Select Industry</option>
-                        {['Technology', 'Manufacturing', 'Services', 'Logistics', 'Environment', 'Automotive'].map(i => <option key={i} value={i}>{i}</option>)}
-                    </select>
+                      <select 
+                        name="industry" 
+                        className="profile-form-input" 
+                        value={formData.industry || ''} 
+                        disabled={true}
+                        style={{ 
+                          backgroundColor: '#f5f5f5', 
+                          color: '#666',
+                          cursor: 'not-allowed'
+                        }}
+                        title="Industry information is not editable"
+                      >
+                        <option value="">Not set</option>
+                        {['Technology', 'Manufacturing', 'Services', 'Logistics', 'Environment', 'Automotive'].map(i => 
+                          <option key={i} value={i}>{i}</option>
+                        )}
+                      </select>
                     </div>
                   </div>
                   {editMode && (
@@ -411,7 +562,7 @@ function ProfilePage() {
                           <polyline points="17 21 17 13 7 13 7 21"/>
                           <polyline points="7 3 7 8 15 8"/>
                         </svg>
-                        Save Changes
+                        Save Name
                       </button>
                       <button className="profile-btn" onClick={handleCancelEdit}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

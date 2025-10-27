@@ -17,8 +17,8 @@ function CompaniesPage() {
   const [selectedCapability, setSelectedCapability] = useState('all');
   const [viewMode, setViewMode] = useState('grid'); // grid or list
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(12); // Display 12 companies per page
-  const [bookmarkedCompanies, setBookmarkedCompanies] = useState([]); // Bookmarked companies list
+  const [itemsPerPage] = useState(12);
+  const [bookmarkedCompanies, setBookmarkedCompanies] = useState([]);
 
   // Mock data - ICN Victoria managed companies
   const mockCompanies = [
@@ -113,7 +113,7 @@ function CompaniesPage() {
 
   useEffect(() => {
     filterCompanies();
-    setCurrentPage(1); // Reset to first page when filter conditions change
+    setCurrentPage(1);
   }, [searchTerm, selectedSector, selectedCapability, companies]);
 
   const loadCompanies = async () => {
@@ -123,7 +123,7 @@ function CompaniesPage() {
       sectors: selectedSector !== 'all' ? [selectedSector] : undefined,
       capabilities: selectedCapability !== 'all' ? [selectedCapability] : undefined,
       search: searchTerm || undefined,
-      limit: 999999  // Remove limit, load all data
+            limit: 999999
     });
     
     const data = response.data || response;
@@ -217,7 +217,6 @@ function CompaniesPage() {
     return access.includes(field);
   };
 
-  // Toggle bookmark status
   const toggleBookmark = async (companyId, e) => {
     e.stopPropagation(); // Prevent card click
     
@@ -278,7 +277,6 @@ function CompaniesPage() {
     }
   };
 
-  // Format verification date
   const formatVerificationDate = (date) => {
     if (!date) return '';
     try {
@@ -293,7 +291,6 @@ function CompaniesPage() {
     }
   };
 
-  // Get company type color
   const getCompanyTypeColor = (type) => {
     const colors = {
       'Supplier': '#E3F2FD',
@@ -304,7 +301,6 @@ function CompaniesPage() {
     return colors[type] || '#FEECD2';
   };
 
-  // Get address display
   const getLocationDisplay = (company) => {
     if (company.address) {
       const parts = company.address.split(',');
@@ -326,7 +322,7 @@ function CompaniesPage() {
         className="company-card"
         onClick={() => navigate(`/company/${company.id}`)}
       >
-        {/* Bookmark button - inspired by mobile */}
+        {/* Bookmark button */}
         <button 
           className="bookmark-button"
           onClick={(e) => toggleBookmark(company.id, e)}

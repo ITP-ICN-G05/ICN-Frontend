@@ -43,34 +43,25 @@ function SignUpPage({ onSignUp }) {
 
   const handleSendCode = async (e) => {
     e.preventDefault();
-    console.log('Send button clicked!', { email: formData.email, countdown, isCountdownActive });
     
-    // Temporarily remove email validation for testing countdown functionality
-    // if (!formData.email) {
-    //   console.log('Email is empty, showing error');
-    //   setErrors({ email: 'Email is required' });
-    //   return;
-    // }
+    if (!formData.email) {
+      setErrors({ email: 'Email is required' });
+      return;
+    }
     
-    // if (!/\S+@\S+\.\S+/.test(formData.email)) {
-    //   console.log('Email format is invalid, showing error');
-    //   setErrors({ email: 'Email is invalid' });
-    //   return;
-    // }
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      setErrors({ email: 'Email is invalid' });
+      return;
+    }
 
     try {
-      console.log('Starting verification process...');
       setLoading(true);
       setErrors({});
       
-      // Call API to send verification code
-      // await authService.sendVerificationCode(formData.email);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call real API to send verification code
+      await authService.sendValidationCode(formData.email);
       
       // Start 60 second countdown
-      console.log('Setting countdown to 60 seconds');
       setCountdown(60);
       setIsCountdownActive(true);
       
@@ -82,7 +73,19 @@ function SignUpPage({ onSignUp }) {
       
     } catch (error) {
       console.error('Error sending verification code:', error);
-      setErrors({ email: 'Failed to send verification code. Please try again.' });
+      
+      // Better error handling based on learning version
+      if (error.message.includes('Connection failed')) {
+        setErrors({ email: 'Connection failed. Please check your internet connection.' });
+      } else if (error.message.includes('Email service is taking too long')) {
+        setErrors({ email: 'Email service is slow. Please wait and try again.' });
+      } else if (error.message.includes('Invalid email address')) {
+        setErrors({ email: 'Please enter a valid email address.' });
+      } else if (error.message.includes('Server error')) {
+        setErrors({ email: 'Email service is temporarily unavailable. Please try again later.' });
+      } else {
+        setErrors({ email: 'Failed to send verification code. Please try again.' });
+      }
     } finally {
       setLoading(false);
     }
@@ -112,13 +115,13 @@ function SignUpPage({ onSignUp }) {
     }
     
     if (!formData.email) {
-    
-    if (!formData.verificationCode) {
-      newErrors.verificationCode = 'Verification code is required';
-    }
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
+    }
+    
+    if (!formData.verificationCode) {
+      newErrors.verificationCode = 'Verification code is required';
     }
     
     if (!formData.password) {
@@ -152,11 +155,12 @@ function SignUpPage({ onSignUp }) {
     setLoading(true);
     
     try {
-      // Use real authService
+      // Use real authService with verification code
       const userData = await authService.signup({
         name: formData.name,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        verificationCode: formData.verificationCode
       });
       
       // Store user data
@@ -166,7 +170,12 @@ function SignUpPage({ onSignUp }) {
       setCurrentUser(userData);
       setShowOnboarding(true);
     } catch (error) {
-      setErrors({ submit: error.message || 'Signup failed. Email may already be registered.' });
+      console.error('Signup error:', error);
+      setErrors({ 
+        submit: error.response?.data?.error || 
+                 error.message || 
+                 'Signup failed. Please check your verification code.' 
+      });
     } finally {
       setLoading(false);
     }

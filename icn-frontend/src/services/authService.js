@@ -31,48 +31,91 @@ class AuthService {
   }
 
   async signup(userData) {
-    // Create user expects PLAIN password in JSON body
+    // Create user expects HASHED password in JSON body + verification code
+    const hashedPassword = this.hashPassword(userData.password);
+    
     const response = await api.post('/user/create', {
       email: userData.email,
       name: userData.name,
-      password: userData.password  // Plain password for creation
+      password: hashedPassword,  // Send hashed password, not plain text
+      code: userData.verificationCode  // Add verification code
     });
     
-    if (response.data) {
+    if (response.status === 201) {
       // Store hashed version for future use
-      const hashedPassword = this.hashPassword(userData.password);
       localStorage.setItem('user_password_hash', hashedPassword);
       localStorage.setItem('token', 'session-' + Date.now());
-      localStorage.setItem('user', JSON.stringify(response.data));
+      
+      // Create user data object since backend returns empty body on success
+      const userDataResponse = {
+        id: Date.now().toString(), // Temporary ID
+        email: userData.email,
+        name: userData.name,
+        premium: 0,
+        subscribeDueDate: '',
+        organisationIds: []
+      };
+      
+      localStorage.setItem('user', JSON.stringify(userDataResponse));
+      return userDataResponse;
     }
     
-    return response.data;
+    throw new Error('Registration failed');
   }
 
   async sendValidationCode(email) {
-    // Email validation endpoint
-    return api.post(`/user/getCode?email=${encodeURIComponent(email)}`);
+    console.log('📧 Sending verification code to:', email);
+    
+    try {
+      const response = await api.post(`/user/getCode?email=${encodeURIComponent(email)}`);
+      console.log('✅ Verification code sent successfully');
+      return response;
+    } catch (error) {
+      console.error('❌ Failed to send verification code:', error);
+      
+      // Check if it's a network issue
+      if (error.code === 'ERR_NETWORK') {
+        console.error('🔴 Network error - likely HTTPS/HTTP protocol mismatch!');
+        throw new Error('Connection failed. The app may be trying to use HTTPS on an HTTP server.');
+      }
+      
+      // Check if it's a timeout issue
+      if (error.code === 'ECONNABORTED') {
+        console.error('⏰ Request timed out - email service may be slow');
+        throw new Error('Email service is taking too long. Please try again.');
+      }
+      
+      if (error.response?.status === 400) {
+        throw new Error('Invalid email address.');
+      } else if (error.response?.status === 500) {
+        throw new Error('Server error. Email service may be unavailable.');
+      }
+      
+      throw error;
+    }
   }
 
   async resetPassword(email, code, newPassword) {
-    // This endpoint might not exist in your backend
-    // You might need to use PUT /user instead
+    // Backend analysis shows: PUT /user doesn't validate verification codes
+    // Only POST /user/create validates codes
+    // So we need a different approach for password reset
+    
     const hashedPassword = this.hashPassword(newPassword);
     
-    // Build correct data format according to dev branch UpdateUserRequest
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    
-    const resetData = {
-      id: user.id || '',
-      email: email,
-      name: user.name || '',
-      password: hashedPassword,
-      organisationIds: user.organisationIds || user.cards || [],
-      premium: user.premium || 0,
-      subscribeDueDate: user.subscribeDueDate || ''
-    };
-    
-    return api.put('/user', resetData);
+    try {
+      console.log('🔄 Password reset: Backend limitation detected');
+      console.log('⚠️ PUT /user endpoint does not validate verification codes');
+      console.log('💡 Only POST /user/create validates codes');
+      
+      // Since backend doesn't support verification code validation in password reset,
+      // we need to inform the user about this limitation
+      
+      throw new Error('Password reset with verification code is not supported by the current backend. Please contact support or use a different approach.');
+      
+    } catch (error) {
+      console.error('Password reset error:', error);
+      throw error;
+    }
   }
 
   async updateProfile(userData) {
