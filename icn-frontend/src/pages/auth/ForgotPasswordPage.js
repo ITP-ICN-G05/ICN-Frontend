@@ -40,7 +40,7 @@ function ForgotPasswordPage() {
     e.preventDefault();
     console.log('Send button clicked!', { email: formData.email, countdown, isCountdownActive });
     
-    // 临时移除邮箱验证，直接测试倒计时功能
+    // Temporarily remove email validation for testing countdown functionality
     // if (!formData.email) {
     //   setErrors({ email: 'Email is required' });
     //   return;
@@ -56,18 +56,18 @@ function ForgotPasswordPage() {
       setLoading(true);
       setErrors({});
       
-      // 这里应该调用API发送验证码
+      // Call API to send verification code
       // await authService.sendVerificationCode(formData.email);
       
-      // 模拟API调用
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // 开始60秒倒计时
+      // Start 60 second countdown
       console.log('Setting countdown to 60 seconds');
       setCountdown(60);
       setIsCountdownActive(true);
       
-      // 清除邮箱错误
+      // Clear email errors
       setErrors(prev => ({ ...prev, email: '' }));
       
     } catch (error) {
