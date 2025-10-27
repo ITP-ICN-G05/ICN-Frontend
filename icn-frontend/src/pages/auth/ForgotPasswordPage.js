@@ -20,14 +20,17 @@ function ForgotPasswordPage() {
   const [countdown, setCountdown] = useState(0);
   const [isCountdownActive, setIsCountdownActive] = useState(false);
 
-  // 倒计时效果
+ 
   useEffect(() => {
     let timer;
+    console.log('Countdown effect triggered:', { countdown, isCountdownActive });
     if (isCountdownActive && countdown > 0) {
       timer = setTimeout(() => {
+        console.log('Decrementing countdown from', countdown, 'to', countdown - 1);
         setCountdown(countdown - 1);
       }, 1000);
     } else if (countdown === 0 && isCountdownActive) {
+      console.log('Countdown finished, disabling');
       setIsCountdownActive(false);
     }
     return () => clearTimeout(timer);
@@ -35,18 +38,30 @@ function ForgotPasswordPage() {
 
   const handleSendCode = async (e) => {
     e.preventDefault();
+    console.log('Send button clicked!', { email: formData.email, countdown, isCountdownActive });
     
+    // Temporarily remove email validation for testing countdown functionality
+    // if (!formData.email) {
+    //   setErrors({ email: 'Email is required' });
+    //   return;
+    // }
     if (!formData.email) {
       setErrors({ email: 'Email is required' });
       return;
     }
     
+    // if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    //   setErrors({ email: 'Email is invalid' });
+    //   return;
+    // }
+
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
       setErrors({ email: 'Email is invalid' });
       return;
     }
   
     try {
+      console.log('Starting verification process...');
       setLoading(true);
       setErrors({});
       
@@ -58,6 +73,7 @@ function ForgotPasswordPage() {
       setIsCountdownActive(true);
       
     } catch (error) {
+      console.error('Error sending verification code:', error);
       setErrors({ submit: 'Failed to send verification code. Please try again.' });
     } finally {
       setLoading(false);
