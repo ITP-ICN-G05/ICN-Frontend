@@ -583,7 +583,7 @@ function NavigationPage() {
                         </svg>
                       </button>
                     </div>
-                  </div>
+        </div>
                   
                   <div className="overlay-search">
                     <div className="sidebar-search">
@@ -604,14 +604,14 @@ function NavigationPage() {
                   </div>
                   <div className="overlay-pagination">
                     <div className="pagination-main">
-                      <button 
+              <button 
                         className="page-nav-btn page-prev"
                         onClick={goToPrevPage}
                         disabled={page === 1}
                         title="Previous page"
                       >
                         ‹
-                      </button>
+              </button>
                       <div className="page-numbers">
                         {getPageNumbers().map((num, idx) => (
                           num === '...'

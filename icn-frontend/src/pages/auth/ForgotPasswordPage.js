@@ -23,11 +23,14 @@ function ForgotPasswordPage() {
   // 倒计时效果
   useEffect(() => {
     let timer;
+    console.log('Countdown effect triggered:', { countdown, isCountdownActive });
     if (isCountdownActive && countdown > 0) {
       timer = setTimeout(() => {
+        console.log('Decrementing countdown from', countdown, 'to', countdown - 1);
         setCountdown(countdown - 1);
       }, 1000);
     } else if (countdown === 0 && isCountdownActive) {
+      console.log('Countdown finished, disabling');
       setIsCountdownActive(false);
     }
     return () => clearTimeout(timer);
@@ -35,19 +38,21 @@ function ForgotPasswordPage() {
 
   const handleSendCode = async (e) => {
     e.preventDefault();
+    console.log('Send button clicked!', { email: formData.email, countdown, isCountdownActive });
     
-    // 验证邮箱
-    if (!formData.email) {
-      setErrors({ email: 'Email is required' });
-      return;
-    }
+    // 临时移除邮箱验证，直接测试倒计时功能
+    // if (!formData.email) {
+    //   setErrors({ email: 'Email is required' });
+    //   return;
+    // }
     
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      setErrors({ email: 'Email is invalid' });
-      return;
-    }
+    // if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    //   setErrors({ email: 'Email is invalid' });
+    //   return;
+    // }
 
     try {
+      console.log('Starting verification process...');
       setLoading(true);
       setErrors({});
       
@@ -58,6 +63,7 @@ function ForgotPasswordPage() {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // 开始60秒倒计时
+      console.log('Setting countdown to 60 seconds');
       setCountdown(60);
       setIsCountdownActive(true);
       
@@ -65,6 +71,7 @@ function ForgotPasswordPage() {
       setErrors(prev => ({ ...prev, email: '' }));
       
     } catch (error) {
+      console.error('Error sending verification code:', error);
       setErrors({ submit: 'Failed to send verification code. Please try again.' });
     } finally {
       setLoading(false);

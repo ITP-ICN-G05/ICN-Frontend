@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getAuthService } from '../../services/serviceFactory';
 import signUpImage from '../../assets/use_image/sign-up.png';
@@ -11,6 +12,7 @@ function SignUpPage({ onSignUp }) {
   const [showOnboarding, setShowOnboarding] = useState(false); 
   const [currentUser, setCurrentUser] = useState(null); 
   const [formData, setFormData] = useState({
+    verificationCode: '',
     name: '',
     email: '',
     password: '',
@@ -21,6 +23,72 @@ function SignUpPage({ onSignUp }) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [isCountdownActive, setIsCountdownActive] = useState(false);
+
+  // 倒计时效果
+  useEffect(() => {
+    let timer;
+    console.log('Countdown effect triggered:', { countdown, isCountdownActive });
+    if (isCountdownActive && countdown > 0) {
+      timer = setTimeout(() => {
+        console.log('Decrementing countdown from', countdown, 'to', countdown - 1);
+        setCountdown(countdown - 1);
+      }, 1000);
+    } else if (countdown === 0 && isCountdownActive) {
+      console.log('Countdown finished, disabling');
+      setIsCountdownActive(false);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown, isCountdownActive]);
+
+  const handleSendCode = async (e) => {
+    e.preventDefault();
+    console.log('Send button clicked!', { email: formData.email, countdown, isCountdownActive });
+    
+    // 临时移除邮箱验证，直接测试倒计时功能
+    // if (!formData.email) {
+    //   console.log('Email is empty, showing error');
+    //   setErrors({ email: 'Email is required' });
+    //   return;
+    // }
+    
+    // if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    //   console.log('Email format is invalid, showing error');
+    //   setErrors({ email: 'Email is invalid' });
+    //   return;
+    // }
+
+    try {
+      console.log('Starting verification process...');
+      setLoading(true);
+      setErrors({});
+      
+      // 这里应该调用API发送验证码
+      // await authService.sendVerificationCode(formData.email);
+      
+      // 模拟API调用
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 开始60秒倒计时
+      console.log('Setting countdown to 60 seconds');
+      setCountdown(60);
+      setIsCountdownActive(true);
+      
+      // 清除邮箱错误
+      setErrors(prev => ({
+        ...prev,
+        email: ''
+      }));
+      
+    } catch (error) {
+      console.error('Error sending verification code:', error);
+      setErrors({ email: 'Failed to send verification code. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -45,6 +113,10 @@ function SignUpPage({ onSignUp }) {
     }
     
     if (!formData.email) {
+    
+    if (!formData.verificationCode) {
+      newErrors.verificationCode = 'Verification code is required';
+    }
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
@@ -187,6 +259,30 @@ function SignUpPage({ onSignUp }) {
               <span className="error-text">{errors.email || ''}</span>
             </div>
 
+            <div className="form-group">
+                <label htmlFor="verificationCode">Email Verification</label>
+                <div className="verification-input-wrapper">
+                  <input
+                    type="text"
+                    id="verificationCode"
+                    name="verificationCode"
+                    value={formData.verificationCode}
+                    onChange={handleChange}
+                    placeholder="Enter verification code"
+                    className={errors.verificationCode ? 'error' : ''}
+                    disabled={loading}
+                  />
+                  <button 
+                    type="button" 
+                    className="send-btn"
+                    onClick={handleSendCode}
+                    disabled={isCountdownActive || loading}
+                  >
+                    {isCountdownActive ? `${countdown}s` : 'Send'}
+                  </button>
+                </div>
+                <span className="error-text">{errors.verificationCode || ''}</span>
+            </div>
             <div className="form-group">
               <label htmlFor="password">Password</label>
               <div className="password-input-wrapper">
