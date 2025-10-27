@@ -4,7 +4,7 @@ import axios from 'axios';
 // Direct connection to backend
 const api = axios.create({
   baseURL: 'http://54.242.81.107:8080/api',
-  timeout: 30000,
+  timeout: 60000, // 增加到60秒
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -17,7 +17,8 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log('API Request:', config.method?.toUpperCase(), config.url);
+    console.log('🌐 API Request:', config.method?.toUpperCase(), config.baseURL + config.url);
+    console.log('🔗 Full URL:', config.baseURL + config.url);
     return config;
   },
   (error) => Promise.reject(error)

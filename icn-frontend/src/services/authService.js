@@ -14,9 +14,17 @@ class AuthService {
     const response = await api.post(`/user?email=${encodeURIComponent(email)}&password=${encodeURIComponent(hashedPassword)}`);
     
     if (response.data) {
+      // 添加email字段到用户数据中，因为后端响应中没有包含email
+      const userData = {
+        ...response.data,
+        email: email  // 添加email字段
+      };
+      
       localStorage.setItem('token', 'session-' + Date.now());
-      localStorage.setItem('user', JSON.stringify(response.data));
+      localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('user_password_hash', hashedPassword);
+      
+      return userData;
     }
     
     return response.data;
@@ -51,11 +59,20 @@ class AuthService {
     // You might need to use PUT /user instead
     const hashedPassword = this.hashPassword(newPassword);
     
-    return api.put('/user', {
+    // 根据dev分支的UpdateUserRequest构建正确的数据格式
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    const resetData = {
+      id: user.id || '',
       email: email,
+      name: user.name || '',
       password: hashedPassword,
-      code: code
-    });
+      organisationIds: user.organisationIds || user.cards || [],
+      premium: user.premium || 0,
+      subscribeDueDate: user.subscribeDueDate || ''
+    };
+    
+    return api.put('/user', resetData);
   }
 
   async updateProfile(userData) {
@@ -64,10 +81,20 @@ class AuthService {
       ? this.hashPassword(userData.password)
       : localStorage.getItem('user_password_hash');
     
-    return api.put('/user', {
-      ...userData,
-      password: hashedPassword
-    });
+    // 根据dev分支的UpdateUserRequest构建正确的数据格式
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    const updateData = {
+      id: user.id || '',
+      email: userData.email || user.email || '',
+      name: userData.name || user.name || '',
+      password: hashedPassword,
+      organisationIds: user.organisationIds || user.cards || [],
+      premium: userData.premium || user.premium || 0,
+      subscribeDueDate: userData.subscribeDueDate || user.subscribeDueDate || ''
+    };
+    
+    return api.put('/user', updateData);
   }
 }
 

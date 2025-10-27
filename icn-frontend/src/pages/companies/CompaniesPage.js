@@ -119,22 +119,17 @@ function CompaniesPage() {
   const loadCompanies = async () => {
     setLoading(true);
     
-    try {
-      const response = await companyService.getAll({
-        sectors: selectedSector !== 'all' ? [selectedSector] : undefined,
-        capabilities: selectedCapability !== 'all' ? [selectedCapability] : undefined,
-        search: searchTerm || undefined
-      });
-      
-      const data = response.data || response;
-      const loadedCompanies = Array.isArray(data) ? data : mockCompanies;
-      setCompanies(loadedCompanies);
-    } catch (error) {
-      console.error('Error loading companies:', error);
-      setCompanies(mockCompanies);
-    } finally {
-      setLoading(false);
-    }
+    const response = await companyService.getAll({
+      sectors: selectedSector !== 'all' ? [selectedSector] : undefined,
+      capabilities: selectedCapability !== 'all' ? [selectedCapability] : undefined,
+      search: searchTerm || undefined,
+      limit: 999999  // 移除限制，加载所有数据
+    });
+    
+    const data = response.data || response;
+    const loadedCompanies = Array.isArray(data) ? data : [];
+    setCompanies(loadedCompanies);
+    setLoading(false);
   };
 
   const filterCompanies = () => {

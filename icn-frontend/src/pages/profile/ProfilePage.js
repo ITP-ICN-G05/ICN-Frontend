@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getBookmarkService, getSavedSearchService } from '../../services/serviceFactory';
+import { getBookmarkService, getSavedSearchService, getAuthService } from '../../services/serviceFactory';
+import api from '../../services/api';
 import './ProfilePage.css';
 import defaultAvatar from '../../assets/use_image/user.jpg';
 
@@ -31,6 +32,29 @@ function ProfilePage() {
     initializePage();
   }, []);
 
+  // 添加页面焦点监听，当用户返回Profile页面时自动刷新收藏列表
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // 页面变为可见时刷新收藏列表
+        loadBookmarks();
+      }
+    };
+
+    const handleFocus = () => {
+      // 窗口获得焦点时刷新收藏列表
+      loadBookmarks();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
   const loadUserData = () => {
     const userData = JSON.parse(localStorage.getItem('user'));
     if (!userData) { navigate('/login'); return; }
@@ -43,17 +67,58 @@ function ProfilePage() {
 
   const loadBookmarks = async () => {
     try {
-      const response = await bookmarkService.getUserBookmarks();
-      const data = response.data || response;
-      if (Array.isArray(data) && data.length > 0) {
-        setBookmarkedCompanies(data.map(b => ({ id: b.id || b.companyId, name: b.name || b.companyName, type: b.type || b.companyType || 'Company', verified: b.verified || b.verificationStatus === 'verified', bookmarkedDate: b.bookmarkedDate || b.createdAt?.split('T')[0] || '2024-12-15' })));
-      } else {
-        setBookmarkedCompanies([
-          { id: 1, name: 'TechCorp Industries', type: 'Manufacturer', verified: true, bookmarkedDate: '2024-12-10' },
-          { id: 2, name: 'Global Supply Co', type: 'Item Supplier', verified: true, bookmarkedDate: '2024-12-08' }
-        ]);
+      // 修复：直接从后端获取最新的用户数据，而不是依赖localStorage
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const hashedPassword = localStorage.getItem('user_password_hash');
+      
+      if (!user.email || !hashedPassword) {
+        console.log('用户未登录或缺少认证信息');
+        setBookmarkedCompanies([]);
+        return;
       }
-    } catch { setBookmarkedCompanies([]); }
+      
+      // 直接从后端获取最新的用户数据
+      const loginResponse = await api.post(`/user?email=${encodeURIComponent(user.email)}&password=${encodeURIComponent(hashedPassword)}`);
+      const latestUserData = loginResponse.data;
+      
+      if (latestUserData && latestUserData.organisationCards) {
+        // 使用最新的用户数据获取收藏
+        const organisationIds = latestUserData.organisationCards
+          .map(card => card.id)
+          .filter(id => id && id.trim() !== '');
+        
+        if (organisationIds.length > 0) {
+          const queryParams = new URLSearchParams();
+          organisationIds.forEach(id => {
+            queryParams.append('ids', id);
+          });
+          
+          const response = await api.get(`/organisation/generalByIds?${queryParams.toString()}`);
+          const data = response.data || [];
+          
+          if (Array.isArray(data) && data.length > 0) {
+            setBookmarkedCompanies(data.map(b => ({ 
+              id: b.id || b.companyId, 
+              name: b.name || b.companyName, 
+              type: b.type || b.companyType || 'Company', 
+              verified: b.verified || b.verificationStatus === 'verified', 
+              bookmarkedDate: b.bookmarkedDate || b.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+              address: b.address || 'Address not available',
+              sectors: b.sectors || b.keySectors || []
+            })));
+          } else {
+            setBookmarkedCompanies([]);
+          }
+        } else {
+          setBookmarkedCompanies([]);
+        }
+      } else {
+        setBookmarkedCompanies([]);
+      }
+    } catch (error) {
+      console.error('Error loading bookmarks:', error);
+      setBookmarkedCompanies([]);
+    }
   };  
 
   const loadSavedSearches = async () => {
@@ -80,7 +145,17 @@ function ProfilePage() {
   const handleSaveProfile = () => { localStorage.setItem('user', JSON.stringify({ ...user, ...formData })); setUser({ ...user, ...formData }); setEditMode(false); };
   const handleCancelEdit = () => { setFormData({ name: user.name || '', email: user.email || '', company: user.company || '', phone: user.phone || '', location: user.location || 'Melbourne, VIC', industry: user.industry || '' }); setEditMode(false); };
   const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  const removeBookmark = async (id) => { try { await bookmarkService.removeBookmark(id); } catch {} setBookmarkedCompanies(bookmarkedCompanies.filter(c => c.id !== id)); };
+  const removeBookmark = async (id) => { 
+    try { 
+      await bookmarkService.removeBookmark(id); 
+      // 删除成功后重新加载收藏列表
+      await loadBookmarks();
+    } catch (error) {
+      console.error('Error removing bookmark:', error);
+      // 即使API调用失败，也从本地状态中移除
+      setBookmarkedCompanies(bookmarkedCompanies.filter(c => c.id !== id)); 
+    }
+  };
   const deleteSavedSearch = async (id) => { try { await savedSearchService.deleteSavedSearch(id); } catch {} setSavedSearches(savedSearches.filter(s => s.id !== id)); };
   const runSavedSearch = (search) => navigate(`/search?q=${encodeURIComponent(search.query)}`);
   const viewCompany = (id) => navigate(`/company/${id}`);

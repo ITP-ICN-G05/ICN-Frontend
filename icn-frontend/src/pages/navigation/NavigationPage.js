@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FilterPanel from '../../components/search/FilterPanel';
-import { getCompanyService, getGeocodingService } from '../../services/serviceFactory';
+import { getCompanyService, getGeocodingService, getBookmarkService } from '../../services/serviceFactory';
 import SearchMap from '../../components/map/SearchMap';
 import { useTierAccess } from '../../hooks/useTierAccess';
 import './NavigationPage.css';
@@ -73,12 +73,14 @@ function NavigationPage() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [bookmarkedCompanies, setBookmarkedCompanies] = useState([]);
+  const bookmarkService = getBookmarkService();
   const [mapCenter, setMapCenter] = useState({ lat: -37.8136, lng: 144.9631 });
   const [mapZoom, setMapZoom] = useState(10);
 
-  // Load companies first
+  // Load companies and bookmarks first
   useEffect(() => {
     loadCompanies();
+    loadBookmarks();
   }, []);
 
   // Read search query from URL parameters after component mounts
@@ -96,11 +98,11 @@ function NavigationPage() {
   const loadCompanies = async () => {
     try {
       setLoading(true);
-      const response = await companyService.getAll({ limit: 3000 }); // Reduced from 10000
-      const data = response.data || response;
+      // 直接使用companyService.getAll()的返回值，它已经包含了transformCompanyData的修复
+      const data = await companyService.getAll({ limit: 3000 });
       
       if (Array.isArray(data) && data.length > 0) {
-        // Map backend data structure to frontend structure
+        // 只添加前端需要的额外字段，不重新映射ID
         const mappedCompanies = data.map((company) => ({
           ...company,
           // Fix backend's "lontitude" typo
@@ -131,6 +133,25 @@ function NavigationPage() {
       console.error('Error loading companies:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadBookmarks = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.id) {
+        const response = await bookmarkService.getUserBookmarks();
+        const bookmarks = response.data || response;
+        if (Array.isArray(bookmarks)) {
+          const bookmarkIds = bookmarks.map(b => b.id);
+          setBookmarkedCompanies(bookmarkIds);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading bookmarks:', error);
+      // Fallback to localStorage
+      const localBookmarks = JSON.parse(localStorage.getItem('bookmarkedCompanies') || '[]');
+      setBookmarkedCompanies(localBookmarks);
     }
   };
 
@@ -358,15 +379,44 @@ function NavigationPage() {
     return pages;
   };
 
-  const toggleBookmark = (companyId, e) => {
+  const toggleBookmark = async (companyId, e) => {
     e.stopPropagation();
-    setBookmarkedCompanies(prev => {
-      if (prev.includes(companyId)) {
-        return prev.filter(id => id !== companyId);
+    
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.id) {
+      navigate('/login');
+      return;
+    }
+    
+    const isCurrentlyBookmarked = bookmarkedCompanies.includes(companyId);
+    
+    try {
+      if (isCurrentlyBookmarked) {
+        await bookmarkService.removeBookmark(companyId);
+        setBookmarkedCompanies(prev => prev.filter(id => id !== companyId));
       } else {
-        return [...prev, companyId];
+        await bookmarkService.addBookmark(companyId);
+        setBookmarkedCompanies(prev => [...prev, companyId]);
       }
-    });
+    } catch (error) {
+      console.error('Bookmark error:', error);
+      // Fallback to localStorage
+      const localBookmarks = JSON.parse(localStorage.getItem('bookmarkedCompanies') || '[]');
+      let newBookmarks;
+      
+      if (isCurrentlyBookmarked) {
+        newBookmarks = localBookmarks.filter(id => id !== companyId);
+      } else {
+        newBookmarks = [...localBookmarks, companyId];
+      }
+      
+      localStorage.setItem('bookmarkedCompanies', JSON.stringify(newBookmarks));
+      setBookmarkedCompanies(newBookmarks);
+      
+      if (error.message) {
+        alert(error.message);
+      }
+    }
   };
 
   const getCompanyTypeColor = (type) => {

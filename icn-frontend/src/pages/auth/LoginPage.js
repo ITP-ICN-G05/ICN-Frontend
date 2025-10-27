@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { getAuthService } from '../../services/serviceFactory';
 import logoImage from '../../assets/logo/ICN-logo-little.png';
 import cmpInfImage from '../../assets/use_image/cmp_inf.jpg';
@@ -8,7 +8,11 @@ import './AuthPages.css';
 
 function LoginPage({ onLogin }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const authService = getAuthService();
+  
+  // Get the page user was trying to access before login
+  const from = location.state?.from?.pathname || '/';
   const [formData, setFormData] = useState({
     email: '',
     password: ''

@@ -11,15 +11,6 @@ import { subscriptionService } from './subscriptionService';
 import { exportService } from './exportService';
 import { adminService } from './adminService';
 
-// Import mock services
-import { mockAuthService } from './mockAuthService';
-import { mockCompanyService } from './mockCompanyService';
-import { mockBookmarkService } from './mockBookmarkService';
-import { mockSavedSearchService } from './mockSavedSearchService';
-import { mockSubscriptionService } from './mockSubscriptionService';
-import { mockExportService } from './mockExportService';
-import { mockAdminService } from './mockAdminService';
-
 // Import geocoding service (ONLY for mock mode)
 import geocodingService from './geocodingService';
 
@@ -39,21 +30,9 @@ console.log(`📡 Backend URL: ${process.env.REACT_APP_API_URL || 'http://54.242
  */
 export const getService = (serviceName) => {
   if (USE_MOCK) {
-    // Mock mode - uses local data and needs geocoding
-    const mockServices = {
-      auth: mockAuthService,
-      company: mockCompanyService,
-      bookmark: mockBookmarkService,
-      savedSearch: mockSavedSearchService,
-      subscription: mockSubscriptionService,
-      export: mockExportService,
-      admin: mockAdminService,
-      geocoding: geocodingService,  // Geocoding ONLY available in mock mode
-      icnData: icnDataService,       // ICN data for mock mode
-      api: api
-    };
-    
-    return mockServices[serviceName] || api;
+    // Mock mode disabled - all mock services removed
+    console.error('❌ Mock services have been removed. Please use real services only.');
+    throw new Error('Mock services are no longer available. Use real services instead.');
   }
   
   // Real mode - database already has coordinates, no geocoding needed
