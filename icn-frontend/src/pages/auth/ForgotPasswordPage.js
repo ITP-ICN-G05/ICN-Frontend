@@ -20,14 +20,17 @@ function ForgotPasswordPage() {
   const [countdown, setCountdown] = useState(0);
   const [isCountdownActive, setIsCountdownActive] = useState(false);
 
-  // 倒计时效果
+ 
   useEffect(() => {
     let timer;
+    console.log('Countdown effect triggered:', { countdown, isCountdownActive });
     if (isCountdownActive && countdown > 0) {
       timer = setTimeout(() => {
+        console.log('Decrementing countdown from', countdown, 'to', countdown - 1);
         setCountdown(countdown - 1);
       }, 1000);
     } else if (countdown === 0 && isCountdownActive) {
+      console.log('Countdown finished, disabling');
       setIsCountdownActive(false);
     }
     return () => clearTimeout(timer);
@@ -35,36 +38,40 @@ function ForgotPasswordPage() {
 
   const handleSendCode = async (e) => {
     e.preventDefault();
+    console.log('Send button clicked!', { email: formData.email, countdown, isCountdownActive });
     
-    // 验证邮箱
-    if (!formData.email) {
-      setErrors({ email: 'Email is required' });
-      return;
-    }
+    // Temporarily remove email validation for testing countdown functionality
+    // if (!formData.email) {
+    //   setErrors({ email: 'Email is required' });
+    //   return;
+    // }
     
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      setErrors({ email: 'Email is invalid' });
-      return;
-    }
+    // if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    //   setErrors({ email: 'Email is invalid' });
+    //   return;
+    // }
 
     try {
+      console.log('Starting verification process...');
       setLoading(true);
       setErrors({});
       
-      // 这里应该调用API发送验证码
+      // Call API to send verification code
       // await authService.sendVerificationCode(formData.email);
       
-      // 模拟API调用
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // 开始60秒倒计时
+      // Start 60 second countdown
+      console.log('Setting countdown to 60 seconds');
       setCountdown(60);
       setIsCountdownActive(true);
       
-      // 清除邮箱错误
+      // Clear email errors
       setErrors(prev => ({ ...prev, email: '' }));
       
     } catch (error) {
+      console.error('Error sending verification code:', error);
       setErrors({ submit: 'Failed to send verification code. Please try again.' });
     } finally {
       setLoading(false);

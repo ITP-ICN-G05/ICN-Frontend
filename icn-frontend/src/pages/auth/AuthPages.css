@@ -1209,6 +1209,33 @@
 .verification-input-wrapper input {
   flex: 1;
   padding-right: 80px;
+  width: 100%;
+  padding: clamp(8px, 1.5vh, 16px) clamp(12px, 2vw, 20px);
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: clamp(0.85rem, min(1vw, 1.3vh), 1.1rem);
+  transition: all 0.2s ease;
+  background: #FFFFFF;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  box-shadow: none;
+}
+
+.verification-input-wrapper input:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
+  transition: all 0.3s ease;
+}
+
+.verification-input-wrapper input:hover {
+  border-color: #3B82F6;
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+.verification-input-wrapper input.error {
+  border-color: #DC2626;
 }
 
 .verification-input-wrapper .password-toggle {
@@ -1477,6 +1504,10 @@
     padding: clamp(6px, 1vh, 10px) clamp(10px, 1.5vw, 14px);
   }
   
+  .verification-input-wrapper input {
+    padding: clamp(6px, 1vh, 10px) clamp(10px, 1.5vw, 14px);
+  }
+  
   .auth-form .btn-submit {
     padding: clamp(6px, 1vh, 10px) clamp(14px, 2vw, 20px);
   }
@@ -1516,6 +1547,11 @@
   .form-group input[type="text"],
   .form-group input[type="email"],
   .form-group input[type="password"] {
+    padding: 6px 10px;
+    font-size: clamp(0.8rem, 0.95vw, 0.95rem);
+  }
+  
+  .verification-input-wrapper input {
     padding: 6px 10px;
     font-size: clamp(0.8rem, 0.95vw, 0.95rem);
   }
@@ -1746,6 +1782,11 @@
   .form-group input[type="text"],
   .form-group input[type="email"],
   .form-group input[type="password"] {
+    padding: 14px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .verification-input-wrapper input {
     padding: 14px 16px;
     font-size: 0.9rem;
   }
