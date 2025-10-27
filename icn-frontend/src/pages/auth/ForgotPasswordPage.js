@@ -20,7 +20,7 @@ function ForgotPasswordPage() {
   const [countdown, setCountdown] = useState(0);
   const [isCountdownActive, setIsCountdownActive] = useState(false);
 
-  // 倒计时效果
+ 
   useEffect(() => {
     let timer;
     console.log('Countdown effect triggered:', { countdown, isCountdownActive });
