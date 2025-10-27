@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FilterPanel from '../../components/search/FilterPanel';
 import { getCompanyService, getGeocodingService } from '../../services/serviceFactory';
-import geocodingCacheService from '../../services/geocodingCacheService';
 import SearchMap from '../../components/map/SearchMap';
 import { useTierAccess } from '../../hooks/useTierAccess';
 import './NavigationPage.css';
@@ -14,7 +13,6 @@ function NavigationPage() {
   const companyService = getCompanyService();
   const geocodingService = getGeocodingService();
   const { hasAccess } = useTierAccess();
-  
   const [companies, setCompanies] = useState([]);
   const [filteredCompanies, setFilteredCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
@@ -27,6 +25,19 @@ function NavigationPage() {
   const [filterPanelOpening, setFilterPanelOpening] = useState(false);
   const [page, setPage] = useState(1);
   const pageSize = 10;
+
+  useEffect(() => {
+    // Check if user is logged in
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.id) {
+      navigate('/login', { 
+        state: { 
+          from: '/navigation',
+          message: 'Please log in to search companies' 
+        } 
+      });
+    }
+  }, [navigate]);
   
   // Enhanced filter state with all tier features
   const [collapsedSections, setCollapsedSections] = useState({
@@ -85,35 +96,36 @@ function NavigationPage() {
   const loadCompanies = async () => {
     try {
       setLoading(true);
-      const response = await companyService.getAll({ limit: 10000 });
+      const response = await companyService.getAll({ limit: 3000 }); // Reduced from 10000
       const data = response.data || response;
       
       if (Array.isArray(data) && data.length > 0) {
+        // Map backend data structure to frontend structure
         const mappedCompanies = data.map((company) => ({
           ...company,
+          // Fix backend's "lontitude" typo
+          longitude: company.lontitude || company.longitude,
+          latitude: company.latitude,
+          // Map backend fields to frontend expected fields
           sectors: company.keySectors || company.sectors || [],
           capabilities: company.capabilities || [],
           type: company.companyType || company.type || 'supplier',
-          verified: company.verificationStatus === 'verified' || company.verified === true,
-          size: company.companySize || company.employees || 'Unknown',
+          verified: company.verificationStatus === 'verified',
+          size: company.employees || 'Unknown',
           employees: company.employees || 'Unknown',
           ownership: company.ownership || [],
           certifications: company.certifications || [],
-          revenue: company.revenue,
-          employeeCount: company.employeeCount,
-          localContentPercentage: company.localContentPercentage,
-          socialEnterprise: company.socialEnterprise,
-          australianDisabilityEnterprise: company.australianDisabilityEnterprise,
           distance: company.distance || (2 + Math.random() * 20),
+          // Add position for map
+          position: {
+            lat: company.latitude || -37.8136,
+            lng: company.lontitude || company.longitude || 144.9631
+          }
         }));
         
-        const companiesWithPositions = await geocodingCacheService.batchGeocodeWithCache(
-          mappedCompanies,
-          geocodingService
-        );
-        
-        setCompanies(companiesWithPositions);
-        setFilteredCompanies(companiesWithPositions);
+        // NO geocoding needed - backend already has coordinates
+        setCompanies(mappedCompanies);
+        setFilteredCompanies(mappedCompanies);
       }
     } catch (error) {
       console.error('Error loading companies:', error);

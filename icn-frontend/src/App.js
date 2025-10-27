@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LoadScript } from '@react-google-maps/api';
 import { BookmarkProvider } from './contexts/BookmarkContext';
@@ -126,11 +126,8 @@ function App() {
   // Get auth service
   const authService = getService('auth');
 
-  useEffect(() => {
-    initializeApp();
-  }, []);
-
-  const initializeApp = async () => {
+  // Wrap initializeApp with useCallback to fix the dependency warning
+  const initializeApp = useCallback(async () => {
     try {
       setLoadingProgress(10);
       setLoadingStage('Checking authentication...');
@@ -234,7 +231,11 @@ function App() {
       setInitError(error.message);
       setLoading(false);
     }
-  };
+  }, [authService]); // Add authService as dependency
+
+  useEffect(() => {
+    initializeApp();
+  }, [initializeApp]); // Fixed: now includes initializeApp as dependency
 
   const handleLogin = async (userData) => {
     setUser(userData);

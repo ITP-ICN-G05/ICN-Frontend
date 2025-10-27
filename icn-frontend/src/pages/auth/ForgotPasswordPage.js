@@ -36,7 +36,6 @@ function ForgotPasswordPage() {
   const handleSendCode = async (e) => {
     e.preventDefault();
     
-    // 验证邮箱
     if (!formData.email) {
       setErrors({ email: 'Email is required' });
       return;
@@ -46,23 +45,17 @@ function ForgotPasswordPage() {
       setErrors({ email: 'Email is invalid' });
       return;
     }
-
+  
     try {
       setLoading(true);
       setErrors({});
       
-      // 这里应该调用API发送验证码
-      // await authService.sendVerificationCode(formData.email);
+      // Use real authService to send code
+      await authService.sendValidationCode(formData.email);
       
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // 开始60秒倒计时
+      // Start countdown
       setCountdown(60);
       setIsCountdownActive(true);
-      
-      // 清除邮箱错误
-      setErrors(prev => ({ ...prev, email: '' }));
       
     } catch (error) {
       setErrors({ submit: 'Failed to send verification code. Please try again.' });
@@ -126,10 +119,15 @@ function ForgotPasswordPage() {
     setLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Note: Your backend doesn't have a resetPassword endpoint documented
+      // You may need to implement this or use PUT /user endpoint
       
-      // Mock successful password reset
+      // For now, update user with new password
+      await authService.updateProfile({
+        email: formData.email,
+        password: formData.newPassword
+      });
+      
       navigate('/login', { 
         state: { message: 'Password reset successfully. Please log in with your new password.' }
       });

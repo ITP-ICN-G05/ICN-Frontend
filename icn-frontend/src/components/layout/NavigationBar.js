@@ -26,10 +26,21 @@ function NavigationBar({ user, onLogout }) {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    
+    // Check if user is logged in
+    if (!user) {
+      navigate('/login', { 
+        state: { 
+          from: location.pathname,
+          message: 'Please log in to search companies' 
+        } 
+      });
+      return;
+    }
+    
     if (searchQuery.trim()) {
-      // Navigate to navigation page with search query instead of search page
       navigate(`/navigation?q=${encodeURIComponent(searchQuery)}`);
-      setSearchQuery(''); // Clear search input after navigating
+      setSearchQuery('');
     }
   };
 

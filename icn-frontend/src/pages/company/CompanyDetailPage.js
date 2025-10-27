@@ -23,6 +23,20 @@ function CompanyDetailPage() {
   const [abnCopied, setAbnCopied] = useState(false);
   const [bookmarkEffect, setBookmarkEffect] = useState(false);
 
+  useEffect(() => {
+    // Check if user is logged in
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.id) {
+      // Redirect to login with return URL
+      navigate('/login', { 
+        state: { 
+          from: `/company/${id}`,
+          message: 'Please log in to view company details' 
+        } 
+      });
+    }
+  }, [id, navigate]);
+
   // Copy ABN to clipboard
   const handleCopyABN = () => {
     if (company.abn) {

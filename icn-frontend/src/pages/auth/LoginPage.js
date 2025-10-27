@@ -61,54 +61,23 @@ function LoginPage({ onLogin }) {
     setErrors({});
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Define valid credentials for demo/testing
-      const validCredentials = [
-        { email: 'admin@icn.vic.gov.au', password: 'admin123', role: 'admin' },
-        { email: 'test@test.com', password: 'password123', role: 'user' },
-        { email: 'user@example.com', password: 'password123', role: 'user' }
-      ];
-
-      // Check if credentials match any valid user
-    const validUser = validCredentials.find(
-      cred => cred.email === formData.email && cred.password === formData.password
-    );
-    
-    // ❌ If no match found, throw error for invalid credentials
-    if (!validUser) {
-      throw new Error('Invalid credentials');
-    }
-    
-    // ✅ Valid credentials - proceed with login
-    const isAdmin = validUser.role === 'admin';
-      
-      // Mock successful login
-      const userData = {
-        id: 1,
-        name: isAdmin ? 'ICN Admin' : 'John Smith',
-        email: formData.email,
-        tier: isAdmin ? 'premium' : 'free',
-        role: isAdmin ? 'admin' : 'user', // Add role field
-        isNewUser: false // Mark as existing user to prevent onboarding
-      };
-      
-      localStorage.setItem('token', 'mock-jwt-token');
-      localStorage.setItem('user', JSON.stringify(userData));
+      // Use real authService
+      const userData = await authService.login(formData.email, formData.password);
       
       if (onLogin) {
         onLogin(userData);
       }
       
-      // Redirect admin users to admin dashboard
+      // Check if admin based on premium level or email domain
+      const isAdmin = userData.premium === 2 || formData.email.includes('@icn');
+      
       if (isAdmin) {
         navigate('/admin');
       } else {
-        navigate('/');
+        navigate(from);
       }
     } catch (error) {
-      setErrors({ submit: 'Invalid email or password. Please try again.' });
+      setErrors({ submit: error.message || 'Invalid email or password. Please try again.' });
     } finally {
       setLoading(false);
     }

@@ -81,33 +81,21 @@ function SignUpPage({ onSignUp }) {
     setLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock successful signup
-      const userData = {
-        id: Date.now(), // CHANGE: Use Date.now() instead of 1
+      // Use real authService
+      const userData = await authService.signup({
         name: formData.name,
         email: formData.email,
-        tier: 'free',
-        onboardingComplete: false, // ADD THIS
-        isNewUser: true // Mark as new user to trigger onboarding
-      };
+        password: formData.password
+      });
       
-      localStorage.setItem('token', 'mock-jwt-token');
+      // Store user data
+      localStorage.setItem('token', 'session-' + Date.now());
       localStorage.setItem('user', JSON.stringify(userData));
       
-      // CHANGE: Don't call onSignUp here, save it for after onboarding
-      // if (onSignUp) {
-      //   onSignUp(userData);
-      // }
-      
-      setCurrentUser(userData); 
-      setShowOnboarding(true); 
-      
-      // REMOVE: navigate('/');
+      setCurrentUser(userData);
+      setShowOnboarding(true);
     } catch (error) {
-      setErrors({ submit: 'Signup failed. Please try again.' });
+      setErrors({ submit: error.message || 'Signup failed. Email may already be registered.' });
     } finally {
       setLoading(false);
     }

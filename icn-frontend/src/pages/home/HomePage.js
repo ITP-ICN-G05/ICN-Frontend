@@ -79,6 +79,8 @@ function HomePage() {
       )
     }
   ]);
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isGuest = !user.id;
 
   useEffect(() => {
     loadNearbyCompanies();
@@ -157,12 +159,38 @@ function HomePage() {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    
+    // Check authentication
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.id) {
+      navigate('/login', { 
+        state: { 
+          from: '/',
+          message: 'Please log in to search companies' 
+        } 
+      });
+      return;
+    }
+    
     if (searchQuery.trim()) {
       navigate(`/navigation?q=${encodeURIComponent(searchQuery)}`);
     }
   };
+  
 
   const handleSectorClick = (sectorName) => {
+    // Check authentication
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.id) {
+      navigate('/login', { 
+        state: { 
+          from: '/',
+          message: 'Please log in to browse companies by sector' 
+        } 
+      });
+      return;
+    }
+    
     navigate(`/companies?sector=${encodeURIComponent(sectorName)}`);
   };
 
@@ -241,22 +269,28 @@ function HomePage() {
             <input
               type="text"
               className="search-input"
-              placeholder="Search companies, capabilities, or locations..."
+              placeholder={isGuest ? "Log in to search companies..." : "Search companies, capabilities, or locations..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              style={isGuest ? { cursor: 'not-allowed', opacity: 0.7 } : {}}
             />
-            <button type="submit" className="search-button">
+            <button 
+              type="submit" 
+              className="search-button"
+              style={isGuest ? { opacity: 0.7 } : {}}
+            >
               Explore
             </button>
           </form>
 
           {/* Sector Chips */}
-          <div className="sector-chips">
+          <div className="sector-chips" style={isGuest ? { opacity: 0.7 } : {}}>
             {sectors.map((sector) => (
               <button
                 key={sector.name}
                 className="sector-chip"
                 onClick={() => handleSectorClick(sector.name)}
+                style={isGuest ? { cursor: 'not-allowed' } : {}}
               >
                 <span className="sector-icon">{sector.icon}</span>
                 <span className="sector-name">{sector.name}</span>
@@ -361,12 +395,24 @@ function HomePage() {
 
                     {/* 底部按钮 */}
                     <div className="homepage-company-footer">
-              <button 
-                        className="homepage-view-details-btn"
-                onClick={() => navigate(`/company/${company.id}`)}
-              >
-                View Details
-              </button>
+                    <button 
+                      className="homepage-view-details-btn"
+                      onClick={() => {
+                        const user = JSON.parse(localStorage.getItem('user') || '{}');
+                        if (!user.id) {
+                          navigate('/login', { 
+                            state: { 
+                              from: '/',
+                              message: 'Please log in to view company details' 
+                            } 
+                          });
+                        } else {
+                          navigate(`/company/${company.id}`);
+                        }
+                      }}
+                    >
+                      View Details
+                    </button>
             </div>
                   </div>
                 </div>

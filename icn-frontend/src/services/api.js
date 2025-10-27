@@ -1,36 +1,54 @@
+// src/services/api.js
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-
+// Direct connection to backend
 const api = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
-  timeout: 10000,
+  baseURL: 'http://54.242.81.107:8080/api',
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
 });
 
-// Request interceptor for auth
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    console.log('API Request:', config.method?.toUpperCase(), config.url);
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', response.status, response.config.url);
+    return response;
+  },
   (error) => {
+    console.error('API Error:', error.response?.status, error.config?.url);
+    
+    // Log full error details
+    if (error.response?.data) {
+      console.error('Backend error message:', error.response.data);
+    }
+    
+    // Log the request that failed
+    if (error.config) {
+      console.error('Failed request:', {
+        url: error.config.url,
+        method: error.config.method,
+        data: error.config.data,
+        headers: error.config.headers
+      });
+    }
+    
     if (error.response?.status === 401) {
-      // Handle unauthorized access
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       window.location.href = '/login';
     }
     return Promise.reject(error);
