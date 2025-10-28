@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Direct connection to backend
 const api = axios.create({
-  baseURL: 'http://54.242.81.107:8080/api',
+  baseURL: 'https://dustin-notour-uncomplementally.ngrok-free.dev/api',
   timeout: 60000, // Increased to 60 seconds
   headers: {
     'Content-Type': 'application/json',

@@ -23,7 +23,7 @@ const USE_MOCK = process.env.REACT_APP_USE_MOCK === 'true' ||
                   process.env.REACT_APP_USE_MOCK !== 'false');
 
 console.log(`🔧 Service Factory initialized in ${USE_MOCK ? 'MOCK' : 'REAL'} mode`);
-console.log(`📡 Backend URL: ${process.env.REACT_APP_API_URL || 'http://54.242.81.107:8080'}`);
+console.log(`📡 Backend URL: ${process.env.REACT_APP_API_URL || 'https://dustin-notour-uncomplementally.ngrok-free.dev'}`);
 
 /**
  * Service factory to get the appropriate service (mock or real)
@@ -120,7 +120,7 @@ export const getApiInstance = () => getService('api');
  */
 export const checkServiceAvailability = async () => {
   try {
-    const apiUrl = process.env.REACT_APP_API_URL || 'http://54.242.81.107:8080';
+    const apiUrl = process.env.REACT_APP_API_URL || 'https://dustin-notour-uncomplementally.ngrok-free.dev';
     
     if (USE_MOCK) {
       return {
@@ -151,7 +151,7 @@ export const checkServiceAvailability = async () => {
       available: false,
       status: 0,
       mode: USE_MOCK ? 'mock' : 'real',
-      backend: USE_MOCK ? 'local' : (process.env.REACT_APP_API_URL || 'http://54.242.81.107:8080'),
+      backend: USE_MOCK ? 'local' : (process.env.REACT_APP_API_URL || 'https://dustin-notour-uncomplementally.ngrok-free.dev'),
       geocoding: USE_MOCK ? 'enabled' : 'not-needed',
       error: error.message
     };
@@ -164,7 +164,7 @@ export const checkServiceAvailability = async () => {
 export const getServiceConfig = () => {
   return {
     mode: USE_MOCK ? 'mock' : 'real',
-    apiUrl: USE_MOCK ? 'local' : (process.env.REACT_APP_API_URL || 'http://54.242.81.107:8080'),
+    apiUrl: USE_MOCK ? 'local' : (process.env.REACT_APP_API_URL || 'https://dustin-notour-uncomplementally.ngrok-free.dev'),
     timeout: 30000,
     environment: process.env.NODE_ENV,
     geocoding: USE_MOCK ? 'enabled' : 'database-only',
