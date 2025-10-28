@@ -6,10 +6,10 @@ import api from './api';
 import authService from './authService';
 import { companyService } from './companyService';
 import { bookmarkService } from './bookmarkService';
-import { mockSavedSearchService } from './mockSavedSearchService';
-import { mockSubscriptionService } from './mockSubscriptionService';
-import { mockExportService } from './mockExportService';
-import { mockAdminService } from './mockAdminService';
+import { savedSearchService } from './savedSearchService';
+import { subscriptionService } from './subscriptionService';
+import { exportService } from './exportService';
+import { adminService } from './adminService';
 
 // Import geocoding service (ONLY for mock mode)
 import geocodingService from './geocodingService';
@@ -17,13 +17,11 @@ import geocodingService from './geocodingService';
 // Import ICN data service (for mock mode)
 import icnDataService from './icnDataService';
 
-// Determine if we should use mock services
-const USE_MOCK = process.env.REACT_APP_USE_MOCK === 'true' || 
-                 (process.env.NODE_ENV === 'development' && 
-                  process.env.REACT_APP_USE_MOCK !== 'false');
+// Force disable mock services - always use real services
+const USE_MOCK = false;
 
-console.log(`🔧 Service Factory initialized in ${USE_MOCK ? 'MOCK' : 'REAL'} mode`);
-console.log(`📡 Backend URL: ${process.env.REACT_APP_API_URL || 'https://dustin-notour-uncomplementally.ngrok-free.dev'}`);
+console.log(`🔧 Service Factory initialized in REAL mode (mock services FORCED OFF)`);
+console.log(`📡 Backend URL: https://dustin-notour-uncomplementally.ngrok-free.dev`);
 
 /**
  * Service factory to get the appropriate service (mock or real)
@@ -40,10 +38,10 @@ export const getService = (serviceName) => {
     auth: authService,
     company: companyService,
     bookmark: bookmarkService,
-    savedSearch: mockSavedSearchService,
-    subscription: mockSubscriptionService,
-    export: mockExportService,
-    admin: mockAdminService,
+    savedSearch: savedSearchService,
+    subscription: subscriptionService,
+    export: exportService,
+    admin: adminService,
     geocoding: null,  // NOT needed - coordinates come from database
     icnData: null,    // NOT needed - data comes from backend
     api: api
@@ -120,7 +118,7 @@ export const getApiInstance = () => getService('api');
  */
 export const checkServiceAvailability = async () => {
   try {
-    const apiUrl = process.env.REACT_APP_API_URL || 'https://dustin-notour-uncomplementally.ngrok-free.dev';
+    const apiUrl = process.env.REACT_APP_API_URL || 'http://54.242.81.107:8080';
     
     if (USE_MOCK) {
       return {
@@ -151,7 +149,7 @@ export const checkServiceAvailability = async () => {
       available: false,
       status: 0,
       mode: USE_MOCK ? 'mock' : 'real',
-      backend: USE_MOCK ? 'local' : (process.env.REACT_APP_API_URL || 'https://dustin-notour-uncomplementally.ngrok-free.dev'),
+      backend: USE_MOCK ? 'local' : (process.env.REACT_APP_API_URL || 'http://54.242.81.107:8080'),
       geocoding: USE_MOCK ? 'enabled' : 'not-needed',
       error: error.message
     };
@@ -164,7 +162,7 @@ export const checkServiceAvailability = async () => {
 export const getServiceConfig = () => {
   return {
     mode: USE_MOCK ? 'mock' : 'real',
-    apiUrl: USE_MOCK ? 'local' : (process.env.REACT_APP_API_URL || 'https://dustin-notour-uncomplementally.ngrok-free.dev'),
+    apiUrl: USE_MOCK ? 'local' : (process.env.REACT_APP_API_URL || 'http://54.242.81.107:8080'),
     timeout: 30000,
     environment: process.env.NODE_ENV,
     geocoding: USE_MOCK ? 'enabled' : 'database-only',

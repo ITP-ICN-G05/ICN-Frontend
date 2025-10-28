@@ -6,21 +6,11 @@ class CompanyService {
   async searchCompanies(params = {}) {
     const queryParams = new URLSearchParams();
     
-    // Geographic parameters become optional
-    if (params.startLatitude !== undefined) {
-      queryParams.append('startLatitude', params.startLatitude);
-    }
-    if (params.startLongitude !== undefined) {
-      queryParams.append('startLongitude', params.startLongitude);
-    }
-    if (params.endLatitude !== undefined) {
-      queryParams.append('endLatitude', params.endLatitude);
-    }
-    if (params.endLongitude !== undefined) {
-      queryParams.append('endLongitude', params.endLongitude);
-    }
-    
-    // ALWAYS include skip and limit to avoid backend NullPointer
+    // ALWAYS include all required parameters with default values
+    queryParams.append('startLatitude', params.startLatitude ?? 0);
+    queryParams.append('startLongitude', params.startLongitude ?? 0);
+    queryParams.append('endLatitude', params.endLatitude ?? 0);
+    queryParams.append('endLongitude', params.endLongitude ?? 0);
     queryParams.append('skip', params.skip ?? 0);
     queryParams.append('limit', params.limit ?? 999999);
 
@@ -234,16 +224,28 @@ class CompanyService {
       limit: params.limit || 999999  // Remove limit, load all data
     });
     
+    // Handle case where API returns a single object instead of array
+    const dataArray = Array.isArray(rawData) ? rawData : [rawData];
+    
     // Transform data for each company and filter out invalid companies
-    return rawData.map(company => this.transformCompanyData(company)).filter(company => company !== null);
+    return dataArray.map(company => this.transformCompanyData(company)).filter(company => company !== null);
   }
   
   // Data transformation method
   transformCompanyData(company) {
-    // Only use company.id field, don't get ID from items
-    const correctId = company.id;
+    // Handle the case where API returns items instead of companies
+    // If company.id is empty but we have items, use the first item's id as company id
+    let correctId = company.id;
     
-    // If ID is empty, skip this company
+    if (!correctId || correctId.trim() === '') {
+      // Try to get ID from items array
+      if (company.items && company.items.length > 0) {
+        correctId = company.items[0].id;
+        console.log('Using item ID as company ID:', correctId);
+      }
+    }
+    
+    // If still no ID, skip this company
     if (!correctId || correctId.trim() === '') {
       console.warn('Skipping company with no valid ID:', company.name);
       return null;

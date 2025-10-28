@@ -8,6 +8,10 @@ function CompaniesPage() {
   const companyService = getCompanyService(); 
   const exportService = getExportService();
   const bookmarkService = getBookmarkService(); 
+  
+  console.log('🏢 CompaniesPage initialized');
+  console.log('📊 Company service type:', typeof companyService);
+  console.log('📊 Company service has getAll:', typeof companyService.getAll); 
   const [user, setUser] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [filteredCompanies, setFilteredCompanies] = useState([]);
@@ -20,89 +24,7 @@ function CompaniesPage() {
   const [itemsPerPage] = useState(12);
   const [bookmarkedCompanies, setBookmarkedCompanies] = useState([]);
 
-  // Mock data - ICN Victoria managed companies
-  const mockCompanies = [
-    {
-      id: 1,
-      name: 'TechCorp Industries',
-      type: 'Manufacturer',
-      sectors: ['Technology', 'Electronics'],
-      capabilities: ['Manufacturing', 'Assembly', 'Design'],
-      address: '123 Smith Street, Melbourne, VIC 3000',
-      size: 'Large',
-      employees: '500+',
-      verified: true,
-      ownership: [],
-      abn: '12 345 678 901',
-      description: 'Leading manufacturer of electronic components',
-      website: 'www.techcorp.com.au',
-      localContent: 85
-    },
-    {
-      id: 2,
-      name: 'Global Supply Co',
-      type: 'Supplier',
-      sectors: ['Logistics', 'Distribution'],
-      capabilities: ['Supply Chain', 'Warehousing', 'Distribution'],
-      address: '456 Queen Road, Melbourne, VIC 3006',
-      size: 'Medium',
-      employees: '100-499',
-      verified: true,
-      ownership: ['Female-owned'],
-      abn: '98 765 432 109',
-      description: 'Comprehensive supply chain solutions',
-      website: 'www.globalsupply.com.au',
-      localContent: 75
-    },
-    {
-      id: 3,
-      name: 'ServiceMax Pro',
-      type: 'Service Provider',
-      sectors: ['Services', 'Maintenance'],
-      capabilities: ['Maintenance', 'Repair', 'Technical Support'],
-      address: '789 King Avenue, Melbourne, VIC 3141',
-      size: 'Small',
-      employees: '10-99',
-      verified: false,
-      ownership: [],
-      abn: '11 223 344 556',
-      description: 'Professional maintenance and repair services',
-      website: 'www.servicemax.com.au',
-      localContent: 100
-    },
-    {
-      id: 4,
-      name: 'EcoTech Solutions',
-      type: 'Manufacturer',
-      sectors: ['Environment', 'Technology'],
-      capabilities: ['Green Technology', 'Recycling', 'Waste Management'],
-      address: '321 Green Lane, Melbourne, VIC 3124',
-      size: 'Medium',
-      employees: '100-499',
-      verified: true,
-      ownership: ['First Nations-owned'],
-      abn: '55 667 788 990',
-      description: 'Sustainable technology and environmental solutions',
-      website: 'www.ecotech.com.au',
-      localContent: 90
-    },
-    {
-      id: 5,
-      name: 'Precision Parts Ltd',
-      type: 'Assembler',
-      sectors: ['Manufacturing', 'Automotive'],
-      capabilities: ['Precision Engineering', 'CNC Machining', 'Quality Control'],
-      address: '555 Industrial Drive, Melbourne, VIC 3175',
-      size: 'Medium',
-      employees: '100-499',
-      verified: true,
-      ownership: [],
-      abn: '77 889 900 112',
-      description: 'High-precision components for automotive industry',
-      website: 'www.precisionparts.com.au',
-      localContent: 80
-    }
-  ];
+
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user'));
@@ -112,34 +34,70 @@ function CompaniesPage() {
   }, []);
 
   useEffect(() => {
-    filterCompanies();
-    setCurrentPage(1);
+    console.log('📅 useEffect triggered - companies length:', companies.length);
+    if (companies.length > 0) {
+      console.log('🔄 Companies available, calling filterCompanies...');
+      filterCompanies();
+      setCurrentPage(1);
+    } else {
+      console.log('⏸️ No companies available, skipping filter');
+    }
   }, [searchTerm, selectedSector, selectedCapability, companies]);
 
   const loadCompanies = async () => {
     setLoading(true);
     
-    const response = await companyService.getAll({
-      sectors: selectedSector !== 'all' ? [selectedSector] : undefined,
-      capabilities: selectedCapability !== 'all' ? [selectedCapability] : undefined,
-      search: searchTerm || undefined,
-            limit: 999999
-    });
-    
-    const data = response.data || response;
-    const loadedCompanies = Array.isArray(data) ? data : [];
-    setCompanies(loadedCompanies);
-    setLoading(false);
+    try {
+      console.log('🔄 Loading companies...');
+      const loadedCompanies = await companyService.getAll({
+        limit: 999999
+      });
+
+      
+      
+      console.log('📊 Loaded companies:', loadedCompanies.length);
+      console.log('📊 Setting companies state with:', loadedCompanies.length, 'companies');
+      setCompanies(loadedCompanies);
+      console.log('📊 Companies state set successfully');
+    } catch (error) {
+      console.error('❌ Error loading companies:', error);
+      console.error('❌ Error details:', error.message);
+      console.error('❌ Error stack:', error.stack);
+      console.error('❌ Error type:', typeof error);
+      console.error('❌ Error name:', error.name);
+      console.error('❌ Full error object:', error);
+      console.error('❌ Error code:', error.code);
+      console.error('❌ Error config:', error.config);
+      setCompanies([]);
+      // Test field to check if error handling is executed
+      window.errorExecuted = true;
+      window.lastError = error.message;
+      window.errorCode = error.code;
+      window.errorConfig = error.config ? {
+        url: error.config.url,
+        method: error.config.method,
+        baseURL: error.config.baseURL,
+        timeout: error.config.timeout
+      } : null;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filterCompanies = () => {
+    console.log('🔍 Filtering companies...');
+    console.log('📊 Companies count:', companies.length);
+    console.log('📊 Search term:', searchTerm);
+    console.log('📊 Selected sector:', selectedSector);
+    console.log('📊 Selected capability:', selectedCapability);
+    
     let filtered = [...companies];
 
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(company =>
         company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        company.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (company.description && company.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
         company.type.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -154,10 +112,13 @@ function CompaniesPage() {
     // Capability filter
     if (selectedCapability !== 'all') {
       filtered = filtered.filter(company =>
-        company.capabilities.includes(selectedCapability)
+        company.capabilities && company.capabilities.some(cap => 
+          cap.name && cap.name.toLowerCase().includes(selectedCapability.toLowerCase())
+        )
       );
     }
 
+    console.log('📊 Filtered companies count:', filtered.length);
     setFilteredCompanies(filtered);
   };
 
@@ -809,6 +770,28 @@ function CompaniesPage() {
                   `No results for "${searchTerm}"` : 
                   'Try adjusting your filters'}
               </p>
+              <div style={{marginTop: '20px', fontSize: '12px', color: '#666', backgroundColor: '#f5f5f5', padding: '10px', borderRadius: '5px'}}>
+                <strong>Debug Info:</strong><br/>
+                companies.length: {companies.length}<br/>
+                filteredCompanies.length: {filteredCompanies.length}<br/>
+                loading: {loading.toString()}<br/>
+                searchTerm: "{searchTerm}"<br/>
+                selectedSector: "{selectedSector}"<br/>
+                selectedCapability: "{selectedCapability}"<br/>
+                errorExecuted: {window.errorExecuted ? 'true' : 'false'}<br/>
+                lastError: {window.lastError || 'none'}<br/>
+                errorCode: {window.errorCode || 'none'}<br/>
+                <strong>Request Details:</strong><br/>
+                {window.errorConfig ? (
+                  <>
+                    URL: {window.errorConfig.url}<br/>
+                    Method: {window.errorConfig.method}<br/>
+                    BaseURL: {window.errorConfig.baseURL}<br/>
+                    Timeout: {window.errorConfig.timeout}ms<br/>
+                  </>
+                ) : 'No config info'}<br/>
+                Current time: {new Date().toLocaleTimeString()}
+              </div>
             </div>
           ) : (
             <>
