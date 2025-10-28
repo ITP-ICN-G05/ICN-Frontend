@@ -45,8 +45,6 @@ function CompaniesPage() {
   }, [searchTerm, selectedSector, selectedCapability, companies]);
 
   const loadCompanies = async () => {
-    console.log('🚀 loadCompanies function called!');
-    window.loadCompaniesCalled = true;
     setLoading(true);
     
     try {
@@ -67,20 +65,11 @@ function CompaniesPage() {
       console.error('❌ Error stack:', error.stack);
       console.error('❌ Error type:', typeof error);
       console.error('❌ Error name:', error.name);
-      console.error('❌ Error code:', error.code);
-      console.error('❌ Error config:', error.config);
       console.error('❌ Full error object:', error);
       setCompanies([]);
       // Test field to check if error handling is executed
       window.errorExecuted = true;
       window.lastError = error.message;
-      window.errorCode = error.code;
-      window.errorConfig = error.config ? {
-        url: error.config.url,
-        method: error.config.method,
-        baseURL: error.config.baseURL,
-        timeout: error.config.timeout
-      } : null;
     } finally {
       setLoading(false);
     }
@@ -783,6 +772,26 @@ function CompaniesPage() {
                 errorExecuted: {window.errorExecuted ? 'true' : 'false'}<br/>
                 lastError: {window.lastError || 'none'}<br/>
                 errorCode: {window.errorCode || 'none'}<br/>
+                <strong>Function Call Status:</strong><br/>
+                loadCompaniesCalled: {window.loadCompaniesCalled ? 'true' : 'false'}<br/>
+                getAllCalled: {window.getAllCalled ? 'true' : 'false'}<br/>
+                rawDataReceived: {window.rawDataReceived || 'none'}<br/>
+                transformedDataLength: {window.transformedDataLength || 'none'}<br/>
+                <strong>API Response Info:</strong><br/>
+                Status: {window.apiResponseStatus || 'none'}<br/>
+                Type: {window.apiResponseType || 'none'}<br/>
+                Is Array: {window.apiResponseIsArray ? 'true' : 'false'}<br/>
+                Length: {window.apiResponseLength || 'none'}<br/>
+                Sample: {window.apiResponseSample || 'none'}<br/>
+                <strong>Request Details:</strong><br/>
+                {window.errorConfig ? (
+                  <>
+                    URL: {window.errorConfig.url}<br/>
+                    Method: {window.errorConfig.method}<br/>
+                    BaseURL: {window.errorConfig.baseURL}<br/>
+                    Timeout: {window.errorConfig.timeout}ms<br/>
+                  </>
+                ) : 'No config info'}<br/>
                 Current time: {new Date().toLocaleTimeString()}
               </div>
             </div>
