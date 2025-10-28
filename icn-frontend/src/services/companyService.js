@@ -22,8 +22,35 @@ class CompanyService {
       queryParams.append('filterParameters', JSON.stringify(params.filterParameters));
     }
     
-    const response = await api.get(`/organisation/general?${queryParams.toString()}`);
-    return response.data;
+    // Use fetch API (works better with ngrok)
+    const url = `https://dustin-notour-uncomplementally.ngrok-free.dev/api/organisation/general?${queryParams.toString()}`;
+    console.log('🔍 Fetching companies from:', url);
+    
+    const fetchResponse = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'ngrok-skip-browser-warning': 'true',
+        'Accept': 'application/json'
+      }
+    });
+    
+    console.log('🔍 Fetch Response Status:', fetchResponse.status);
+    
+    if (!fetchResponse.ok) {
+      throw new Error(`Request failed with status ${fetchResponse.status}`);
+    }
+    
+    const data = await fetchResponse.json();
+    console.log('🔍 Fetch Response Data:', typeof data, Array.isArray(data) ? data.length : 'not array');
+    
+    // Store debug info in window for display
+    window.apiResponseStatus = fetchResponse.status;
+    window.apiResponseType = typeof data;
+    window.apiResponseIsArray = Array.isArray(data);
+    window.apiResponseLength = Array.isArray(data) ? data.length : 'not array';
+    window.apiResponseSample = JSON.stringify(data).substring(0, 200) + '...';
+    
+    return data;
   }
 
   // GET /organisation/specific - searchOrganisationDetail
@@ -218,21 +245,36 @@ class CompanyService {
 
   // Helper method for compatibility
   async getAll(params = {}) {
+    console.log('🔄 getAll called with params:', params);
+    window.getAllCalled = true;
+    
     const rawData = await this.searchCompanies({
       // Remove geographic filtering parameters, get all companies
       skip: params.skip || 0,    // Always provide skip
       limit: params.limit || 999999  // Remove limit, load all data
     });
     
+    console.log('📊 Raw data received:', typeof rawData, Array.isArray(rawData) ? rawData.length : 'not array');
+    window.rawDataReceived = Array.isArray(rawData) ? rawData.length : 'not array';
+    
     // Handle case where API returns a single object instead of array
     const dataArray = Array.isArray(rawData) ? rawData : [rawData];
     
+    console.log('📊 Data array length:', dataArray.length);
+    
     // Transform data for each company and filter out invalid companies
-    return dataArray.map(company => this.transformCompanyData(company)).filter(company => company !== null);
+    const transformedData = dataArray.map(company => this.transformCompanyData(company)).filter(company => company !== null);
+    
+    console.log('📊 Transformed data length:', transformedData.length);
+    window.transformedDataLength = transformedData.length;
+    
+    return transformedData;
   }
   
   // Data transformation method
   transformCompanyData(company) {
+    console.log('🔄 Transforming company:', company.name, 'ID:', company.id);
+    
     // Handle the case where API returns items instead of companies
     // If company.id is empty but we have items, use the first item's id as company id
     let correctId = company.id;
@@ -241,15 +283,19 @@ class CompanyService {
       // Try to get ID from items array
       if (company.items && company.items.length > 0) {
         correctId = company.items[0].id;
-        console.log('Using item ID as company ID:', correctId);
+        console.log('✅ Using item ID as company ID:', correctId);
+      } else {
+        console.log('❌ No items found for company:', company.name);
       }
     }
     
     // If still no ID, skip this company
     if (!correctId || correctId.trim() === '') {
-      console.warn('Skipping company with no valid ID:', company.name);
+      console.warn('❌ Skipping company with no valid ID:', company.name);
       return null;
     }
+    
+    console.log('✅ Company transformation successful:', company.name, 'Final ID:', correctId);
     
     // Process address information
     const cleanAddress = (value) => {

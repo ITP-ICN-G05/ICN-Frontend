@@ -45,6 +45,8 @@ function CompaniesPage() {
   }, [searchTerm, selectedSector, selectedCapability, companies]);
 
   const loadCompanies = async () => {
+    console.log('🚀 loadCompanies function called!');
+    window.loadCompaniesCalled = true;
     setLoading(true);
     
     try {
@@ -65,9 +67,9 @@ function CompaniesPage() {
       console.error('❌ Error stack:', error.stack);
       console.error('❌ Error type:', typeof error);
       console.error('❌ Error name:', error.name);
-      console.error('❌ Full error object:', error);
       console.error('❌ Error code:', error.code);
       console.error('❌ Error config:', error.config);
+      console.error('❌ Full error object:', error);
       setCompanies([]);
       // Test field to check if error handling is executed
       window.errorExecuted = true;
@@ -781,15 +783,6 @@ function CompaniesPage() {
                 errorExecuted: {window.errorExecuted ? 'true' : 'false'}<br/>
                 lastError: {window.lastError || 'none'}<br/>
                 errorCode: {window.errorCode || 'none'}<br/>
-                <strong>Request Details:</strong><br/>
-                {window.errorConfig ? (
-                  <>
-                    URL: {window.errorConfig.url}<br/>
-                    Method: {window.errorConfig.method}<br/>
-                    BaseURL: {window.errorConfig.baseURL}<br/>
-                    Timeout: {window.errorConfig.timeout}ms<br/>
-                  </>
-                ) : 'No config info'}<br/>
                 Current time: {new Date().toLocaleTimeString()}
               </div>
             </div>

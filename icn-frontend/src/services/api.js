@@ -3,11 +3,13 @@ import axios from 'axios';
 
 // Direct connection to backend
 const api = axios.create({
-  baseURL: 'http://98.83.91.193:8080/api',
+  baseURL: 'https://dustin-notour-uncomplementally.ngrok-free.dev/api',
+  // baseURL: 'http://98.83.91.193:8080/api',
   timeout: 60000, // Increased to 60 seconds
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'ngrok-skip-browser-warning': 'true', // Skip ngrok browser warning
   },
 });
 
