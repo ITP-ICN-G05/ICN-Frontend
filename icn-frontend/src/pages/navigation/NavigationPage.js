@@ -76,6 +76,7 @@ function NavigationPage() {
   const bookmarkService = getBookmarkService();
   const [mapCenter, setMapCenter] = useState({ lat: -37.8136, lng: 144.9631 });
   const [mapZoom, setMapZoom] = useState(10);
+  const [companiesLoaded, setCompaniesLoaded] = useState(false);
 
   // Load companies and bookmarks first
   useEffect(() => {
@@ -85,15 +86,15 @@ function NavigationPage() {
 
   // Read search query from URL parameters after component mounts
   useEffect(() => {
-    const query = searchParams.get('q');
-    if (query) {
-      setSearchTerm(decodeURIComponent(query));
-      // Optionally remove the query parameter from URL after reading
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete('q');
-      setSearchParams(newParams, { replace: true });
+    if (companiesLoaded) {
+      const query = searchParams.get('q');
+      if (query) {
+        setSearchTerm(decodeURIComponent(query));
+      } else {
+        setSearchTerm(''); // Clear when no query
+      }
     }
-  }, [searchParams, setSearchParams]);
+  }, [companiesLoaded, searchParams]); // Watch searchParams
   
   const loadCompanies = async () => {
     try {
@@ -105,32 +106,33 @@ function NavigationPage() {
         // Only add frontend-required extra fields, don't remap IDs
         const mappedCompanies = data.map((company) => ({
           ...company,
-          // Fix backend's "lontitude" typo
-          longitude: company.lontitude || company.longitude,
-          latitude: company.latitude,
-          // Map backend fields to frontend expected fields
-          sectors: company.keySectors || company.sectors || [],
-          capabilities: company.capabilities || [],
+          // Extract capabilities from items array
+          capabilities: (company.items || []).map(item => item.itemName).filter(Boolean),
+          // Extract sectors from items array
+          sectors: [...new Set((company.items || []).map(item => item.sectorName).filter(Boolean))],
+          // Store original items
+          items: company.items || [],
+          // Map zip to postcode for compatibility
+          postcode: company.zip,
+          // Create address string from components
+          address: [company.street, company.city, company.state, company.zip].filter(Boolean).join(', '),
           type: company.companyType || company.type || 'supplier',
           verified: company.verificationStatus === 'verified',
-          size: company.employees || 'Unknown',
-          employees: company.employees || 'Unknown',
-          ownership: company.ownership || [],
-          certifications: company.certifications || [],
           distance: company.distance || (2 + Math.random() * 20),
-          // Add position for map
           position: {
             lat: company.latitude || -37.8136,
-            lng: company.lontitude || company.longitude || 144.9631
+            lng: company.longitude || 144.9631
           }
         }));
         
         // NO geocoding needed - backend already has coordinates
         setCompanies(mappedCompanies);
         setFilteredCompanies(mappedCompanies);
+        setCompaniesLoaded(true);
       }
     } catch (error) {
       console.error('Error loading companies:', error);
+      setCompaniesLoaded(true);
     } finally {
       setLoading(false);
     }
@@ -185,29 +187,47 @@ function NavigationPage() {
     let filtered = [...companies];
     
     // Search filter - search across multiple fields
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      const searchTrimmed = searchTerm.trim();
+    if (searchTerm && searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
       
-      filtered = filtered.filter(company =>
-        company.name.toLowerCase().includes(searchLower) ||
-        (company.description && company.description.toLowerCase().includes(searchLower)) ||
-        company.type.toLowerCase().includes(searchLower) ||
-        (company.sectors && company.sectors.some(sector => 
-          sector.toLowerCase().includes(searchLower)
-        )) ||
-        (company.capabilities && company.capabilities.some(cap => 
-          cap.toLowerCase().includes(searchLower)
-        )) ||
-        (company.billingAddress && (
-          (company.billingAddress.city && company.billingAddress.city.toLowerCase().includes(searchLower)) ||
-          (company.billingAddress.state && company.billingAddress.state.toLowerCase().includes(searchLower)) ||
-          (company.billingAddress.suburb && company.billingAddress.suburb.toLowerCase().includes(searchLower)) ||
-          (company.billingAddress.postcode && company.billingAddress.postcode.toString().includes(searchTrimmed))
-        )) ||
-        // Also check for postcode in top-level fields (in case it's stored differently)
-        (company.postcode && company.postcode.toString().includes(searchTrimmed))
-      );
+      filtered = filtered.filter(company => {
+        try {
+          // Name
+          if (company.name && company.name.toLowerCase().includes(searchLower)) return true;
+          
+          // Address fields (API structure: street, city, state, zip)
+          if (company.street && company.street.toLowerCase().includes(searchLower)) return true;
+          if (company.city && company.city.toLowerCase().includes(searchLower)) return true;
+          if (company.state && company.state.toLowerCase().includes(searchLower)) return true;
+          if (company.zip && company.zip.toString().includes(searchLower)) return true;
+          
+          // Full address string
+          if (company.address && company.address.toLowerCase().includes(searchLower)) return true;
+          
+          // Type
+          if (company.type && company.type.toLowerCase().includes(searchLower)) return true;
+          
+          // Capabilities (from items array)
+          if (company.capabilities && company.capabilities.some(cap => 
+            cap && cap.toLowerCase().includes(searchLower)
+          )) return true;
+          
+          // Sectors (from items array)
+          if (company.sectors && company.sectors.some(sector => 
+            sector && sector.toLowerCase().includes(searchLower)
+          )) return true;
+          
+          // Search in items array directly
+          if (company.items && company.items.some(item => 
+            (item.itemName && item.itemName.toLowerCase().includes(searchLower)) ||
+            (item.sectorName && item.sectorName.toLowerCase().includes(searchLower))
+          )) return true;
+          
+          return false;
+        } catch (error) {
+          return false;
+        }
+      });
     }
     
     // Basic filters (all tiers)
@@ -656,11 +676,27 @@ function NavigationPage() {
                         type="text"
                         placeholder="Search companies..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setSearchTerm(value);
+                          if (value.trim()) {
+                            navigate(`/navigation?q=${encodeURIComponent(value)}`, { replace: true });
+                          } else {
+                            navigate('/navigation', { replace: true });
+                          }
+                        }}
                         className="sidebar-search-input"
                       />
                       {searchTerm && (
-                        <button className="search-clear" onClick={() => setSearchTerm('')}>✕</button>
+                        <button 
+                          className="search-clear" 
+                          onClick={() => {
+                            setSearchTerm('');
+                            navigate('/navigation', { replace: true });
+                          }}
+                        >
+                          ✕
+                        </button>
                       )}
                     </div>
                   </div>

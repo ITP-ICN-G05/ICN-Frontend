@@ -43,7 +43,7 @@ function NavigationBar({ user, onLogout }) {
     }
     
     if (searchQuery.trim()) {
-      navigate(`/navigation?q=${encodeURIComponent(searchQuery)}`);
+      navigate(`/navigation?q=${encodeURIComponent(searchQuery)}`, { replace: false });
       setSearchQuery('');
     }
   };

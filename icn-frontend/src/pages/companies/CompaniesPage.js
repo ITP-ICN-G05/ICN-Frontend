@@ -552,7 +552,15 @@ function CompaniesPage() {
                   className="sidebar-search-input"
             />
                 {searchTerm && (
-                  <button className="search-clear" onClick={() => setSearchTerm('')}>✕</button>
+                  <button 
+                  className="search-clear" 
+                  onClick={() => {
+                    setSearchTerm('');
+                    navigate('/navigation', { replace: true });
+                  }}
+                  >
+                    ✕
+                  </button>
                 )}
               </div>
           </div>

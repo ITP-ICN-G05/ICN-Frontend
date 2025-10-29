@@ -23,7 +23,7 @@ class CompanyService {
     }
     
     // Use fetch API (works better with ngrok)
-    const url = `https://1355xcz.top:8080/api/organisation/general?${queryParams.toString()}`;
+    const url = `http://localhost:8080/api/organisation/general?${queryParams.toString()}`;
     console.log('🔍 Fetching companies from:', url);
     
     const fetchResponse = await fetch(url, {
