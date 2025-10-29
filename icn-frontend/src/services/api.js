@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Direct connection to backend
 const api = axios.create({
-  baseURL: 'https://1355xcz.top/api',
+  baseURL: 'https://1355xcz.top:8080/api',
   // baseURL: 'http://98.83.91.193:8080/api',
   timeout: 60000, // Increased to 60 seconds
   headers: {
