@@ -52,6 +52,12 @@ function LoginPage({ onLogin }) {
     return newErrors;
   };
 
+  // Check if user is admin
+  const isAdmin = (userData, email) => {
+    // Admin if premium level is 2 OR email contains @icn
+    return userData.premium === 2 || email.includes('@icn');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -68,19 +74,30 @@ function LoginPage({ onLogin }) {
       // Use real authService
       const userData = await authService.login(formData.email, formData.password);
       
+      // Store admin status
+      const adminStatus = isAdmin(userData, formData.email);
+      localStorage.setItem('isAdmin', adminStatus.toString());
+      
+      console.log('Login successful:', {
+        email: formData.email,
+        premium: userData.premium,
+        isAdmin: adminStatus
+      });
+      
       if (onLogin) {
         onLogin(userData);
       }
       
-      // Check if admin based on premium level or email domain
-      const isAdmin = userData.premium === 2 || formData.email.includes('@icn');
-      
-      if (isAdmin) {
+      // Redirect based on admin status
+      if (adminStatus) {
+        console.log('🔐 Admin user detected - redirecting to /admin');
         navigate('/admin');
       } else {
+        console.log('👤 Regular user - redirecting to:', from);
         navigate(from);
       }
     } catch (error) {
+      console.error('Login error:', error);
       setErrors({ submit: error.message || 'Invalid email or password. Please try again.' });
     } finally {
       setLoading(false);

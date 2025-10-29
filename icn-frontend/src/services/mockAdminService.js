@@ -1,3 +1,4 @@
+// src/services/mockAdminService.js
 class MockAdminService {
   async getDashboardMetrics() {
     await this.delay(600);
@@ -59,17 +60,95 @@ class MockAdminService {
   async getUsers(params = {}) {
     await this.delay(600);
     
-    const { mockAuthService } = await import('./mockAuthService');
+    // Get admin mock users from the real authService
+    const { authService } = await import('./authService');
     
-    // Return mock users (excluding passwords)
-    const users = mockAuthService.MOCK_USERS.map(u => {
-      const user = { ...u };
-      delete user.password;
-      return user;
-    });
+    // Get mock admin users and add additional mock regular users for testing
+    const mockUsers = [
+      // Admin users from authService
+      ...authService.MOCK_ADMINS.map(admin => ({
+        id: admin.id,
+        email: admin.email,
+        name: admin.name,
+        premium: admin.premium,
+        tier: 'admin',
+        role: 'admin',
+        status: 'active',
+        company: 'ICN Victoria',
+        subscribeDueDate: admin.subscribeDueDate,
+        organisationIds: admin.organisationIds,
+        createdAt: '2024-01-15T00:00:00Z'
+      })),
+      // Additional mock regular users for admin dashboard
+      {
+        id: 'user_1',
+        email: 'john.premium@example.com',
+        name: 'John Premium',
+        premium: 2,
+        tier: 'premium',
+        role: 'user',
+        status: 'active',
+        company: 'TechCorp Industries',
+        subscribeDueDate: '2025-12-31',
+        organisationIds: ['org_1'],
+        createdAt: '2024-03-10T00:00:00Z'
+      },
+      {
+        id: 'user_2',
+        email: 'sarah.plus@example.com',
+        name: 'Sarah Plus',
+        premium: 1,
+        tier: 'plus',
+        role: 'user',
+        status: 'active',
+        company: 'Digital Solutions Ltd',
+        subscribeDueDate: '2025-06-30',
+        organisationIds: ['org_2'],
+        createdAt: '2024-05-20T00:00:00Z'
+      },
+      {
+        id: 'user_3',
+        email: 'mike.free@example.com',
+        name: 'Mike Free',
+        premium: 0,
+        tier: 'free',
+        role: 'user',
+        status: 'active',
+        company: 'Startup Inc',
+        subscribeDueDate: '',
+        organisationIds: [],
+        createdAt: '2024-08-15T00:00:00Z'
+      },
+      {
+        id: 'user_4',
+        email: 'jane@example.com',
+        name: 'Jane Smith',
+        premium: 0,
+        tier: 'free',
+        role: 'user',
+        status: 'active',
+        company: 'ABC Company',
+        subscribeDueDate: '',
+        organisationIds: [],
+        createdAt: '2024-09-01T00:00:00Z'
+      },
+      {
+        id: 'user_5',
+        email: 'inactive@example.com',
+        name: 'Inactive User',
+        premium: 0,
+        tier: 'free',
+        role: 'user',
+        status: 'inactive',
+        company: 'Old Company',
+        subscribeDueDate: '',
+        organisationIds: [],
+        createdAt: '2023-12-01T00:00:00Z'
+      }
+    ];
     
     // Apply filters if provided
-    let filteredUsers = users;
+    let filteredUsers = mockUsers;
     
     if (params.tier) {
       filteredUsers = filteredUsers.filter(u => u.tier === params.tier);
@@ -104,22 +183,14 @@ class MockAdminService {
   async updateUser(id, data) {
     await this.delay(500);
     
-    const { mockAuthService } = await import('./mockAuthService');
+    console.log('✅ Mock: Updated user', id, data);
     
-    const userIndex = mockAuthService.MOCK_USERS.findIndex(u => u.id === id);
-    if (userIndex === -1) {
-      throw new Error('User not found');
-    }
-    
-    mockAuthService.MOCK_USERS[userIndex] = { 
-      ...mockAuthService.MOCK_USERS[userIndex], 
-      ...data 
+    return { 
+      data: { 
+        id, 
+        ...data 
+      } 
     };
-    
-    const updatedUser = { ...mockAuthService.MOCK_USERS[userIndex] };
-    delete updatedUser.password;
-    
-    return { data: updatedUser };
   }
   
   async updateUserTier(userId, newTier) {
@@ -234,3 +305,4 @@ class MockAdminService {
 }
 
 export const mockAdminService = new MockAdminService();
+export default mockAdminService;

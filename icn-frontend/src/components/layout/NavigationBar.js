@@ -9,8 +9,12 @@ function NavigationBar({ user, onLogout }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  // Check if user is admin
-  const isAdmin = user?.role === 'admin' || user?.isAdmin === true;
+  // Check if user is admin - using the same logic as the rest of the app
+  const isAdmin = user && (
+    user.premium === 2 || 
+    user.email?.includes('@icn') || 
+    localStorage.getItem('isAdmin') === 'true'
+  );
 
   // Close dropdown when clicking outside
   useEffect(() => {

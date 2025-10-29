@@ -148,6 +148,10 @@ function App() {
               if (validation.valid) {
                 setUser(parsedUser);
                 
+                // Set admin status on app initialization
+                const isAdmin = parsedUser.premium === 2 || parsedUser.email?.includes('@icn');
+                localStorage.setItem('isAdmin', isAdmin.toString());
+                
                 // Check if onboarding is needed (only for new users, not existing login users)
                 if (parsedUser && !parsedUser.onboardingComplete && 
                     !parsedUser.preferences && !parsedUser.onboardingSkipped && 
@@ -158,14 +162,23 @@ function App() {
                 // Invalid token, clear auth
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
+                localStorage.removeItem('isAdmin');
               }
             } catch (validationError) {
               console.warn('Token validation failed:', validationError);
               // Keep user logged in if validation fails (offline mode)
               setUser(parsedUser);
+              
+              // Set admin status even in offline mode
+              const isAdmin = parsedUser.premium === 2 || parsedUser.email?.includes('@icn');
+              localStorage.setItem('isAdmin', isAdmin.toString());
             }
           } else {
             setUser(parsedUser);
+            
+            // Set admin status
+            const isAdmin = parsedUser.premium === 2 || parsedUser.email?.includes('@icn');
+            localStorage.setItem('isAdmin', isAdmin.toString());
             
             // Check onboarding (only for new users, not existing login users)
             if (parsedUser && !parsedUser.onboardingComplete && 
@@ -178,6 +191,7 @@ function App() {
           console.error('Error parsing user data:', error);
           localStorage.removeItem('token');
           localStorage.removeItem('user');
+          localStorage.removeItem('isAdmin');
         }
       }
       
@@ -240,6 +254,16 @@ function App() {
   const handleLogin = async (userData) => {
     setUser(userData);
     
+    // Detect and store admin status
+    const isAdmin = userData.premium === 2 || userData.email?.includes('@icn');
+    localStorage.setItem('isAdmin', isAdmin.toString());
+    
+    console.log('✅ User logged in:', {
+      email: userData.email,
+      premium: userData.premium,
+      isAdmin: isAdmin
+    });
+    
     // Check if new user needs onboarding after login (only for new users)
     if (userData && !userData.onboardingComplete && 
         !userData.preferences && !userData.onboardingSkipped && 
@@ -282,6 +306,7 @@ function App() {
       setShowOnboarding(false);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('isAdmin'); // Clear admin status on logout
       
       // Optional: Clear ICN data cache on logout
       if (process.env.REACT_APP_CLEAR_CACHE_ON_LOGOUT === 'true') {

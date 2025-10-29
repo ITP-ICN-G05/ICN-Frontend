@@ -3,14 +3,79 @@ import api from './api';
 import { sha256 } from 'js-sha256';
 
 class AuthService {
+  // Mock admin accounts for testing (only admins use mock data)
+  MOCK_ADMINS = [
+    {
+      id: 'admin_1',
+      email: 'admin@icn.com.au',
+      name: 'Admin User',
+      password: sha256('admin123').toLowerCase(),
+      premium: 2,
+      subscribeDueDate: '2026-12-31',
+      organisationIds: ['org_1', 'org_2', 'org_3']
+    },
+    {
+      id: 'admin_2',
+      email: 'superadmin@icn.com.au',
+      name: 'Super Admin',
+      password: sha256('superadmin123').toLowerCase(),
+      premium: 2,
+      subscribeDueDate: '2026-12-31',
+      organisationIds: ['org_1', 'org_2', 'org_3', 'org_4', 'org_5']
+    },
+    {
+      id: 'admin_3',
+      email: 'test@icn.com.au',
+      name: 'Test Admin',
+      password: sha256('test123').toLowerCase(),
+      premium: 2,
+      subscribeDueDate: '2026-12-31',
+      organisationIds: []
+    }
+  ];
+
   hashPassword(password) {
     return sha256(password).toLowerCase();
+  }
+
+  isAdminEmail(email) {
+    return email.includes('@icn');
   }
 
   async login(email, password) {
     // Login expects HASHED password in query params (as per API docs)
     const hashedPassword = this.hashPassword(password);
+
+    // Check if this is an admin email - use mock data
+    if (this.isAdminEmail(email)) {
+      console.log('🔧 Admin login detected - using mock data');
+      
+      // Find mock admin
+      const admin = this.MOCK_ADMINS.find(
+        a => a.email === email && a.password === hashedPassword
+      );
+      
+      if (!admin) {
+        throw new Error('Invalid admin credentials');
+      }
+      
+      // Return admin data
+      const userData = {
+        ...admin,
+        email: email
+      };
+      delete userData.password;
+      
+      localStorage.setItem('token', 'session-' + Date.now());
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('user_password_hash', hashedPassword);
+      
+      console.log('✅ Mock admin login successful:', userData);
+      return userData;
+    }
     
+    // Regular user - use real API
+    console.log('🌐 Regular user login - using real API');
     const response = await api.post(`/user?email=${encodeURIComponent(email)}&password=${encodeURIComponent(hashedPassword)}`);
     
     if (response.data) {

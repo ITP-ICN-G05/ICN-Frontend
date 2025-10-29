@@ -1,14 +1,22 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
+import { hasAdminAccess } from '../../utils/adminUtils';
 
+/**
+ * Protected route component for admin-only pages
+ * Redirects non-admin users to home page
+ */
 function AdminRoute({ children }) {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  
-  // Check if user is admin
-  if (!user || user.role !== 'admin') {
-    return <Navigate to="/" replace />;
+  const location = useLocation();
+  const isAdmin = hasAdminAccess();
+
+  if (!isAdmin) {
+    console.warn('⛔ Access denied - Admin privileges required');
+    // Redirect to home page, saving the attempted location
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
-  
+
+  console.log('✅ Admin access granted');
   return children;
 }
 

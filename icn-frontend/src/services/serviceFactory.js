@@ -21,7 +21,7 @@ import icnDataService from './icnDataService';
 const USE_MOCK = false;
 
 console.log(`🔧 Service Factory initialized in REAL mode (mock services FORCED OFF)`);
-console.log(`📡 Backend URL: https://dustin-notour-uncomplementally.ngrok-free.dev`);
+console.log(`📡 Backend URL: https://1355xcz.top:8080`);
 
 /**
  * Service factory to get the appropriate service (mock or real)

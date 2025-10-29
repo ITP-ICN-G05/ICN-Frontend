@@ -1,7 +1,7 @@
 {
   "name": "icn-frontend",
   "version": "0.1.0",
-  "proxy": "https://dustin-notour-uncomplementally.ngrok-free.dev",
+  "proxy": "https://1355xcz.top:8080",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.0",
