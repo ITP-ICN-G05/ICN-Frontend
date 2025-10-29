@@ -66,9 +66,9 @@ class AuthService {
       };
       delete userData.password;
       
-      localStorage.setItem('token', 'session-' + Date.now());
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('user_password_hash', hashedPassword);
+      localStorage.setItem('isAdmin', 'true');
       
       console.log('✅ Mock admin login successful:', userData);
       return userData;
@@ -85,7 +85,6 @@ class AuthService {
         email: email  // Add email field
       };
       
-      localStorage.setItem('token', 'session-' + Date.now());
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('user_password_hash', hashedPassword);
       
@@ -109,7 +108,6 @@ class AuthService {
     if (response.status === 201) {
       // Store hashed version for future use
       localStorage.setItem('user_password_hash', hashedPassword);
-      localStorage.setItem('token', 'session-' + Date.now());
       
       // Create user data object since backend returns empty body on success
       const userDataResponse = {
@@ -126,6 +124,20 @@ class AuthService {
     }
     
     throw new Error('Registration failed');
+  }
+
+  async logout() {
+    try {
+      // Call backend logout endpoint to clear session cookie
+      await api.post('/user/logout');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear local storage
+      localStorage.removeItem('user');
+      localStorage.removeItem('user_password_hash');
+      localStorage.removeItem('isAdmin');
+    }
   }
 
   async sendValidationCode(email) {

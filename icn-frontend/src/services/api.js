@@ -5,22 +5,24 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: 'https://1355xcz.top:8080/api',
   // baseURL: 'http://98.83.91.193:8080/api',
-  timeout: 60000, // Increased to 60 seconds
+  timeout: 60000,
+  withCredentials: true, // ✅ CRITICAL: Enable cookies for cross-origin requests
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'ngrok-skip-browser-warning': 'true', // Skip ngrok browser warning
+    'ngrok-skip-browser-warning': 'true',
   },
 });
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // ✅ REMOVE: Authorization header (backend uses cookies, not JWT)
+    // The session cookie will be sent automatically by the browser
+    
     console.log('🌐 API Request:', config.method?.toUpperCase(), config.baseURL + config.url);
     console.log('🔗 Full URL:', config.baseURL + config.url);
+    console.log('🍪 Cookies will be sent automatically');
+    
     return config;
   },
   (error) => Promise.reject(error)
@@ -28,18 +30,23 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.status, response.config.url);
+    console.log('✅ API Response:', response.status, response.config.url);
+    
+    // Log if backend set any cookies
+    const setCookie = response.headers['set-cookie'];
+    if (setCookie) {
+      console.log('🍪 Backend set cookies:', setCookie);
+    }
+    
     return response;
   },
   (error) => {
-    console.error('API Error:', error.response?.status, error.config?.url);
+    console.error('❌ API Error:', error.response?.status, error.config?.url);
     
-    // Log full error details
     if (error.response?.data) {
       console.error('Backend error message:', error.response.data);
     }
     
-    // Log the request that failed
     if (error.config) {
       console.error('Failed request:', {
         url: error.config.url,
@@ -49,11 +56,19 @@ api.interceptors.response.use(
       });
     }
     
+    // On 401, clear local storage and redirect to login
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
+      console.log('🔒 Session expired - redirecting to login');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      localStorage.removeItem('user_password_hash');
+      localStorage.removeItem('isAdmin');
+      
+      // Only redirect if not already on login page
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
     }
+    
     return Promise.reject(error);
   }
 );

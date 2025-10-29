@@ -126,73 +126,84 @@ function App() {
   // Get auth service
   const authService = getService('auth');
 
-  // Wrap initializeApp with useCallback to fix the dependency warning
+  // Initialize app with session-based authentication
   const initializeApp = useCallback(async () => {
     try {
       setLoadingProgress(10);
       setLoadingStage('Checking authentication...');
       
-      // Check if user is authenticated
-      const token = localStorage.getItem('token');
+      // ✅ Check for user data (no token check needed - backend uses cookies)
       const userData = localStorage.getItem('user');
       
-      if (token && userData) {
+      if (userData) {
         try {
           setLoadingProgress(20);
           const parsedUser = JSON.parse(userData);
           
-          // Validate token if using mock or real service
-          if (authService && authService.validateToken) {
+          // ✅ Verify session with backend (optional but recommended)
+          if (authService && authService.verifySession) {
             try {
-              const validation = await authService.validateToken(token);
-              if (validation.valid) {
-                setUser(parsedUser);
+              console.log('🔍 Verifying session with backend...');
+              const sessionData = await authService.verifySession();
+              
+              if (sessionData) {
+                console.log('✅ Session valid, user authenticated');
+                // Session is valid, use fresh data from backend
+                setUser(sessionData);
                 
-                // Set admin status on app initialization
+                const isAdmin = sessionData.premium === 2 || sessionData.email?.includes('@icn');
+                localStorage.setItem('isAdmin', isAdmin.toString());
+                localStorage.setItem('user', JSON.stringify(sessionData)); // Update with fresh data
+                
+                console.log('User data refreshed from backend:', {
+                  email: sessionData.email,
+                  premium: sessionData.premium,
+                  isAdmin
+                });
+              }
+            } catch (sessionError) {
+              console.warn('⚠️ Session verification failed:', sessionError);
+              
+              // If session expired (401), clear user and force re-login
+              if (sessionError.response?.status === 401) {
+                console.log('🔒 Session expired, clearing user data');
+                localStorage.removeItem('user');
+                localStorage.removeItem('user_password_hash');
+                localStorage.removeItem('isAdmin');
+                setUser(null);
+              } else {
+                // For other errors (network issues, etc.), keep user logged in (offline mode)
+                console.log('📴 Using cached user data (offline mode)');
+                setUser(parsedUser);
                 const isAdmin = parsedUser.premium === 2 || parsedUser.email?.includes('@icn');
                 localStorage.setItem('isAdmin', isAdmin.toString());
-                
-                // Check if onboarding is needed (only for new users, not existing login users)
-                if (parsedUser && !parsedUser.onboardingComplete && 
-                    !parsedUser.preferences && !parsedUser.onboardingSkipped && 
-                    parsedUser.isNewUser === true) {
-                  setShowOnboarding(true);
-                }
-              } else {
-                // Invalid token, clear auth
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                localStorage.removeItem('isAdmin');
               }
-            } catch (validationError) {
-              console.warn('Token validation failed:', validationError);
-              // Keep user logged in if validation fails (offline mode)
-              setUser(parsedUser);
-              
-              // Set admin status even in offline mode
-              const isAdmin = parsedUser.premium === 2 || parsedUser.email?.includes('@icn');
-              localStorage.setItem('isAdmin', isAdmin.toString());
             }
           } else {
+            // No session verification available, use local data
+            console.log('📦 Using cached user data (no verification)');
             setUser(parsedUser);
             
-            // Set admin status
             const isAdmin = parsedUser.premium === 2 || parsedUser.email?.includes('@icn');
             localStorage.setItem('isAdmin', isAdmin.toString());
-            
-            // Check onboarding (only for new users, not existing login users)
-            if (parsedUser && !parsedUser.onboardingComplete && 
-                !parsedUser.preferences && !parsedUser.onboardingSkipped && 
-                parsedUser.isNewUser === true) {
-              setShowOnboarding(true);
-            }
           }
+          
+          // Check if onboarding is needed (only for new users)
+          if (parsedUser && !parsedUser.onboardingComplete && 
+              !parsedUser.preferences && !parsedUser.onboardingSkipped && 
+              parsedUser.isNewUser === true) {
+            setShowOnboarding(true);
+          }
+          
         } catch (error) {
-          console.error('Error parsing user data:', error);
-          localStorage.removeItem('token');
+          console.error('❌ Error parsing user data:', error);
           localStorage.removeItem('user');
+          localStorage.removeItem('user_password_hash');
           localStorage.removeItem('isAdmin');
+          setUser(null);
         }
+      } else {
+        console.log('👤 No user data found - user not logged in');
       }
       
       setLoadingProgress(30);
@@ -241,15 +252,15 @@ function App() {
       }, 500);
       
     } catch (error) {
-      console.error('App initialization error:', error);
+      console.error('❌ App initialization error:', error);
       setInitError(error.message);
       setLoading(false);
     }
-  }, [authService]); // Add authService as dependency
+  }, [authService]);
 
   useEffect(() => {
     initializeApp();
-  }, [initializeApp]); // Fixed: now includes initializeApp as dependency
+  }, [initializeApp]);
 
   const handleLogin = async (userData) => {
     setUser(userData);
@@ -295,23 +306,31 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      // Call logout service if available
+      console.log('🚪 Logging out...');
+      
+      // ✅ Call backend logout to destroy session cookie
       if (authService && authService.logout) {
         await authService.logout();
+        console.log('✅ Backend session cleared');
       }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('❌ Logout error:', error);
+      // Continue with local logout even if backend fails
     } finally {
+      // Clear local state and storage
       setUser(null);
       setShowOnboarding(false);
-      localStorage.removeItem('token');
       localStorage.removeItem('user');
-      localStorage.removeItem('isAdmin'); // Clear admin status on logout
+      localStorage.removeItem('user_password_hash');
+      localStorage.removeItem('isAdmin');
+      
+      console.log('✅ Local storage cleared');
       
       // Optional: Clear ICN data cache on logout
       if (process.env.REACT_APP_CLEAR_CACHE_ON_LOGOUT === 'true') {
         icnDataService.clearCache();
         setDataLoaded(false);
+        console.log('✅ Cache cleared');
       }
     }
   };
@@ -330,7 +349,7 @@ function App() {
     setShowOnboarding(false);
     
     // Track onboarding completion
-    console.log('Onboarding completed with preferences:', preferences);
+    console.log('✅ Onboarding completed with preferences:', preferences);
     
     // Optional: Send preferences to backend
     if (authService && authService.updateProfile) {
@@ -352,7 +371,7 @@ function App() {
     setUser(updatedUser);
     setShowOnboarding(false);
     
-    console.log('Onboarding skipped');
+    console.log('⏭️ Onboarding skipped');
   };
 
   // Show loading screen
