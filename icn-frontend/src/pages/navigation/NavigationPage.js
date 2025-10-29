@@ -226,9 +226,18 @@ function NavigationPage() {
           
           const primaryType = capabilityTypes.length > 0 ? capabilityTypes[0] : 'Supplier';
           
-          // 🔧 FIXED: Remove random distance fallback
-          // Distance will be calculated when user location is obtained
-          const companyData = {
+          // 🔧 FIXED: Calculate distance immediately if userLocation is available
+          let calculatedDistance = null;
+          if (userLocation && company.latitude && company.longitude) {
+            calculatedDistance = calculateDistance(
+              userLocation.lat,
+              userLocation.lng,
+              company.latitude,
+              company.longitude
+            );
+          }
+          
+          return {
             ...company,
             capabilities,
             sectors,
@@ -238,29 +247,27 @@ function NavigationPage() {
             postcode: company.zip,
             address: [company.street, company.city, company.state, company.zip].filter(Boolean).join(', '),
             verified: company.verificationStatus === 'verified',
-            distance: null, // Will be calculated with user location
+            distance: calculatedDistance, // Will be null if userLocation not available yet
             position: {
               lat: company.latitude || -37.8136,
               lng: company.longitude || 144.9631
             }
           };
-          
-          // 🆕 Calculate distance immediately if we have user location
-          if (userLocation && company.latitude && company.longitude) {
-            companyData.distance = calculateDistance(
-              userLocation.lat,
-              userLocation.lng,
-              company.latitude,
-              company.longitude
-            );
-          }
-          
-          return companyData;
         });
         
         // Sort by distance if available
         if (userLocation) {
-          mappedCompanies.sort((a, b) => (a.distance || 999999) - (b.distance || 999999));
+          mappedCompanies.sort((a, b) => {
+            const distA = a.distance !== null ? a.distance : 999999;
+            const distB = b.distance !== null ? b.distance : 999999;
+            return distA - distB;
+          });
+          console.log('✅ Companies loaded with distances. Closest:', 
+            mappedCompanies[0]?.name, 
+            mappedCompanies[0]?.distance?.toFixed(2) + ' km'
+          );
+        } else {
+          console.log('⏳ Companies loaded. Waiting for user location to calculate distances.');
         }
         
         // 🔍 DIAGNOSTIC: Log first 3 companies to see their capabilities
@@ -515,17 +522,20 @@ function NavigationPage() {
       }
     }
     
-    // 🔧 FIXED: Distance filter - only filter companies with calculated distances
-    if (filters.distance && filters.distance > 0) {
+    // 🔧 FIXED: Distance filter - only apply if user location is available
+    if (userLocation && filters.distance && filters.distance > 0) {
       const beforeCount = filtered.length;
       filtered = filtered.filter(company => {
-        // Skip companies without distance calculation
+        // If company doesn't have distance calculated yet, keep it
         if (company.distance === null || company.distance === undefined) {
-          return false;
+          return true;
         }
+        // If company has distance, apply the filter
         return company.distance <= filters.distance;
       });
       console.log(`📏 Distance filter: ${beforeCount} -> ${filtered.length} companies (within ${filters.distance} km)`);
+    } else if (!userLocation && filters.distance && filters.distance > 0) {
+      console.log('⏳ Waiting for user location before applying distance filter');
     }
     
     if (filters.verified) {
