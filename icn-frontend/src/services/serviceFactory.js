@@ -6,10 +6,10 @@ import api from './api';
 import authService from './authService';
 import { companyService } from './companyService';
 import { bookmarkService } from './bookmarkService';
-import { savedSearchService } from './savedSearchService';
-import { subscriptionService } from './subscriptionService';
-import { exportService } from './exportService';
-import { adminService } from './adminService';
+import { mockSavedSearchService } from './mockSavedSearchService';
+import { mockSubscriptionService } from './mockSubscriptionService';
+import { mockExportService } from './mockExportService';
+import { mockAdminService } from './mockAdminService';
 
 // Import geocoding service (ONLY for mock mode)
 import geocodingService from './geocodingService';
@@ -38,10 +38,10 @@ export const getService = (serviceName) => {
     auth: authService,
     company: companyService,
     bookmark: bookmarkService,
-    savedSearch: savedSearchService,
-    subscription: subscriptionService,
-    export: exportService,
-    admin: adminService,
+    savedSearch: mockSavedSearchService,
+    subscription: mockSubscriptionService,
+    export: mockExportService,
+    admin: mockAdminService,
     geocoding: null,  // NOT needed - coordinates come from database
     icnData: null,    // NOT needed - data comes from backend
     api: api

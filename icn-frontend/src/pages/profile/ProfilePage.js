@@ -268,12 +268,6 @@ function ProfilePage() {
           localStorage.setItem('user', JSON.stringify(updatedUser));
           setUser(updatedUser);
           setEditMode(false);
-          
-          alert(
-            `⚠️  Profile updated in UI only.\n\n` +
-            `Backend returned empty response.\n\n` +
-            `Please LOG OUT and LOG IN to verify if database was updated.`
-          );
         }
       } else {
         throw new Error(`Unexpected status code: ${response.status}`);
