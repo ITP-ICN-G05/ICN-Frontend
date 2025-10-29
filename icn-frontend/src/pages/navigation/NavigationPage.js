@@ -1,4 +1,4 @@
-// NavigationPage.js - FIXED VERSION with working filters for capabilities, sectors, and types
+// NavigationPage.js - FIXED VERSION with proper distance calculation
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FilterPanel from '../../components/search/FilterPanel';
@@ -26,6 +26,10 @@ function NavigationPage() {
   const [filterPanelOpening, setFilterPanelOpening] = useState(false);
   const [page, setPage] = useState(1);
   const pageSize = 10;
+  
+  // 🆕 ADD USER LOCATION STATE
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationError, setLocationError] = useState(null);
 
   useEffect(() => {
     // Check if user is logged in
@@ -79,11 +83,95 @@ function NavigationPage() {
   const [mapZoom, setMapZoom] = useState(10);
   const [companiesLoaded, setCompaniesLoaded] = useState(false);
 
+  // 🆕 GET USER'S LOCATION ON COMPONENT MOUNT
+  useEffect(() => {
+    getUserLocation();
+  }, []);
+
+  // 🆕 HAVERSINE FORMULA - Calculate distance between two coordinates in km
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    return distance;
+  };
+
+  // 🆕 GET USER'S CURRENT LOCATION
+  const getUserLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported by your browser');
+      // Fallback to Melbourne CBD
+      setUserLocation({ lat: -37.8136, lng: 144.9631 });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const location = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        setUserLocation(location);
+        setMapCenter(location);
+        setLocationError(null);
+        console.log('✅ User location obtained:', location);
+      },
+      (error) => {
+        console.error('❌ Error getting location:', error);
+        setLocationError(error.message);
+        // Fallback to Melbourne CBD
+        const fallbackLocation = { lat: -37.8136, lng: 144.9631 };
+        setUserLocation(fallbackLocation);
+        setMapCenter(fallbackLocation);
+        console.log('⚠️ Using fallback location (Melbourne CBD):', fallbackLocation);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000 // Cache for 5 minutes
+      }
+    );
+  };
+
   // Load companies and bookmarks first
   useEffect(() => {
     loadCompanies();
     loadBookmarks();
   }, []);
+
+  // 🆕 RECALCULATE DISTANCES WHEN USER LOCATION IS OBTAINED
+  useEffect(() => {
+    if (userLocation && companies.length > 0) {
+      console.log('🔄 Recalculating distances with user location:', userLocation);
+      const companiesWithDistance = companies.map(company => {
+        const distance = calculateDistance(
+          userLocation.lat,
+          userLocation.lng,
+          company.position.lat,
+          company.position.lng
+        );
+        return {
+          ...company,
+          distance: distance
+        };
+      });
+      
+      // Sort by distance
+      companiesWithDistance.sort((a, b) => a.distance - b.distance);
+      
+      setCompanies(companiesWithDistance);
+      console.log('✅ Distances recalculated. Closest company:', 
+        companiesWithDistance[0]?.name, 
+        companiesWithDistance[0]?.distance?.toFixed(2) + ' km'
+      );
+    }
+  }, [userLocation]);
 
   // Add page focus listeners to automatically refresh bookmark list
   useEffect(() => {
@@ -138,7 +226,9 @@ function NavigationPage() {
           
           const primaryType = capabilityTypes.length > 0 ? capabilityTypes[0] : 'Supplier';
           
-          return {
+          // 🔧 FIXED: Remove random distance fallback
+          // Distance will be calculated when user location is obtained
+          const companyData = {
             ...company,
             capabilities,
             sectors,
@@ -148,18 +238,36 @@ function NavigationPage() {
             postcode: company.zip,
             address: [company.street, company.city, company.state, company.zip].filter(Boolean).join(', '),
             verified: company.verificationStatus === 'verified',
-            distance: company.distance || (2 + Math.random() * 20),
+            distance: null, // Will be calculated with user location
             position: {
               lat: company.latitude || -37.8136,
               lng: company.longitude || 144.9631
             }
           };
+          
+          // 🆕 Calculate distance immediately if we have user location
+          if (userLocation && company.latitude && company.longitude) {
+            companyData.distance = calculateDistance(
+              userLocation.lat,
+              userLocation.lng,
+              company.latitude,
+              company.longitude
+            );
+          }
+          
+          return companyData;
         });
+        
+        // Sort by distance if available
+        if (userLocation) {
+          mappedCompanies.sort((a, b) => (a.distance || 999999) - (b.distance || 999999));
+        }
         
         // 🔍 DIAGNOSTIC: Log first 3 companies to see their capabilities
         console.log('🔍 DIAGNOSTIC - First 3 companies with capabilities:');
         mappedCompanies.slice(0, 3).forEach((company, index) => {
           console.log(`  Company ${index + 1}: ${company.name}`);
+          console.log(`    Distance: ${company.distance ? company.distance.toFixed(2) + ' km' : 'Not calculated'}`);
           console.log(`    Capabilities (${company.capabilities?.length || 0}):`, company.capabilities);
           console.log(`    Raw items (${company.items?.length || 0}):`, 
             company.items?.map(item => ({ itemName: item.itemName, capabilityType: item.capabilityType }))
@@ -187,7 +295,6 @@ function NavigationPage() {
       setLoading(false);
     }
   };
-
   // FIXED: Load bookmarks using the same method as ProfilePage
   const loadBookmarks = async () => {
     try {
@@ -273,6 +380,7 @@ function NavigationPage() {
       sectors: filters.sectors,
       capabilities: filters.capabilities,
       companyTypes: filters.companyTypes,
+      distance: filters.distance,
       totalCompanies: companies.length
     });
     
@@ -407,7 +515,18 @@ function NavigationPage() {
       }
     }
     
-    filtered = filtered.filter(company => company.distance <= filters.distance);
+    // 🔧 FIXED: Distance filter - only filter companies with calculated distances
+    if (filters.distance && filters.distance > 0) {
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(company => {
+        // Skip companies without distance calculation
+        if (company.distance === null || company.distance === undefined) {
+          return false;
+        }
+        return company.distance <= filters.distance;
+      });
+      console.log(`📏 Distance filter: ${beforeCount} -> ${filtered.length} companies (within ${filters.distance} km)`);
+    }
     
     if (filters.verified) {
       filtered = filtered.filter(company => company.verified);
@@ -724,7 +843,7 @@ function NavigationPage() {
             </div>
           )}
 
-          {company.distance && (
+          {company.distance !== null && company.distance !== undefined && (
             <div className="distance-badge">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -817,7 +936,12 @@ function NavigationPage() {
         }}>
           <div className="spinner"></div>
           <h2>Loading Companies...</h2>
-          <p style={{ color: '#666' }}>Geocoding addresses using cache</p>
+          <p style={{ color: '#666' }}>Getting your location and calculating distances</p>
+          {locationError && (
+            <p style={{ color: '#f44336', fontSize: '14px' }}>
+              Location access denied. Using default location (Melbourne CBD)
+            </p>
+          )}
         </div>
       </div>
     );
@@ -832,7 +956,14 @@ function NavigationPage() {
               {!isPanelCollapsed && (
                 <div className="overlay-inner">
                   <div className="overlay-header">
-                    <div className="overlay-title">Companies ({filteredCompanies.length})</div>
+                    <div className="overlay-title">
+                      Companies ({filteredCompanies.length})
+                      {!userLocation && (
+                        <span style={{ fontSize: '12px', color: '#ff9800', marginLeft: '8px' }}>
+                          📍 Getting location...
+                        </span>
+                      )}
+                    </div>
                     <div className="overlay-actions">
                       <button className="filter-chip" onClick={() => {
                         if (showFilterPanel) {
@@ -859,7 +990,7 @@ function NavigationPage() {
                         </svg>
                       </button>
                     </div>
-        </div>
+                  </div>
                   
                   <div className="overlay-search">
                     <div className="sidebar-search">
@@ -896,39 +1027,39 @@ function NavigationPage() {
                   </div>
                   <div className="overlay-pagination">
                     <div className="pagination-main">
-              <button 
+                      <button 
                         className="page-nav-btn page-prev"
                         onClick={goToPrevPage}
                         disabled={page === 1}
                         title="Previous page"
                       >
                         ‹
-              </button>
+                      </button>
                       <div className="page-numbers">
                         {getPageNumbers().map((num, idx) => (
                           num === '...'
                             ? <span key={`ellipsis-${idx}`} className="page-ellipsis">···</span>
                             : (
-              <button 
-                                  key={num}
-                                  className={`page-num ${page === num ? 'active' : ''}`}
-                                  onClick={() => goToPage(num)}
-              >
-                                  {num}
-              </button>
-                              )
+                              <button 
+                                key={num}
+                                className={`page-num ${page === num ? 'active' : ''}`}
+                                onClick={() => goToPage(num)}
+                              >
+                                {num}
+                              </button>
+                            )
                         ))}
-            </div>
-            <button 
+                      </div>
+                      <button 
                         className="page-nav-btn page-next"
                         onClick={goToNextPage}
                         disabled={page === totalPages}
                         title="Next page"
                       >
                         ›
-            </button>
-          </div>
-        </div>
+                      </button>
+                    </div>
+                  </div>
                   <div className="overlay-list">
                     {filteredCompanies.length > 0 ? (
                       currentCompanies.map(company => (
@@ -966,7 +1097,7 @@ function NavigationPage() {
           )}
 
           {showFilterPanel && (
-              <aside className={`filter-sidebar ${filterPanelClosing ? 'closing' : ''} ${filterPanelOpening ? 'opening' : ''}`}>
+            <aside className={`filter-sidebar ${filterPanelClosing ? 'closing' : ''} ${filterPanelOpening ? 'opening' : ''}`}>
               <div className="filter-sidebar-header">
                 <h3>Filters</h3>
                 <button 
@@ -998,30 +1129,30 @@ function NavigationPage() {
                   Apply Filters
                 </button>
               </div>
-              </aside>
-            )}
+            </aside>
+          )}
 
           <main className="view-content fullscreen">
             <div className="map-stage">
-                  {filteredCompanies.length > 0 ? (
-                    <>
-                      <SearchMap
-                        companies={filteredCompanies}
-                        selectedCompany={selectedCompany}
-                        onCompanySelect={handleCompanySelect}
-                        center={mapCenter}
-                        zoom={mapZoom}
-                        height={'calc(100vh - 0px)'}
-                      />
-                    </>
-                  ) : (
-                    <div className="no-results-map">
-                      <p>No companies match your filters</p>
-                      <p className="no-results-hint">Try adjusting your search or filters</p>
-                    </div>
-                  )}
+              {filteredCompanies.length > 0 ? (
+                <>
+                  <SearchMap
+                    companies={filteredCompanies}
+                    selectedCompany={selectedCompany}
+                    onCompanySelect={handleCompanySelect}
+                    center={mapCenter}
+                    zoom={mapZoom}
+                    height={'calc(100vh - 0px)'}
+                  />
+                </>
+              ) : (
+                <div className="no-results-map">
+                  <p>No companies match your filters</p>
+                  <p className="no-results-hint">Try adjusting your search or filters</p>
                 </div>
-            </main>
+              )}
+            </div>
+          </main>
         </div>
       </section>
     </div>
