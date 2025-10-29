@@ -55,7 +55,7 @@ function ProfilePage() {
     };
   }, []);
 
-  const loadUserData = () => {
+  const loadUserData = async () => {
     const userData = JSON.parse(localStorage.getItem('user'));
     if (!userData) { navigate('/login'); return; }
     setUser(userData);
@@ -67,23 +67,18 @@ function ProfilePage() {
 
   const loadBookmarks = async () => {
     try {
-      // Fix: Get latest user data directly from backend instead of relying on localStorage
+      // Get user data from localStorage
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const hashedPassword = localStorage.getItem('user_password_hash');
       
-      if (!user.email || !hashedPassword) {
-        console.log('User not logged in or missing authentication info');
+      if (!user.email) {
+        console.log('User not logged in');
         setBookmarkedCompanies([]);
         return;
       }
       
-      // Get latest user data directly from backend
-      const loginResponse = await api.post(`/user?email=${encodeURIComponent(user.email)}&password=${encodeURIComponent(hashedPassword)}`);
-      const latestUserData = loginResponse.data;
-      
-      if (latestUserData && latestUserData.organisationCards) {
-        // Use latest user data to get bookmarks
-        const organisationIds = latestUserData.organisationCards
+      // Use organisationCards from localStorage (updated during login)
+      if (user.organisationCards && Array.isArray(user.organisationCards)) {
+        const organisationIds = user.organisationCards
           .map(card => card.id)
           .filter(id => id && id.trim() !== '');
         
@@ -93,6 +88,7 @@ function ProfilePage() {
             queryParams.append('ids', id);
           });
           
+          console.log('📚 Loading bookmarks for IDs:', organisationIds);
           const response = await api.get(`/organisation/generalByIds?${queryParams.toString()}`);
           const data = response.data || [];
           
@@ -137,11 +133,12 @@ function ProfilePage() {
     setRecentActivity([
       { id: 1, type: 'view', company: 'TechCorp Industries', date: '2024-12-15', time: '14:30' },
       { id: 2, type: 'search', query: 'Manufacturing services', date: '2024-12-15', time: '10:15' },
-      { id: 3, type: 'bookmark', company: 'Global Supply Co', date: '2024-12-14', time: '16:45' }
+      { id: 3, type: 'bookmark', company: 'Global Supply Co', date: '2024-14', time: '16:45' }
     ]);
   };
 
   const handleEditProfile = () => setEditMode(true);
+  
   const handleSaveProfile = async () => {
     try {
       // Get current user data and password hash
@@ -154,48 +151,187 @@ function ProfilePage() {
         return;
       }
       
-      // Prepare update data for backend API
-      const updateData = {
+      if (!currentUser.id) {
+        alert('User ID missing. Please log in again.');
+        navigate('/login');
+        return;
+      }
+      
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📋 PROFILE UPDATE - COMPREHENSIVE DEBUG');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('\n🔍 CURRENT USER DATA FROM LOCALSTORAGE:');
+      console.log(JSON.stringify(currentUser, null, 2));
+      console.log('\n🔑 Password hash:', hashedPassword ? `${hashedPassword.substring(0, 15)}...` : 'MISSING!');
+      console.log('\n📝 NEW NAME TO SAVE:', formData.name);
+      
+      // Prepare COMPLETE update payload with ALL fields
+      const userToUpdate = {
         id: currentUser.id,
-        email: currentUser.email, // Keep original email, don't allow changes
-        name: formData.name, // Only update name
-        password: hashedPassword, // Current password for authentication
-        organisationIds: currentUser.organisationIds || [],
-        premium: currentUser.premium || 0,
-        subscribeDueDate: currentUser.subscribeDueDate || ''
+        email: currentUser.email,
+        name: formData.name,
+        password: hashedPassword
       };
       
-      console.log('📤 Updating profile via backend API...');
+      console.log('\n📤 SENDING PUT REQUEST TO: /api/user');
+      console.log('📦 REQUEST PAYLOAD (what we\'re sending to backend):');
+      console.log(JSON.stringify(userToUpdate, null, 2));
+      console.log('\n⚠️  NOTE: Sending DIRECT fields (no "User" wrapper) for Spring Boot backend');
+      console.log('\n⏳ Waiting for backend response...');
       
-      // Call backend API to update user information
-      const response = await api.put('/user', updateData);
+      // Send update request
+      const response = await api.put('/user', userToUpdate);
       
-      if (response.status === 200) {
-        console.log('✅ Profile updated successfully!');
+      console.log('\n✅ BACKEND RESPONSE RECEIVED!');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📊 Response Status:', response.status, response.statusText);
+      console.log('📄 Response Data (what backend sent back):');
+      console.log(JSON.stringify(response.data, null, 2));
+      console.log('📋 Response Headers:', response.headers);
+      
+      // Verify the response
+      if (response.status === 201 || response.status === 200) {
+        console.log('\n✅ API returned SUCCESS status code!');
         
-        // Update local storage with new data
-        const updatedUser = { ...currentUser, name: formData.name };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        setUser(updatedUser);
-        setEditMode(false);
-        
-        // Show success message
-        alert('Profile updated successfully!');
+        // CRITICAL: Check if backend actually updated the data
+        if (response.data && typeof response.data === 'object') {
+          console.log('\n🔍 VERIFYING DATABASE UPDATE:');
+          
+          // Check each field
+          if (response.data.name !== undefined) {
+            if (response.data.name === formData.name) {
+              console.log('✅ Backend confirms name WAS UPDATED to:', response.data.name);
+              console.log('   This suggests database was updated successfully!');
+            } else {
+              console.warn('⚠️  WARNING: Backend returned DIFFERENT name!');
+              console.warn('   Expected:', formData.name);
+              console.warn('   Got:', response.data.name);
+              console.warn('   This may mean database was NOT updated!');
+            }
+          } else {
+            console.warn('⚠️  WARNING: Backend did NOT return "name" field in response!');
+            console.warn('   Cannot confirm if database was updated.');
+          }
+          
+          // Check if response has an ID (confirms it found the user)
+          if (response.data.id) {
+            console.log('✅ Response includes user ID:', response.data.id);
+          } else {
+            console.warn('⚠️  Response missing user ID');
+          }
+          
+          // Use backend response as source of truth
+          const updatedUser = {
+            ...currentUser,
+            ...response.data,
+            name: formData.name  // Ensure our change is always included
+          };
+          
+          console.log('\n💾 UPDATING LOCALSTORAGE WITH:');
+          console.log(JSON.stringify(updatedUser, null, 2));
+          
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          setUser(updatedUser);
+          setEditMode(false);
+          
+          // Reload UI
+          await loadUserData();
+          
+          console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          console.log('🎉 UPDATE COMPLETE!');
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          console.log('⚠️  CRITICAL: TO VERIFY DATABASE WAS ACTUALLY UPDATED:');
+          console.log('   1. LOG OUT (Sign Out button)');
+          console.log('   2. LOG IN again with your credentials');
+          console.log('   3. Go to Profile page');
+          console.log('   4. Check if name is:', formData.name);
+          console.log('   5. If YES → Database was updated! ✅');
+          console.log('   6. If NO → Database was NOT updated ❌');
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+          
+          alert(
+            `✅ Profile update request successful!\n\n` +
+            `Updated name: "${formData.name}"\n\n` +
+            `⚠️  TO VERIFY DATABASE UPDATE:\n` +
+            `1. Log out\n` +
+            `2. Log in again\n` +
+            `3. Check if name is still "${formData.name}"\n\n` +
+            `Check browser console (F12) for detailed logs.`
+          );
+        } else {
+          console.warn('\n⚠️  WARNING: Backend returned EMPTY or INVALID response!');
+          console.warn('Response data:', response.data);
+          console.warn('This may mean database was NOT updated.');
+          
+          // Fallback: update localStorage with our data
+          const updatedUser = { ...currentUser, name: formData.name };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          setUser(updatedUser);
+          setEditMode(false);
+          
+          alert(
+            `⚠️  Profile updated in UI only.\n\n` +
+            `Backend returned empty response.\n\n` +
+            `Please LOG OUT and LOG IN to verify if database was updated.`
+          );
+        }
       } else {
-        throw new Error('Update failed');
+        throw new Error(`Unexpected status code: ${response.status}`);
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.error('❌ UPDATE FAILED!');
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.error('Error type:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Full error object:', error);
+      
+      if (error.response) {
+        console.error('\n📛 Backend Error Response:');
+        console.error('Status:', error.response.status);
+        console.error('Status Text:', error.response.statusText);
+        console.error('Data:', error.response.data);
+        console.error('Headers:', error.response.headers);
+      }
+      
+      if (error.config) {
+        console.error('\n📤 Request that failed:');
+        console.error('URL:', error.config.url);
+        console.error('Method:', error.config.method);
+        console.error('Data sent:', error.config.data);
+      }
+      
+      const backendError = error.response?.data?.error || error.response?.data?.message || 'Unknown error';
       
       if (error.response?.status === 400) {
-        alert('Invalid data. Please check your information and try again.');
+        alert(
+          `❌ Bad Request (400)\n\n` +
+          `Error: ${backendError}\n\n` +
+          `The backend rejected our data.\n` +
+          `Check console (F12) for details about what was sent.`
+        );
       } else if (error.response?.status === 404) {
-        alert('Update failed. Please try again or contact support.');
+        const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
+        alert(
+          `❌ User Not Found (404)\n\n` +
+          `User ID: ${userId}\n\n` +
+          `The backend cannot find this user in the database.\n\n` +
+          `Solution: LOG OUT and LOG IN again to refresh your user data.`
+        );
+      } else if (error.response?.status === 409) {
+        alert(`❌ Conflict (409)\n\n${backendError}\n\nPlease try again.`);
       } else {
-        alert('Failed to update profile. Please try again.');
+        alert(
+          `❌ Update Failed\n\n` +
+          `Error: ${backendError}\n\n` +
+          `Check browser console (F12) for detailed logs.`
+        );
       }
+      
+      console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     }
   };
+  
   const handleCancelEdit = () => { 
     setFormData({ 
       name: user.name || '', 
@@ -207,7 +343,9 @@ function ProfilePage() {
     }); 
     setEditMode(false); 
   };
+  
   const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  
   const removeBookmark = async (id) => { 
     try { 
       await bookmarkService.removeBookmark(id); 
@@ -219,10 +357,14 @@ function ProfilePage() {
       setBookmarkedCompanies(bookmarkedCompanies.filter(c => c.id !== id)); 
     }
   };
+  
   const deleteSavedSearch = async (id) => { try { await savedSearchService.deleteSavedSearch(id); } catch {} setSavedSearches(savedSearches.filter(s => s.id !== id)); };
   const runSavedSearch = (search) => navigate(`/search?q=${encodeURIComponent(search.query)}`);
   const viewCompany = (id) => navigate(`/company/${id}`);
-  const handleChangePassword = () => alert('Change password functionality');
+  
+  // Navigate to forget password page
+  const handleChangePassword = () => navigate('/forgot-password');
+  
   const handleExportData = () => { if (window.confirm('Export your data?')) alert('Data export initiated.'); };
   const handlePrivacyPolicy = () => window.open('https://icn.org.au/icn_vic/', '_blank');
   const handleTermsOfService = () => window.open('https://icn.org.au/icn_vic/', '_blank');
@@ -751,4 +893,3 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
-

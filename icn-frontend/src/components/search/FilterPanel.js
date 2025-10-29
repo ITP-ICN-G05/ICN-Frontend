@@ -1,4 +1,4 @@
-// FilterPanel.js - Enhanced with custom dropdown and all tier filters
+// FilterPanel.js - CORRECTED with real data from Excel
 import React from 'react';
 import { useTierAccess } from '../../hooks/useTierAccess';
 import './FilterPanel.css';
@@ -8,11 +8,61 @@ function FilterPanel({ filters, onFilterChange, onClearFilters, collapsedSection
   const [stateDropdownOpen, setStateDropdownOpen] = React.useState(false);
   const dropdownRef = React.useRef(null);
   
-  // Filter options
-  const sectors = ['Technology', 'Manufacturing', 'Services', 'Logistics', 'Environment', 'Automotive'];
-  const capabilities = ['Manufacturing', 'Supply Chain', 'Design', 'Assembly', 'Distribution', 'Maintenance'];
+  // ============================================================================
+  // CORRECTED FILTER OPTIONS - Based on actual Excel data
+  // ============================================================================
+  
+  // Real Sector Names from Excel (15 sectors)
+  const sectors = [
+    'Power Transmission',
+    'Fixtures, Fitting & Equipment',
+    'Renewables/ Wind',
+    'Emerging Storage & Generation',
+    'Renewables/ Solar',
+    'Renewables/ Battery',
+    'Additive Manufacturing',
+    'Critical Minerals',
+    'Textiles, Clothing & Footwear',
+    'Prefabricated Construction',
+    'HVAC',
+    'Hydrogen Generation & Storage',
+    'Building Information Modelling',
+    'Electric Vehicle Charging Stations',
+    'Rolling Stock'
+  ];
+  
+  // Real Company Types (Capability Types) from Excel (11 types)
+  const companyTypes = [
+    'Service Provider',
+    'Manufacturer',
+    'Item Supplier',
+    'Supplier',
+    'Designer',
+    'Parts Supplier',
+    'Assembler',
+    'Retailer',
+    'Wholesaler',
+    'Project Management',
+    'Manufacturer (Parts)'
+  ];
+  
+  // Capabilities - These should ideally come from API
+  // For now, using common capability categories
+  const capabilities = [
+    'Manufacturing',
+    'Design',
+    'Assembly',
+    'Supply Chain',
+    'Distribution',
+    'Maintenance',
+    'Quality Control',
+    'Engineering',
+    'Installation',
+    'Consulting'
+  ];
+  
+  // Other filters remain the same
   const companySizes = ['Small', 'Medium', 'Large'];
-  const companyTypes = ['Supplier', 'Manufacturer', 'Service Provider', 'Assembler'];
   const ownershipTypes = ['Female-owned', 'First Nations-owned', 'Social Enterprise', 'Australian Disability Enterprise'];
   const certifications = ['ISO 9001', 'ISO 14001', 'AS/NZS 4801', 'Quality Assurance'];
   const states = ['All', 'VIC', 'NSW', 'QLD', 'SA', 'WA', 'NT', 'TAS', 'ACT', 'SI', 'NI'];
@@ -170,7 +220,7 @@ function FilterPanel({ filters, onFilterChange, onClearFilters, collapsedSection
         )}
       </div>
 
-      {/* Company Type Filter */}
+      {/* Company Type Filter - CORRECTED */}
       <div className="filter-group">
         <h4 className="filter-group-header" onClick={() => onToggleSection('companyTypes')}>
           Company Type
@@ -192,7 +242,7 @@ function FilterPanel({ filters, onFilterChange, onClearFilters, collapsedSection
         )}
       </div>
 
-      {/* Sectors Filter */}
+      {/* Sectors Filter - CORRECTED */}
       <div className="filter-group">
         <h4 className="filter-group-header" onClick={() => onToggleSection('sectors')}>
           Sectors
@@ -214,7 +264,7 @@ function FilterPanel({ filters, onFilterChange, onClearFilters, collapsedSection
         )}
       </div>
 
-      {/* Capabilities Filter */}
+      {/* Capabilities Filter - CORRECTED */}
       <div className="filter-group">
         <h4 className="filter-group-header" onClick={() => onToggleSection('capabilities')}>
           Capabilities

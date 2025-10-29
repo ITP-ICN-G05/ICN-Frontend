@@ -17,8 +17,15 @@ function HomePage() {
   const observerRef = useRef(null);
   const [sectors, setSectors] = useState([
     { 
-      name: 'Service Provider', 
-      count: 245, 
+      name: 'Power Transmission',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+      )
+    },
+    { 
+      name: 'Fixtures, Fitting & Equipment',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
@@ -26,8 +33,57 @@ function HomePage() {
       )
     },
     { 
-      name: 'Item Supplier', 
-      count: 189, 
+      name: 'Renewables/ Wind',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
+        </svg>
+      )
+    },
+    { 
+      name: 'Emerging Storage & Generation',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="1" y="6" width="18" height="12" rx="2" ry="2"/>
+          <line x1="23" y1="13" x2="23" y2="11"/>
+        </svg>
+      )
+    },
+    { 
+      name: 'Renewables/ Solar',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      )
+    },
+    { 
+      name: 'Renewables/ Battery',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="1" y="6" width="18" height="12" rx="2" ry="2"/>
+          <line x1="23" y1="13" x2="23" y2="11"/>
+        </svg>
+      )
+    },
+    { 
+      name: 'Additive Manufacturing',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      )
+    },
+    { 
+      name: 'Critical Minerals',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -37,8 +93,15 @@ function HomePage() {
       )
     },
     { 
-      name: 'Manufacturer', 
-      count: 156, 
+      name: 'Textiles, Clothing & Footwear',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+        </svg>
+      )
+    },
+    { 
+      name: 'Prefabricated Construction',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -47,34 +110,48 @@ function HomePage() {
       )
     },
     { 
-      name: 'Retailer', 
-      count: 112, 
+      name: 'HVAC',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <path d="M16 10a4 4 0 0 1-8 0"/>
+          <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2"/>
         </svg>
       )
     },
     { 
-      name: 'Component', 
-      count: 98, 
+      name: 'Hydrogen Generation & Storage',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
-          <path d="M20.2 20.2l-4.9-4.9m-6.6-6.6L3.8 3.8"/>
-          <path d="M20.2 3.8l-4.9 4.9m-6.6 6.6L3.8 20.2"/>
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
         </svg>
       )
     },
     { 
-      name: 'Both', 
-      count: 67, 
+      name: 'Building Information Modelling',
       icon: (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <line x1="3" y1="9" x2="21" y2="9"/>
+          <line x1="9" y1="21" x2="9" y2="9"/>
+        </svg>
+      )
+    },
+    { 
+      name: 'Electric Vehicle Charging Stations',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+      )
+    },
+    { 
+      name: 'Rolling Stock',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="4" width="16" height="16" rx="2" ry="2"/>
+          <circle cx="9" cy="9" r="2"/>
+          <circle cx="15" cy="15" r="2"/>
         </svg>
       )
     }
@@ -191,6 +268,7 @@ function HomePage() {
       return;
     }
     
+    // Navigate with sector parameter
     navigate(`/companies?sector=${encodeURIComponent(sectorName)}`);
   };
 
@@ -294,7 +372,6 @@ function HomePage() {
               >
                 <span className="sector-icon">{sector.icon}</span>
                 <span className="sector-name">{sector.name}</span>
-                <span className="sector-count">{sector.count}</span>
               </button>
             ))}
           </div>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getCompanyService, getExportService, getBookmarkService } from '../../services/serviceFactory';
 import './CompaniesPage.css';
 
 function CompaniesPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const companyService = getCompanyService(); 
   const exportService = getExportService();
   const bookmarkService = getBookmarkService(); 
@@ -24,14 +25,29 @@ function CompaniesPage() {
   const [itemsPerPage] = useState(12);
   const [bookmarkedCompanies, setBookmarkedCompanies] = useState([]);
 
-
-
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user'));
     setUser(userData);
-    loadCompanies();
+    
+    // Read sector parameter from URL (from HomePage)
+    const sectorParam = searchParams.get('sector');
+    console.log('📍 URL sector parameter:', sectorParam);
+    
+    if (sectorParam) {
+      setSelectedSector(sectorParam);  // Use existing selectedSector state
+    } else {
+      setSelectedSector('all');
+    }
+    
     loadBookmarks();
-  }, []);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (user !== null) {
+      console.log('🔄 Loading companies for sector:', selectedSector);
+      loadCompanies();
+    }
+  }, [selectedSector, user]);
 
   useEffect(() => {
     console.log('📅 useEffect triggered - companies length:', companies.length);
@@ -49,27 +65,28 @@ function CompaniesPage() {
     
     try {
       console.log('🔄 Loading companies...');
-      const loadedCompanies = await companyService.getAll({
-        limit: 999999
-      });
-
+      console.log('📊 Selected sector:', selectedSector);
       
+      // Build API parameters
+      const params = {
+        limit: 999999
+      };
+      
+      // If sector filter is active, send to API
+      if (selectedSector !== 'all') {
+        params.filterParameters = {
+          sectorName: selectedSector  // ← KEY: Filter by sectorName field
+        };
+        console.log('📤 Sending filterParameters to API:', params.filterParameters);
+      }
+      
+      const loadedCompanies = await companyService.getAll(params);
       
       console.log('📊 Loaded companies:', loadedCompanies.length);
-      console.log('📊 Setting companies state with:', loadedCompanies.length, 'companies');
       setCompanies(loadedCompanies);
-      console.log('📊 Companies state set successfully');
     } catch (error) {
       console.error('❌ Error loading companies:', error);
-      console.error('❌ Error details:', error.message);
-      console.error('❌ Error stack:', error.stack);
-      console.error('❌ Error type:', typeof error);
-      console.error('❌ Error name:', error.name);
-      console.error('❌ Full error object:', error);
       setCompanies([]);
-      // Test field to check if error handling is executed
-      window.errorExecuted = true;
-      window.lastError = error.message;
     } finally {
       setLoading(false);
     }
@@ -83,32 +100,89 @@ function CompaniesPage() {
     console.log('📊 Selected capability:', selectedCapability);
     
     let filtered = [...companies];
-
-    // Search filter
+  
+    // If no filters active, show all companies
+    if (!searchTerm && selectedSector === 'all' && selectedCapability === 'all') {
+      console.log('📊 No active filters, showing all companies');
+      setFilteredCompanies(filtered);
+      return;
+    }
+  
+    // SEARCH FILTER - Fixed to work with actual API structure
     if (searchTerm) {
-      filtered = filtered.filter(company =>
-        company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (company.description && company.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        company.type.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(company => {
+        // Search in company name
+        if (company.name && company.name.toLowerCase().includes(searchLower)) {
+          return true;
+        }
+        
+        // Search in city
+        if (company.city && company.city.toLowerCase().includes(searchLower)) {
+          return true;
+        }
+        
+        // Search in state
+        if (company.state && company.state.toLowerCase().includes(searchLower)) {
+          return true;
+        }
+        
+        // Search in street address
+        if (company.street && company.street.toLowerCase().includes(searchLower)) {
+          return true;
+        }
+        
+        // Search in items (capabilities and sectors)
+        if (company.items && Array.isArray(company.items)) {
+          return company.items.some(item => {
+            // Search in item name
+            if (item.itemName && item.itemName.toLowerCase().includes(searchLower)) {
+              return true;
+            }
+            // Search in detailed item name
+            if (item.detailedItemName && item.detailedItemName.toLowerCase().includes(searchLower)) {
+              return true;
+            }
+            // Search in capability type
+            if (item.capabilityType && item.capabilityType.toLowerCase().includes(searchLower)) {
+              return true;
+            }
+            // Search in sector name
+            if (item.sectorName && item.sectorName.toLowerCase().includes(searchLower)) {
+              return true;
+            }
+            return false;
+          });
+        }
+        
+        return false;
+      });
     }
-
-    // Sector filter
+  
+    // SECTOR FILTER - Keep existing (working with items array)
     if (selectedSector !== 'all') {
-      filtered = filtered.filter(company =>
-        company.sectors.includes(selectedSector)
-      );
+      filtered = filtered.filter(company => {
+        if (company.items && Array.isArray(company.items)) {
+          return company.items.some(item => 
+            item.sectorName && item.sectorName === selectedSector
+          );
+        }
+        return false;
+      });
     }
-
-    // Capability filter
+  
+    // CAPABILITY FILTER - Fixed to work with items array
     if (selectedCapability !== 'all') {
-      filtered = filtered.filter(company =>
-        company.capabilities && company.capabilities.some(cap => 
-          cap.name && cap.name.toLowerCase().includes(selectedCapability.toLowerCase())
-        )
-      );
+      filtered = filtered.filter(company => {
+        if (company.items && Array.isArray(company.items)) {
+          return company.items.some(item => 
+            item.capabilityType && item.capabilityType === selectedCapability
+          );
+        }
+        return false;
+      });
     }
-
+  
     console.log('📊 Filtered companies count:', filtered.length);
     setFilteredCompanies(filtered);
   };
@@ -571,36 +645,49 @@ function CompaniesPage() {
               
               <div className="filter-group-sidebar">
                 <label className="filter-label">Sector</label>
-            <select 
-              value={selectedSector} 
-              onChange={(e) => setSelectedSector(e.target.value)}
+                <select 
+                  value={selectedSector} 
+                  onChange={(e) => setSelectedSector(e.target.value)}
                   className="sidebar-select"
-            >
-              <option value="all">All Sectors</option>
-              <option value="Technology">Technology</option>
-              <option value="Manufacturing">Manufacturing</option>
-              <option value="Services">Services</option>
-              <option value="Logistics">Logistics</option>
-              <option value="Environment">Environment</option>
-              <option value="Automotive">Automotive</option>
-            </select>
+                >
+                  <option value="all">All Sectors</option>
+                  <option value="Power Transmission">Power Transmission</option>
+                  <option value="Fixtures, Fitting & Equipment">Fixtures, Fitting & Equipment</option>
+                  <option value="Renewables/ Wind">Renewables/ Wind</option>
+                  <option value="Emerging Storage & Generation">Emerging Storage & Generation</option>
+                  <option value="Renewables/ Solar">Renewables/ Solar</option>
+                  <option value="Renewables/ Battery">Renewables/ Battery</option>
+                  <option value="Additive Manufacturing">Additive Manufacturing</option>
+                  <option value="Critical Minerals">Critical Minerals</option>
+                  <option value="Textiles, Clothing & Footwear">Textiles, Clothing & Footwear</option>
+                  <option value="Prefabricated Construction">Prefabricated Construction</option>
+                  <option value="HVAC">HVAC</option>
+                  <option value="Hydrogen Generation & Storage">Hydrogen Generation & Storage</option>
+                  <option value="Building Information Modelling">Building Information Modelling</option>
+                  <option value="Electric Vehicle Charging Stations">Electric Vehicle Charging Stations</option>
+                  <option value="Rolling Stock">Rolling Stock</option>
+                </select>
               </div>
             
               <div className="filter-group-sidebar">
-                <label className="filter-label">Capability</label>
-            <select 
-              value={selectedCapability} 
-              onChange={(e) => setSelectedCapability(e.target.value)}
+                <label className="filter-label">CompanyTypes</label>
+                <select 
+                  value={selectedCapability} 
+                  onChange={(e) => setSelectedCapability(e.target.value)}
                   className="sidebar-select"
-            >
-              <option value="all">All Capabilities</option>
-              <option value="Manufacturing">Manufacturing</option>
-              <option value="Assembly">Assembly</option>
-              <option value="Design">Design</option>
-              <option value="Supply Chain">Supply Chain</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Quality Control">Quality Control</option>
-            </select>
+                >
+                  <option value="all">All CompanyTypes</option>
+                  <option value="Service Provider">Service Provider</option>
+                  <option value="Manufacturer">Manufacturer</option>
+                  <option value="Item Supplier">Item Supplier</option>
+                  <option value="Supplier">Supplier</option>
+                  <option value="Designer">Designer</option>
+                  <option value="Parts Supplier">Parts Supplier</option>
+                  <option value="Assembler">Assembler</option>
+                  <option value="Retailer">Retailer</option>
+                  <option value="Wholesaler">Wholesaler</option>
+                  <option value="Project Management">Project Management</option>
+                </select>
               </div>
 
               {/* Active filters */}

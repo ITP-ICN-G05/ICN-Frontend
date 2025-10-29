@@ -1,10 +1,11 @@
-// NavigationPage.js - Updated with all filter features and tier restrictions
+// NavigationPage.js - FIXED VERSION with working filters for capabilities, sectors, and types
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import FilterPanel from '../../components/search/FilterPanel';
 import { getCompanyService, getGeocodingService, getBookmarkService } from '../../services/serviceFactory';
 import SearchMap from '../../components/map/SearchMap';
 import { useTierAccess } from '../../hooks/useTierAccess';
+import api from '../../services/api';
 import './NavigationPage.css';
 
 function NavigationPage() {
@@ -84,6 +85,27 @@ function NavigationPage() {
     loadBookmarks();
   }, []);
 
+  // Add page focus listeners to automatically refresh bookmark list
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadBookmarks();
+      }
+    };
+
+    const handleFocus = () => {
+      loadBookmarks();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
   // Read search query from URL parameters after component mounts
   useEffect(() => {
     if (companiesLoaded) {
@@ -99,33 +121,61 @@ function NavigationPage() {
   const loadCompanies = async () => {
     try {
       setLoading(true);
-      // Directly use companyService.getAll() return value, which already includes transformCompanyData fix
       const data = await companyService.getAll({ limit: 3000 });
       
       if (Array.isArray(data) && data.length > 0) {
-        // Only add frontend-required extra fields, don't remap IDs
-        const mappedCompanies = data.map((company) => ({
-          ...company,
-          // Extract capabilities from items array
-          capabilities: (company.items || []).map(item => item.itemName).filter(Boolean),
-          // Extract sectors from items array
-          sectors: [...new Set((company.items || []).map(item => item.sectorName).filter(Boolean))],
-          // Store original items
-          items: company.items || [],
-          // Map zip to postcode for compatibility
-          postcode: company.zip,
-          // Create address string from components
-          address: [company.street, company.city, company.state, company.zip].filter(Boolean).join(', '),
-          type: company.companyType || company.type || 'supplier',
-          verified: company.verificationStatus === 'verified',
-          distance: company.distance || (2 + Math.random() * 20),
-          position: {
-            lat: company.latitude || -37.8136,
-            lng: company.longitude || 144.9631
-          }
-        }));
+        const mappedCompanies = data.map((company) => {
+          const items = company.items || [];
+          
+          // Extract unique capabilities (itemName)
+          const capabilities = [...new Set(items.map(item => item.itemName).filter(Boolean))];
+          
+          // Extract unique sectors (sectorName)
+          const sectors = [...new Set(items.map(item => item.sectorName).filter(Boolean))];
+          
+          // Extract unique capability types
+          const capabilityTypes = [...new Set(items.map(item => item.capabilityType).filter(Boolean))];
+          
+          const primaryType = capabilityTypes.length > 0 ? capabilityTypes[0] : 'Supplier';
+          
+          return {
+            ...company,
+            capabilities,
+            sectors,
+            companyTypes: capabilityTypes,
+            type: primaryType,
+            items,
+            postcode: company.zip,
+            address: [company.street, company.city, company.state, company.zip].filter(Boolean).join(', '),
+            verified: company.verificationStatus === 'verified',
+            distance: company.distance || (2 + Math.random() * 20),
+            position: {
+              lat: company.latitude || -37.8136,
+              lng: company.longitude || 144.9631
+            }
+          };
+        });
         
-        // NO geocoding needed - backend already has coordinates
+        // 🔍 DIAGNOSTIC: Log first 3 companies to see their capabilities
+        console.log('🔍 DIAGNOSTIC - First 3 companies with capabilities:');
+        mappedCompanies.slice(0, 3).forEach((company, index) => {
+          console.log(`  Company ${index + 1}: ${company.name}`);
+          console.log(`    Capabilities (${company.capabilities?.length || 0}):`, company.capabilities);
+          console.log(`    Raw items (${company.items?.length || 0}):`, 
+            company.items?.map(item => ({ itemName: item.itemName, capabilityType: item.capabilityType }))
+          );
+        });
+        
+        // 🔍 DIAGNOSTIC: Get all unique capabilities across all companies
+        const allCapabilities = new Set();
+        mappedCompanies.forEach(company => {
+          if (company.capabilities) {
+            company.capabilities.forEach(cap => allCapabilities.add(cap));
+          }
+        });
+        console.log('🔍 DIAGNOSTIC - All unique capabilities across dataset:', Array.from(allCapabilities).sort());
+        console.log(`🔍 DIAGNOSTIC - Total unique capabilities: ${allCapabilities.size}`);
+        
         setCompanies(mappedCompanies);
         setFilteredCompanies(mappedCompanies);
         setCompaniesLoaded(true);
@@ -138,22 +188,55 @@ function NavigationPage() {
     }
   };
 
+  // FIXED: Load bookmarks using the same method as ProfilePage
   const loadBookmarks = async () => {
     try {
+      // Get latest user data directly from backend instead of relying on localStorage
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (user.id) {
-        const response = await bookmarkService.getUserBookmarks();
-        const bookmarks = response.data || response;
-        if (Array.isArray(bookmarks)) {
-          const bookmarkIds = bookmarks.map(b => b.id);
-          setBookmarkedCompanies(bookmarkIds);
+      const hashedPassword = localStorage.getItem('user_password_hash');
+      
+      if (!user.email || !hashedPassword) {
+        console.log('User not logged in or missing authentication info');
+        setBookmarkedCompanies([]);
+        return;
+      }
+      
+      // Get latest user data directly from backend
+      const loginResponse = await api.post(`/user?email=${encodeURIComponent(user.email)}&password=${encodeURIComponent(hashedPassword)}`);
+      const latestUserData = loginResponse.data;
+      
+      if (latestUserData && latestUserData.organisationCards) {
+        // Use latest user data to get bookmarks
+        const organisationIds = latestUserData.organisationCards
+          .map(card => card.id)
+          .filter(id => id && id.trim() !== '');
+        
+        if (organisationIds.length > 0) {
+          const queryParams = new URLSearchParams();
+          organisationIds.forEach(id => {
+            queryParams.append('ids', id);
+          });
+          
+          const response = await api.get(`/organisation/generalByIds?${queryParams.toString()}`);
+          const data = response.data || [];
+          
+          if (Array.isArray(data) && data.length > 0) {
+            // Handle both id and companyId field names
+            const bookmarkIds = data.map(b => b.id || b.companyId).filter(id => id);
+            setBookmarkedCompanies(bookmarkIds);
+            console.log('✅ Loaded bookmarks:', bookmarkIds);
+          } else {
+            setBookmarkedCompanies([]);
+          }
+        } else {
+          setBookmarkedCompanies([]);
         }
+      } else {
+        setBookmarkedCompanies([]);
       }
     } catch (error) {
       console.error('Error loading bookmarks:', error);
-      // Fallback to localStorage
-      const localBookmarks = JSON.parse(localStorage.getItem('bookmarkedCompanies') || '[]');
-      setBookmarkedCompanies(localBookmarks);
+      setBookmarkedCompanies([]);
     }
   };
 
@@ -185,6 +268,13 @@ function NavigationPage() {
 
   const applyFilters = () => {
     let filtered = [...companies];
+    
+    console.log('🔍 Applying filters:', {
+      sectors: filters.sectors,
+      capabilities: filters.capabilities,
+      companyTypes: filters.companyTypes,
+      totalCompanies: companies.length
+    });
     
     // Search filter - search across multiple fields
     if (searchTerm && searchTerm.trim()) {
@@ -230,17 +320,91 @@ function NavigationPage() {
       });
     }
     
-    // Basic filters (all tiers)
+    // FIXED: Sector filter - match any sector
     if (filters.sectors.length > 0) {
-      filtered = filtered.filter(company =>
-        company.sectors.some(sector => filters.sectors.includes(sector))
-      );
+      filtered = filtered.filter(company => {
+        if (!company.sectors || company.sectors.length === 0) return false;
+        
+        // Check if any of the company's sectors match any of the selected filters
+        const hasMatch = company.sectors.some(companySector => 
+          filters.sectors.some(filterSector => 
+            companySector && filterSector && 
+            companySector.toLowerCase().trim() === filterSector.toLowerCase().trim()
+          )
+        );
+        
+        if (hasMatch) {
+          console.log('✅ Sector match:', company.name, 'has', company.sectors);
+        }
+        
+        return hasMatch;
+      });
+      
+      console.log(`📊 After sector filter: ${filtered.length} companies`);
     }
     
+    // FIXED: Capability filter - match any capability
     if (filters.capabilities.length > 0) {
-      filtered = filtered.filter(company =>
-        company.capabilities.some(cap => filters.capabilities.includes(cap))
-      );
+      console.log('🔍 CAPABILITY FILTER DIAGNOSTIC:');
+      console.log('  Selected filter capabilities:', filters.capabilities);
+      console.log('  Number of companies before filter:', filtered.length);
+      
+      // Sample some companies to see their capabilities
+      const sampleCompanies = filtered.slice(0, 5);
+      console.log('  Sample companies capabilities:');
+      sampleCompanies.forEach(company => {
+        console.log(`    - ${company.name}:`, company.capabilities);
+      });
+      
+      filtered = filtered.filter(company => {
+        if (!company.capabilities || company.capabilities.length === 0) {
+          return false;
+        }
+        
+        // Check if any of the company's capabilities match any of the selected filters
+        const hasMatch = company.capabilities.some(companyCap => {
+          const match = filters.capabilities.some(filterCap => {
+            const companyCapLower = (companyCap || '').toLowerCase().trim();
+            const filterCapLower = (filterCap || '').toLowerCase().trim();
+            const isMatch = companyCapLower === filterCapLower;
+            
+            // Log every comparison for first few companies
+            if (filtered.indexOf(company) < 3) {
+              console.log(`      Comparing: "${companyCapLower}" === "${filterCapLower}" = ${isMatch}`);
+            }
+            
+            return isMatch;
+          });
+          return match;
+        });
+        
+        if (hasMatch) {
+          console.log(`  ✅ MATCH: ${company.name} - capabilities:`, company.capabilities);
+        }
+        
+        return hasMatch;
+      });
+      
+      console.log(`  📊 After capability filter: ${filtered.length} companies`);
+      
+      // If no matches, let's see why
+      if (filtered.length === 0) {
+        console.log('  ⚠️ NO MATCHES FOUND!');
+        console.log('  Let me check if any company has the selected capabilities...');
+        
+        companies.slice(0, 20).forEach(company => {
+          if (company.capabilities && company.capabilities.length > 0) {
+            const matches = company.capabilities.filter(cap => 
+              filters.capabilities.some(filterCap => 
+                cap.toLowerCase().trim() === filterCap.toLowerCase().trim()
+              )
+            );
+            if (matches.length > 0) {
+              console.log(`    Found in ${company.name}:`, matches);
+            }
+          }
+        });
+      }
     }
     
     filtered = filtered.filter(company => company.distance <= filters.distance);
@@ -249,10 +413,37 @@ function NavigationPage() {
       filtered = filtered.filter(company => company.verified);
     }
     
+    // FIXED: Company type filter - match any company type
     if (filters.companyTypes.length > 0) {
-      filtered = filtered.filter(company =>
-        filters.companyTypes.includes(company.type)
-      );
+      filtered = filtered.filter(company => {
+        // Check if company's primary type matches any selected type
+        if (company.type && filters.companyTypes.some(filterType => 
+          filterType.toLowerCase().trim() === company.type.toLowerCase().trim()
+        )) {
+          console.log('✅ Type match (primary):', company.name, 'is', company.type);
+          return true;
+        }
+        
+        // Also check if any of the company's capability types match
+        if (company.companyTypes && company.companyTypes.length > 0) {
+          const hasMatch = company.companyTypes.some(companyType => 
+            filters.companyTypes.some(filterType => 
+              companyType && filterType && 
+              companyType.toLowerCase().trim() === filterType.toLowerCase().trim()
+            )
+          );
+          
+          if (hasMatch) {
+            console.log('✅ Type match (capability):', company.name, 'has', company.companyTypes);
+          }
+          
+          return hasMatch;
+        }
+        
+        return false;
+      });
+      
+      console.log(`📊 After type filter: ${filtered.length} companies`);
     }
     
     if (filters.state && filters.state !== 'All') {
@@ -324,11 +515,14 @@ function NavigationPage() {
       }
     }
     
+    console.log(`✅ Final filtered companies: ${filtered.length}`);
+    
     setFilteredCompanies(filtered);
     setPage(1);
   };
 
   const handleFilterChange = (newFilters) => {
+    console.log('📝 Filter changed:', newFilters);
     setFilters(newFilters);
   };
 
@@ -399,6 +593,7 @@ function NavigationPage() {
     return pages;
   };
 
+  // FIXED: Toggle bookmark and reload the list
   const toggleBookmark = async (companyId, e) => {
     e.stopPropagation();
     
@@ -413,25 +608,24 @@ function NavigationPage() {
     try {
       if (isCurrentlyBookmarked) {
         await bookmarkService.removeBookmark(companyId);
-        setBookmarkedCompanies(prev => prev.filter(id => id !== companyId));
+        console.log('✅ Bookmark removed');
       } else {
         await bookmarkService.addBookmark(companyId);
+        console.log('✅ Bookmark added');
+      }
+      
+      // FIXED: Reload bookmarks after operation succeeds (like ProfilePage does)
+      await loadBookmarks();
+      
+    } catch (error) {
+      console.error('❌ Bookmark error:', error);
+      
+      // Fallback to localStorage - update optimistically
+      if (isCurrentlyBookmarked) {
+        setBookmarkedCompanies(prev => prev.filter(id => id !== companyId));
+      } else {
         setBookmarkedCompanies(prev => [...prev, companyId]);
       }
-    } catch (error) {
-      console.error('Bookmark error:', error);
-      // Fallback to localStorage
-      const localBookmarks = JSON.parse(localStorage.getItem('bookmarkedCompanies') || '[]');
-      let newBookmarks;
-      
-      if (isCurrentlyBookmarked) {
-        newBookmarks = localBookmarks.filter(id => id !== companyId);
-      } else {
-        newBookmarks = [...localBookmarks, companyId];
-      }
-      
-      localStorage.setItem('bookmarkedCompanies', JSON.stringify(newBookmarks));
-      setBookmarkedCompanies(newBookmarks);
       
       if (error.message) {
         alert(error.message);
