@@ -276,7 +276,7 @@ function HomePage() {
     navigate('/signup');
   };
 
-  // 轮播控制函数
+  // Carousel control functions
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % nearbyCompanies.length);
   };
@@ -285,18 +285,18 @@ function HomePage() {
     setCurrentSlide((prev) => (prev - 1 + nearbyCompanies.length) % nearbyCompanies.length);
   };
 
-  // 自动播放
+  // Auto-play
   useEffect(() => {
     if (nearbyCompanies.length > 1) {
       const interval = setInterval(() => {
         setCurrentSlide((prev) => (prev + 1) % nearbyCompanies.length);
-      }, 5000); // 5秒自动切换
+      }, 5000); // 5Auto-switch every 5 seconds
 
       return () => clearInterval(interval);
     }
   }, [nearbyCompanies.length]);
 
-  // 滚动动画监听
+  // Scroll animation listener
   useEffect(() => {
     const observerOptions = {
       threshold: 0.1,
@@ -311,7 +311,7 @@ function HomePage() {
       });
     }, observerOptions);
 
-    // 观察所有需要动画的元素
+    // Observe all elements that need animation
     const animatedElements = document.querySelectorAll('.animate-on-scroll, .animate-fade-in-left, .animate-fade-in-right, .animate-scale-in');
     animatedElements.forEach((el) => observer.observe(el));
 
@@ -379,11 +379,11 @@ function HomePage() {
 
         <div className="hero-image">
           <div className="hero-images-container">
-            {/* 上方圆角方形图片 */}
+            {/* Top rounded square image */}
             <div className="hero-image-top">
               <img src={home1Image} alt="ICN Industrial" />
             </div>
-            {/* 下方圆角方形图片 */}
+            {/* Bottom rounded square image */}
             <div className="hero-image-bottom">
               <img src={home2Image} alt="ICN Victoria" />
             </div>
@@ -420,7 +420,7 @@ function HomePage() {
             <div className="homepage-carousel-slide" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
               {nearbyCompanies.map((company, index) => (
                 <div key={company.id} className="homepage-company-card">
-                  {/* 公司头部 - 参考CompanyDetailPage */}
+                  {/* Company header - Reference from CompanyDetailPage */}
                   <div className="homepage-card-header-section">
                     <div className="homepage-company-avatar-circle">
                       <img 
@@ -441,9 +441,9 @@ function HomePage() {
                     </div>
                   </div>
 
-                  {/* 内容区域 */}
+                  {/* Content area */}
                   <div className="homepage-company-card-content">
-                    {/* 徽章区域 */}
+                    {/* Badge area */}
                     <div className="homepage-badges-section">
                 {company.verified && (
                         <div className="homepage-verified-badge">
@@ -463,14 +463,14 @@ function HomePage() {
                       </div>
                     </div>
 
-                    {/* 能力标签 */}
+                    {/* Capability tags */}
                     <div className="homepage-capabilities-section">
                       <div className="homepage-capability-chip">Manufacturing</div>
                       <div className="homepage-capability-chip">Quality Control</div>
                       <div className="homepage-capability-chip more">+2 more</div>
               </div>
 
-                    {/* 底部按钮 */}
+                    {/* Bottom button */}
                     <div className="homepage-company-footer">
                     <button 
                       className="homepage-view-details-btn"
@@ -497,7 +497,7 @@ function HomePage() {
             </div>
           </div>
           
-          {/* 轮播控制 */}
+          {/* Carousel controls */}
           <div className="homepage-carousel-controls">
             <button 
               className="homepage-carousel-btn"

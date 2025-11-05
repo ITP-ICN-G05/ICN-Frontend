@@ -135,7 +135,7 @@
   background: #4285F4;
 }
 
-/* ==================== 自定义InfoWindow - 完全自己实现 ==================== */
+/* ==================== Custom InfoWindow - Fully Implemented ==================== */
 
 .custom-info-window {
   position: absolute;
@@ -145,7 +145,7 @@
   max-width: 320px;
 }
 
-/* 自定义关闭按钮 - 简约风格 */
+/* Custom close button - Minimalist style */
 .custom-info-window .custom-close-button,
 .custom-close-button {
   position: absolute !important;
@@ -182,7 +182,7 @@
   color: inherit !important;
 }
 
-/* 自定义尾巴 - 作为div元素 */
+/* Custom tail - As div element */
 .custom-tail {
   position: absolute;
   bottom: -20px;
@@ -197,7 +197,7 @@
   z-index: 1;
 }
 
-/* 卡片容器 - 简约设计 */
+/* Card container - Minimalist design */
 .custom-info-window .company-info-card {
   background: #FFFFFF !important;
   border: none !important;
@@ -427,7 +427,7 @@
   transform: none !important;
 }
 
-/* 自定义小尾巴 */
+/* Custom tail */
 .custom-info-window .custom-tail {
   position: absolute;
   bottom: -8px;
@@ -441,7 +441,7 @@
   filter: none;
 }
 
-/* 响应式设计 - 移动设备 */
+/* Responsive design - Mobile devices */
 @media (max-width: 768px) {
   .custom-info-window {
     max-width: 300px;
@@ -503,7 +503,7 @@
   }
 }
 
-/* 响应式设计 - 小屏幕设备 */
+/* Responsive design - Small screen devices */
 @media (max-width: 480px) {
   .custom-info-window {
     max-width: 280px;
@@ -689,7 +689,7 @@
     background: #4285F4;
   }
 
-  /* ==================== 自定义InfoWindow - 完全自己实现 ==================== */
+  /* ==================== Custom InfoWindow - Fully Implemented ==================== */
   
   .custom-info-window {
     position: absolute;
@@ -699,7 +699,7 @@
     max-width: 320px;
   }
 
-  /* 自定义关闭按钮 */
+  /* Custom close button */
   .custom-close-button {
     position: absolute;
     top: 8px;
@@ -726,7 +726,7 @@
     color: white;
   }
 
-  /* 自定义尾巴 - 作为div元素 */
+  /* Custom tail - As div element */
   .custom-tail {
     position: absolute;
     bottom: -20px;
@@ -741,7 +741,7 @@
     z-index: 1;
   }
 
-  /* 卡片容器 */
+  /* Card container */
   .custom-info-window .company-info-card {
     background: white;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08);
@@ -926,7 +926,7 @@
     box-shadow: 0 4px 8px rgba(255, 107, 53, 0.2);
   }
 
-  /* 响应式设计 - 移动设备 */
+  /* Responsive design - Mobile devices */
   @media (max-width: 768px) {
     .custom-info-window {
       max-width: 300px;
@@ -988,7 +988,7 @@
     }
   }
 
-  /* 响应式设计 - 小屏幕设备 */
+  /* Responsive design - Small screen devices */
   @media (max-width: 480px) {
     .custom-info-window {
       max-width: 280px;
