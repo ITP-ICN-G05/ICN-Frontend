@@ -59,7 +59,9 @@ class CompanyService {
     try {
       // First try using /organisation/specific endpoint
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const userId = user.id || 'guest';
+      const userId = user.id || user._id || user.userId || 'guest';
+
+      console.log('🔍 Fetching company with:', { organisationId, userId });
       
       const response = await api.get(`/organisation/specific?organisationId=${organisationId}&user=${userId}`);
       return response.data;
