@@ -1,4 +1,4 @@
-/* Profile Page - 现代卡片式设计，参考移动端和CompanyDetailPage */
+/* Profile Page - Modern card-based design, reference mobile and CompanyDetailPage */
 .profile-page {
     min-height: calc(100vh - 70px);
   background: #FAFAFA;
@@ -15,7 +15,7 @@
   }
 }
 
-/* 背景Logo水印 - 参考CompanyDetailPage */
+/* Background Logo watermark - Reference CompanyDetailPage */
 .profile-page::before {
   content: '';
   position: fixed;
@@ -52,7 +52,7 @@
   z-index: 1;
 }
 
-/* 左侧导航菜单 - 轻量化半透明设计 */
+/* Left navigation menu - Lightweight semi-transparent design */
 .profile-sidebar {
   width: 280px;
   flex-shrink: 0;
@@ -85,7 +85,7 @@
   height: 100%;
 }
 
-/* Sidebar User Summary - 轻量化 */
+/* Sidebar User Summary - Lightweight */
 .profile-sidebar-user {
   padding: 20px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -131,7 +131,7 @@
   font-weight: 500;
 }
 
-/* Navigation Menu - 轻量化设计 */
+/* Navigation Menu - Lightweight design */
 .profile-nav-menu {
   flex: 1;
   padding: 8px 0;
@@ -187,7 +187,7 @@
   color: #1B3E6F;
 }
 
-/* Sign Out Button - 轻量化 */
+/* Sign Out Button - Lightweight */
 .profile-signout-sidebar {
   width: 100%;
   display: flex;
@@ -251,7 +251,7 @@
   }
 }
 
-/* Profile Header Card - 参考移动端profileCard */
+/* Profile Header Card - Reference mobile profileCard */
 .profile-header-card {
   background: #FFFFFF;
   border-radius: 16px;
@@ -282,7 +282,7 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-/* 用户头像 - 使用独立类名避免与CompanyDetailPage冲突 */
+/* User avatar - Use unique class name to avoid conflict with CompanyDetailPage */
 .profile-user-avatar {
     width: 100px;
     height: 100px;
@@ -331,7 +331,7 @@
   gap: 6px;
 }
 
-/* Tier Badge - 轻量化半透明设计 */
+/* Tier Badge - Lightweight semi-transparent design */
 .profile-tier-badge {
   display: inline-flex;
   align-items: center;
@@ -417,7 +417,7 @@
   color: #FFFFFF;
 }
 
-/* Stats Row - 参考移动端profileStats */
+/* Stats Row - Reference mobile profileStats */
 .profile-stats {
   display: flex;
   justify-content: space-around;
@@ -451,14 +451,14 @@
   background: rgba(0, 0, 0, 0.1);
 }
 
-/* Content Sections - 卡片式设计 */
+/* Content Sections - Card-based design */
 .profile-content-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
 }
 
-/* Section Card - 参考移动端section */
+/* Section Card - Reference mobile section */
 .profile-section-card {
   background: #FFFFFF;
   border-radius: 16px;
@@ -798,7 +798,7 @@
   color: rgba(0, 0, 0, 0.4);
 }
 
-/* Settings Section - 参考移动端settingItem */
+/* Settings Section - Reference mobile settingItem */
 .profile-settings-list {
   display: flex;
   flex-direction: column;
@@ -890,7 +890,7 @@
   background: #1B3E6F;
 }
 
-/* Subscription Card - 现代轻量化设计 */
+/* Subscription Card - Modern lightweight design */
 .profile-subscription-card {
   background: #FFFFFF;
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -919,7 +919,7 @@
   margin-bottom: 28px;
 }
 
-/* Plan Badge - 蓝底白字，现代方正设计 */
+/* Plan Badge - Blue background with white text, modern square design */
 .profile-subscription-plan {
   display: inline-flex;
   align-items: center;
@@ -938,7 +938,7 @@
   height: 20px;
 }
 
-/* Features Title - 更大更醒目 */
+/* Features Title - Larger and more prominent */
 .profile-subscription-features::before {
   content: 'Your Plan Features:';
   display: block;
@@ -984,18 +984,18 @@
   margin-bottom: 0;
 }
 
-/* 给特定关键词加粗 */
+/* Bold specific keywords */
 .profile-subscription-feature {
   font-weight: 400;
 }
 
-/* Unlimited/API/Priority 等关键词会在HTML中单独标记 */
+/* Keywords like Unlimited/API/Priority will be marked separately in HTML */
 .profile-subscription-feature strong {
   font-weight: 600;
   color: rgba(0, 0, 0, 0.85);
 }
 
-/* Green checkmark icon - ICN官方绿色 */
+/* Green checkmark icon - ICN official green */
 .profile-subscription-feature::before {
   content: '';
   width: 20px;
@@ -1291,8 +1291,8 @@
   border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-/* ==================== LAYOUT FIX STYLES - 布局修复样式 ==================== */
-/* 这些样式修复了布局问题，请保留 - 使用透明边框保持盒模型 */
+/* ==================== LAYOUT FIX STYLES - Layout fix styles ==================== */
+/* These styles fix layout issues, please keep - Use transparent borders to maintain box model */
 
 .profile-page-container {
   border: 3px solid transparent !important;
@@ -1326,7 +1326,7 @@
   border: 2px solid transparent !important;
 }
 
-/* 容器尺寸信息标签（可选显示） */
+/* Container size info label (optional display) */
 .profile-page-container::after,
 .profile-main-content::after,
 .profile-overview-card::after {
@@ -1339,7 +1339,7 @@
   border-radius: 3px;
   z-index: 9999;
   pointer-events: none;
-  display: none; /* 默认隐藏，需要时改为 display: block */
+  display: none; /* Hidden by default, change to display: block when needed */
 }
 
 .profile-page-container::after {

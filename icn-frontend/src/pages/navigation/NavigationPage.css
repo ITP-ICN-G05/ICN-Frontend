@@ -152,7 +152,7 @@
     display: flex;
     flex-direction: column;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-origin: 32px 20px; /* 基于圆形按钮的位置 (left: 8px + width/2, top: 20px) */
+    transform-origin: 32px 20px; /* Based on circular button position (left: 8px + width/2, top: 20px) */
     /* Hide scrollbar for Firefox */
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
@@ -171,7 +171,7 @@
   }
 
   .overlay-toggle {
-    display: none; /* 隐藏外部切换按钮 */
+    display: none; /* Hide external toggle button */
   }
 
   .overlay-inner { display: flex; flex-direction: column; height: 100%; }
@@ -232,7 +232,7 @@
     color: #111827;
   }
 
-  /* 搜索区域 */
+  /* Search area */
   .overlay-search {
     padding: 12px 16px;
     border-bottom: 1px solid #F1F1F1;
@@ -316,7 +316,7 @@
   }
   .overlay-list-item { cursor: pointer; }
 
-  /* 无结果状态 */
+  /* No results state */
   .overlay-empty {
     display: flex;
     flex-direction: column;
@@ -388,7 +388,7 @@
   .overlay-list .card-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: rgba(0, 0, 0, 0.2); transition: all 0.25s ease; }
   .overlay-list .company-card:hover .card-arrow { color: #F6CA8B; transform: translateY(-50%) translateX(3px); }
 
-  /* 收藏按钮样式 */
+  /* Bookmark button styles */
   .overlay-list .bookmark-button {
     position: absolute;
     top: 12px;
@@ -434,22 +434,22 @@
     100% { transform: scale(1); opacity: 1; }
   }
 
-  /* 过滤面板 - 轻量化覆盖在地图上 */
+  /* Filter panel - Lightweight overlay on map */
   .filter-sidebar {
     position: absolute;
     top: 0;
-    left: 520px; /* 紧贴侧栏边缘 */
+    left: 520px; /* Adjacent to sidebar edge */
     width: 320px;
     max-height: calc(100vh - 70px);
     background: #FFFFFF;
     border: 1px solid #E5E7EB;
-    border-left: none; /* 移除左边框，与侧栏无缝连接 */
+    border-left: none; /* Remove left border, seamless connection with sidebar */
     border-radius: 0 12px 12px 0;
     z-index: 20;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
-    transform-origin: -32px 20px; /* 基于圆形按钮的位置 */
+    transform-origin: -32px 20px; /* Based on circular button position */
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     overflow: hidden;
   }
@@ -565,7 +565,7 @@
     transform: translateY(0);
   }
 
-  /* 过滤面板内容样式优化 */
+  /* Filter panel content style optimization */
   .filter-sidebar-content .filter-section {
     margin-bottom: 16px;
   }
@@ -617,7 +617,7 @@
     margin-top: 4px;
   }
 
-  /* 折叠后的圆形按钮 */
+  /* Collapsed circular button */
   .collapsed-ball {
     position: absolute;
     top: 20px;
@@ -702,18 +702,18 @@
   }
   
   .panel-content {
-    padding: 0; /* 移除padding，让卡牌自己控制间距 */
+    padding: 0; /* Remove padding, let cards control spacing */
   }
   
-  /* 确保地图上的公司卡牌样式与侧栏一致 */
+  /* Ensure company cards on map match sidebar style */
   .panel-content .company-card {
-    margin: 0; /* 移除卡牌的margin */
-    border-radius: 12px; /* 与面板保持一致 */
-    box-shadow: none; /* 移除卡牌的阴影，使用面板的阴影 */
-    cursor: pointer; /* 保持点击效果 */
+    margin: 0; /* Remove card margin */
+    border-radius: 12px; /* Keep consistent with panel */
+    box-shadow: none; /* Remove card shadow, use panel shadow */
+    cursor: pointer; /* Keep click effect */
   }
   
-  /* 移除旧的样式，因为现在使用侧栏卡牌 */
+  /* Remove old styles, now using sidebar cards */
   .panel-content h3,
   .verified-badge,
   .company-type,
@@ -724,7 +724,7 @@
   .panel-actions,
   .btn-primary,
   .btn-secondary {
-    display: none; /* 隐藏旧样式，使用新的卡牌设计 */
+    display: none; /* Hide old styles, use new card design */
   }
   
   /* List Container */
@@ -781,7 +781,7 @@
     margin-bottom: 24px;
   }
 
-  /* 地图无结果状态 */
+  /* Map No results state */
   .no-results-map {
     display: flex;
     flex-direction: column;

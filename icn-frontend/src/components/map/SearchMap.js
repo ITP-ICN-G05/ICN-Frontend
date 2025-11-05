@@ -50,7 +50,7 @@ const makeSafeFitBounds = (gmaps) => (map, points) => {
   }
 };
 
-// 自定义InfoWindow组件 - 使用OverlayView完全自己实现
+// Custom InfoWindow component - Fully implemented using OverlayView
 const CustomInfoWindow = ({ position, company, onClose }) => {
   const navigate = useNavigate();
   
@@ -86,7 +86,7 @@ const CustomInfoWindow = ({ position, company, onClose }) => {
       mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
     >
       <div className="custom-info-window">
-        {/* 关闭按钮 */}
+        {/* Close button */}
         <button 
           className="custom-close-button" 
           onClick={(e) => {
@@ -100,7 +100,7 @@ const CustomInfoWindow = ({ position, company, onClose }) => {
           </svg>
         </button>
 
-        {/* 卡片内容 */}
+        {/* Card content */}
         <div className="company-info-card">
           <div className="card-header-section">
             <div className="company-avatar-circle">
@@ -195,7 +195,7 @@ const CustomInfoWindow = ({ position, company, onClose }) => {
           </div>
         </div>
 
-        {/* CSS创建的小尾巴 */}
+        {/* Pointer tail created with CSS */}
         <div className="custom-tail"></div>
       </div>
     </OverlayView>
@@ -337,7 +337,7 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect, height = 
     };
     map.panTo?.(pos);
     map.setZoom?.(15);
-    // 显示该公司的弹窗
+    // Show the company's info window
     setActiveInfoWindow(selectedCompany.id);
   }, [selectedCompany, map]);
 
@@ -460,7 +460,7 @@ function SearchMap({ companies = [], selectedCompany, onCompanySelect, height = 
     }
   }, []);
 
-  // InfoWindow处理函数
+  // InfoWindow handler functions
   const handleMarkerClick = useCallback((company) => {
     setActiveInfoWindow(company.id);
     onCompanySelect?.(company);

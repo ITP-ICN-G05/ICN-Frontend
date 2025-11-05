@@ -1,7 +1,7 @@
-/* 导入DM Serif字体 */
+/* Import DM Serif font */
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=DM+Serif+Display:ital@0;1&display=swap');
 
-/* 页面载入动画 */
+/* Page load animation */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -99,7 +99,7 @@
   animation: fadeInUp 0.8s ease-out;
 }
 
-/* 动画类 */
+/* Animation classes */
 .animate-on-scroll {
   opacity: 0;
   transform: translateY(30px);
@@ -312,7 +312,7 @@
   height: 500px;
 }
 
-/* 下方的圆角方形图片 - 上圆下直 */
+/* Bottom rounded square image - Rounded top, straight bottom */
 .hero-image-bottom {
   position: absolute;
   bottom: 0;
@@ -332,7 +332,7 @@
   object-fit: cover;
 }
 
-/* 上方的圆角方形图片 - 上圆下直 */
+/* Top rounded square image - Rounded top, straight bottom */
 .hero-image-top {
   position: absolute;
   top: 0;
@@ -600,7 +600,7 @@
   font-weight: 500;
 }
 
-/* 连接线 */
+/* Connection line */
 .step:not(:last-child)::after {
   content: '';
   position: absolute;
@@ -618,7 +618,7 @@
   transform: translateX(-50%);
 }
 
-/* 响应式设计 */
+/* Responsive design */
 @media (max-width: 1200px) {
   .hero-section {
     gap: 60px;
@@ -939,7 +939,7 @@
   }
 }
 
-/* 强制覆盖分类按钮字体大小 */
+/* Force override category button font size */
 .home-page .sector-chip {
   font-size: 1.2rem !important;
 }

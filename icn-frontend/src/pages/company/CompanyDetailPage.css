@@ -409,13 +409,13 @@
    
    .main-content {
      min-width: 0;
-     padding: 0 !important; /* 确保没有内边距 */
+     padding: 0 !important; /* Ensure no padding */
    }
    
    .sidebar {
-     /* 对齐目标：
-        线A (.content-card 的 border-top) 和 线B (.sidebar-card 的 border-top) 应该在同一水平线
-        两个卡片都在同一个 grid 容器，应该自然对齐 */
+     /* Alignment goal:
+        Line A (.content-card border-top) and Line B (.sidebar-card border-top) should be on the same horizontal line
+        Both cards are in the same grid container and should naturally align */
      margin-top: 0;
    }
    

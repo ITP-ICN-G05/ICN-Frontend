@@ -1,4 +1,4 @@
-/* 强制样式覆盖 - 必须在最前面 */
+/* Force style override - Must be at the top */
 .homepage-company-name-text {
   position: absolute !important;
   top: 250px !important;
@@ -13,9 +13,9 @@
   z-index: 999 !important;
 }
 
-/* 主页卡牌专用样式 - 避免影响其他页面 */
+/* Homepage card-specific styles - Avoid affecting other pages */
 
-/* 轮播容器 */
+/* Carousel container */
 .homepage-carousel-container {
   position: relative;
   overflow: hidden;
@@ -32,7 +32,7 @@
   width: 100%;
 }
 
-/* 主页专用卡牌样式 */
+/* Homepage-specific card styles */
 .homepage-company-card {
   min-width: 100%;
   width: 100%;
@@ -44,7 +44,7 @@
   position: relative;
   border: none;
   padding: 0 0 40px 0;
-  height: 550px !important; /* 强制设置卡牌高度 */
+  height: 550px !important; /* Force set card height */
   flex-shrink: 0;
 }
 
@@ -69,7 +69,7 @@
   box-shadow: none;
 }
 
-/* 卡牌头部区域 */
+/* Card header area */
 .homepage-card-header-section {
   position: relative !important;
   z-index: 2 !important;
@@ -82,7 +82,7 @@
   min-height: 160px !important;
 }
 
-/* 主页专用头像样式 */
+/* Homepage-specific avatar styles */
 .homepage-company-card .homepage-company-avatar-circle,
 .homepage-card-header-section .homepage-company-avatar-circle {
   width: 140px !important;
@@ -93,7 +93,7 @@
   align-items: center !important;
   justify-content: center !important;
   flex-shrink: 0 !important;
-  margin-top: -100px !important; /* 让头像一半在横幅上，一半在信息部分 */
+  margin-top: -100px !important; /* Make avatar half on banner, half on info section */
   border: none !important;
   box-shadow: none !important;
   position: absolute !important;
@@ -148,7 +148,7 @@
   }
 }
 
-/* 公司信息区域 */
+/* Company info area */
 .homepage-company-info-section {
   flex: 1 !important;
   min-width: 0 !important;
@@ -159,7 +159,7 @@
   padding-top: 80px !important;
 }
 
-/* 主页专用公司名称样式 */
+/* Homepage-specific company name styles */
 .homepage-company-card .homepage-company-name-text,
 .homepage-company-info-section .homepage-company-name-text,
 .homepage-card-header-section .homepage-company-name-text {
@@ -191,20 +191,20 @@
   z-index: 3 !important;
 }
 
-/* 内容区域 */
+/* Content area */
 .homepage-company-card-content {
   padding: 20px 20px 20px 20px !important;
   background: white !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: flex-start !important;
-  height: calc(100% - 160px) !important; /* 减去背景图片的高度 */
+  height: calc(100% - 160px) !important; /* Subtract background image height */
   position: relative !important;
   z-index: 5 !important;
-  margin-top: 160px !important; /* 确保内容在背景图片下方 */
+  margin-top: 160px !important; /* Ensure content below background image */
 }
 
-/* 徽章区域 */
+/* Badge area */
 .homepage-badges-section {
   display: flex !important;
   gap: 12px !important;
@@ -270,7 +270,7 @@
   font-weight: 600;
 }
 
-/* 能力标签 */
+/* Capability tags */
 .homepage-capabilities-section {
   display: flex !important;
   gap: 10px !important;
@@ -299,7 +299,7 @@
   color: #6B7280;
 }
 
-/* 底部区域 */
+/* Footer area */
 .homepage-company-footer {
   display: flex !important;
   justify-content: center !important;
@@ -343,7 +343,7 @@
   left: 100%;
 }
 
-/* 按钮脉冲动画 */
+/* Button pulse animation */
 @keyframes homepageButtonPulse {
   0% {
     box-shadow: 0 6px 16px rgba(246, 202, 139, 0.2);
@@ -363,7 +363,7 @@
   box-shadow: 0 8px 25px rgba(246, 202, 139, 0.5);
 }
 
-/* 轮播控制按钮 */
+/* Carousel control buttons */
 .homepage-carousel-controls {
   display: flex;
   justify-content: center;
@@ -417,7 +417,7 @@
   border-color: rgba(34, 61, 111, 0.3);
 }
 
-/* 轻量化指示器样式 */
+/* Lightweight indicator styles */
 .homepage-page-dots-container {
   display: flex;
   gap: 8px;
@@ -445,7 +445,7 @@
 
 
 
-/* 响应式设计 */
+/* Responsive design */
 @media (max-width: 768px) {
   .homepage-carousel-container {
     max-width: 100%;
@@ -526,7 +526,7 @@
   }
 }
 
-/* 强制覆盖样式 - 最高优先级 */
+/* Force override styles - Highest priority */
 .homepage-carousel-container .homepage-company-card .homepage-card-header-section .homepage-company-info-section h3.homepage-company-name-text {
   position: absolute !important;
   top: 250px !important;

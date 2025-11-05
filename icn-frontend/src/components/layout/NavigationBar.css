@@ -175,7 +175,7 @@
     position: relative;
   }
 
-  /* 背景遮罩层 */
+  /* Background overlay */
   .dropdown-backdrop {
     position: fixed;
     top: 0;
@@ -284,7 +284,7 @@
     transform-origin: top center;
   }
 
-  /* 添加小箭头指示器 */
+  /* Add small arrow indicator */
   .user-dropdown::before {
     content: '';
     position: absolute;
@@ -397,7 +397,7 @@
     background: rgba(220, 38, 38, 0.1);
   }
 
-  /* 响应式定位 - 确保菜单不会超出屏幕 */
+  /* Responsive positioning - Ensure menu doesn't overflow screen */
   @media (max-width: 768px) {
     .user-dropdown {
       right: auto;
