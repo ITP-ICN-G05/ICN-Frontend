@@ -2636,3 +2636,189 @@
       align-items: flex-start;
     }
   }
+
+  /* ABN Section - Styled like Address Section */
+  .abn-display-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    position: relative;
+  }
+
+  .abn-display-text {
+    color: var(--black-80);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+    font-family: 'Courier New', Consolas, monospace;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .abn-display-text:hover {
+    background: rgba(34, 61, 111, 0.05);
+    color: #223D6F;
+  }
+
+  .abn-copy-btn-inline {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: rgba(34, 61, 111, 0.08);
+    border: 1px solid rgba(34, 61, 111, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #223D6F;
+    flex-shrink: 0;
+  }
+
+  .abn-copy-btn-inline:hover {
+    background: #223D6F;
+    border-color: #223D6F;
+    transform: scale(1.05);
+  }
+
+  .abn-copy-btn-inline:hover svg {
+    color: white;
+  }
+
+  .abn-copy-btn-inline:active {
+    transform: scale(0.95);
+  }
+
+  .abn-copy-tooltip-inline {
+    position: absolute;
+    right: 0;
+    top: -30px;
+    background: #223D6F;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    animation: tooltipFadeIn 0.3s ease-out;
+    box-shadow: 0 2px 8px rgba(34, 61, 111, 0.2);
+  }
+
+  .abn-copy-tooltip-inline::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    right: 14px;
+    width: 8px;
+    height: 8px;
+    background: #223D6F;
+    transform: rotate(45deg);
+  }
+
+  @keyframes tooltipFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ICN Contact Styling */
+  .contact-icn-primary {
+    background: rgba(34, 61, 111, 0.08) !important;
+    border: 1px solid rgba(34, 61, 111, 0.2);
+    margin-top: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .contact-icn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(34, 61, 111, 0.1), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .contact-icn-primary:hover::before {
+    left: 100%;
+  }
+
+  .contact-icn-primary:hover {
+    background: rgba(34, 61, 111, 0.15) !important;
+    border-color: #223D6F;
+    transform: translateX(4px);
+  }
+
+  .contact-sidebar-icon.icn-icon {
+    background: #223D6F;
+    color: white;
+  }
+
+  .contact-sidebar-icon.icn-icon svg {
+    stroke: white;
+  }
+
+  .contact-sidebar-value.icn-value {
+    color: #223D6F;
+    font-weight: 600;
+  }
+
+  /* Remove old ABN container styles if they exist */
+  .abn-container {
+    display: none !important;
+  }
+
+  /* Ensure overview sections have consistent spacing */
+  .overview-section {
+    margin-bottom: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--black-20);
+    border-left: 4px solid #223D6F;
+  }
+
+  .overview-section:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .abn-display-container {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    
+    .abn-display-text {
+      font-size: 0.875rem;
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .abn-copy-btn-inline {
+      width: 28px;
+      height: 28px;
+    }
+    
+    .abn-copy-tooltip-inline {
+      top: auto;
+      bottom: -30px;
+    }
+    
+    .abn-copy-tooltip-inline::after {
+      bottom: auto;
+      top: -4px;
+    }
+  }

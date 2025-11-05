@@ -210,13 +210,13 @@ class MockDataEnricher {
       
       // Business details - only if missing
       revenue: company.revenue || (Math.random() > 0.6 ? this.generateRevenue() : null),
-      abn: company.abn || (Math.random() > 0.7 ? this.generateABN() : null),
+      abn: company.abn || this.generateABN(), // ALWAYS generate ABN if missing
       yearEstablished: company.yearEstablished || (Math.random() > 0.5 ? this.generateYearEstablished() : null),
       
-      // Contact info - only if missing, with varying probability
-      phone: company.phone || company.phoneNumber || (Math.random() > 0.4 ? this.generatePhone() : null),
-      phoneNumber: company.phoneNumber || company.phone || (Math.random() > 0.4 ? this.generatePhone() : null),
-      email: company.email || (Math.random() > 0.5 ? this.generateEmail(company.name) : null),
+      // Contact info - DON'T generate phone/email, only website
+      phone: null, // Always null - contact only through ICN
+      phoneNumber: null, // Always null - contact only through ICN
+      email: null, // Always null - contact only through ICN
       website: company.website || (Math.random() > 0.6 ? this.generateWebsite(company.name) : null),
       
       // Ownership - only if missing
