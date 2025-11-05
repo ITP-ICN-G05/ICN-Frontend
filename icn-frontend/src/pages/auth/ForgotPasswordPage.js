@@ -20,7 +20,7 @@ function ForgotPasswordPage() {
   const [countdown, setCountdown] = useState(0);
   const [isCountdownActive, setIsCountdownActive] = useState(false);
 
-  // 倒计时效果
+  // Countdown effect
   useEffect(() => {
     let timer;
     if (isCountdownActive && countdown > 0) {
@@ -36,7 +36,7 @@ function ForgotPasswordPage() {
   const handleSendCode = async (e) => {
     e.preventDefault();
     
-    // 验证邮箱
+    // Validate email
     if (!formData.email) {
       setErrors({ email: 'Email is required' });
       return;
@@ -51,17 +51,17 @@ function ForgotPasswordPage() {
       setLoading(true);
       setErrors({});
       
-      // 这里应该调用API发送验证码
+      // Here should call API to send verification code
       // await authService.sendVerificationCode(formData.email);
       
-      // 模拟API调用
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // 开始60秒倒计时
+      // Start 60 seconds countdown
       setCountdown(60);
       setIsCountdownActive(true);
       
-      // 清除邮箱错误
+      // Clear email error
       setErrors(prev => ({ ...prev, email: '' }));
       
     } catch (error) {
